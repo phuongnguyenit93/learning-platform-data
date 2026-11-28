@@ -1,0 +1,640 @@
+﻿product-project-manager-module
+├── foundations
+│   ├── product-and-project-management-overview
+│   │   ├── product-management-and-project-management
+│   │   ├── product-project-program-and-portfolio
+│   │   ├── roles-and-responsibilities
+│   │   ├── product-and-project-lifecycle
+│   │   ├── organizational-context-and-operating-models
+│   │   ├── product-led-and-project-led-organizations
+│   │   └── learning-path-and-career-options
+│   ├── business-and-technology-context
+│   │   ├── business-models-and-value-propositions
+│   │   ├── customer-and-market-context
+│   │   ├── software-development-lifecycle
+│   │   ├── technology-and-platform-fundamentals
+│   │   ├── enterprise-systems-and-integrations
+│   │   ├── build-buy-and-partner-decisions
+│   │   └── business-and-technical-constraints
+│   ├── management-fundamentals
+│   │   ├── leadership-and-influence
+│   │   ├── communication-and-active-listening
+│   │   ├── critical-thinking-and-problem-solving
+│   │   ├── decision-making-under-uncertainty
+│   │   ├── negotiation-and-conflict-resolution
+│   │   ├── facilitation-and-meeting-management
+│   │   └── ethics-and-professional-responsibility
+│   └── tools-and-working-environment
+│       ├── product-management-tools
+│       ├── project-planning-and-tracking-tools
+│       ├── documentation-and-knowledge-tools
+│       ├── collaboration-and-communication-tools
+│       ├── analytics-and-reporting-tools
+│       ├── workflow-automation
+│       └── tool-selection-and-governance
+├── product-strategy-and-business-alignment
+│   ├── product-vision-and-strategy
+│   │   ├── product-vision
+│   │   ├── product-mission-and-purpose
+│   │   ├── strategic-themes-and-pillars
+│   │   ├── product-positioning
+│   │   ├── differentiation-and-competitive-advantage
+│   │   ├── strategic-options-and-tradeoffs
+│   │   └── strategy-communication
+│   ├── market-and-industry-analysis
+│   │   ├── market-sizing-tam-sam-som
+│   │   ├── industry-trends-and-disruption
+│   │   ├── competitor-and-alternative-analysis
+│   │   ├── competitive-positioning
+│   │   ├── regulatory-and-market-forces
+│   │   └── market-entry-and-expansion
+│   ├── business-model-and-value
+│   │   ├── business-model-canvas
+│   │   ├── value-proposition-design
+│   │   ├── revenue-models-and-pricing
+│   │   ├── cost-structure-and-unit-economics
+│   │   ├── customer-lifetime-value
+│   │   ├── acquisition-and-service-costs
+│   │   └── business-case-development
+│   ├── goals-and-strategic-alignment
+│   │   ├── organizational-goals-and-outcomes
+│   │   ├── okrs-and-key-results
+│   │   ├── product-goals-and-initiatives
+│   │   ├── strategy-to-execution-traceability
+│   │   ├── investment-allocation
+│   │   └── strategic-review-and-adjustment
+│   └── product-portfolio-management
+│       ├── product-line-and-portfolio-structure
+│       ├── portfolio-prioritization
+│       ├── investment-and-capacity-allocation
+│       ├── product-lifecycle-portfolio-decisions
+│       ├── dependency-across-products
+│       └── portfolio-performance-review
+├── customer-discovery-and-product-research
+│   ├── customer-and-user-understanding
+│   │   ├── customer-segmentation
+│   │   ├── personas-and-jobs-to-be-done
+│   │   ├── user-needs-and-pain-points
+│   │   ├── customer-journey-mapping
+│   │   ├── service-blueprints
+│   │   ├── user-context-and-behavior
+│   │   └── accessibility-and-inclusive-research
+│   ├── qualitative-research
+│   │   ├── problem-discovery-interviews
+│   │   ├── contextual-inquiry
+│   │   ├── focus-groups-and-workshops
+│   │   ├── diary-studies
+│   │   ├── usability-interviews
+│   │   ├── interview-bias-and-leading-questions
+│   │   └── research-synthesis
+│   ├── quantitative-research
+│   │   ├── surveys-and-questionnaire-design
+│   │   ├── sampling-and-representativeness
+│   │   ├── behavioral-analytics
+│   │   ├── funnel-and-cohort-analysis
+│   │   ├── segmentation-and-correlation
+│   │   ├── statistical-significance
+│   │   └── quantitative-research-limitations
+│   ├── problem-validation
+│   │   ├── problem-statements
+│   │   ├── opportunity-solution-trees
+│   │   ├── demand-and-willingness-to-pay
+│   │   ├── problem-severity-and-frequency
+│   │   ├── assumptions-and-riskiest-hypotheses
+│   │   ├── evidence-quality-and-confidence
+│   │   └── problem-validation-decisions
+│   └── research-operations
+│       ├── research-planning-and-recruitment
+│       ├── consent-and-research-ethics
+│       ├── research-repositories
+│       ├── insight-tagging-and-synthesis
+│       ├── customer-feedback-management
+│       └── continuous-discovery-practice
+├── product-discovery-and-validation
+│   ├── opportunity-identification
+│   │   ├── opportunity-solution-tree
+│   │   ├── customer-problem-opportunity-mapping
+│   │   ├── market-and-technology-opportunities
+│   │   ├── opportunity-scoring
+│   │   ├── unmet-needs-and-market-gaps
+│   │   └── opportunity-backlog
+│   ├── ideation-and-solution-design
+│   │   ├── divergent-and-convergent-thinking
+│   │   ├── brainstorming-and-brainwriting
+│   │   ├── design-thinking
+│   │   ├── co-creation-workshops
+│   │   ├── solution-concepts
+│   │   ├── storyboards-and-user-flows
+│   │   └── feasibility-and-desirability-review
+│   ├── prototyping-and-experimentation
+│   │   ├── paper-and-clickable-prototypes
+│   │   ├── low-and-high-fidelity-prototypes
+│   │   ├── concierge-and-wizard-of-oz-tests
+│   │   ├── landing-page-and-smoke-tests
+│   │   ├── proof-of-concept
+│   │   ├── minimum-viable-product
+│   │   └── prototype-success-criteria
+│   ├── hypothesis-and-experiment-design
+│   │   ├── hypothesis-formulation
+│   │   ├── experiment-design
+│   │   ├── control-and-treatment-groups
+│   │   ├── a-b-and-multivariate-testing
+│   │   ├── experiment-duration-and-sample-size
+│   │   ├── guardrail-metrics
+│   │   └── experiment-readout-and-decisions
+│   └── product-feasibility-and-readiness
+│       ├── technical-feasibility
+│       ├── operational-feasibility
+│       ├── financial-feasibility
+│       ├── legal-and-compliance-feasibility
+│       ├── product-market-fit-signals
+│       └── discovery-to-delivery-handoff
+├── product-planning-and-roadmapping
+│   ├── product-goals-and-outcomes
+│   │   ├── outcome-versus-output
+│   │   ├── north-star-metric
+│   │   ├── input-and-output-metrics
+│   │   ├── leading-and-lagging-indicators
+│   │   ├── goal-decomposition
+│   │   └── outcome-review-cadence
+│   ├── roadmap-development
+│   │   ├── roadmap-purpose-and-audience
+│   │   ├── theme-based-roadmaps
+│   │   ├── outcome-based-roadmaps
+│   │   ├── now-next-later-roadmaps
+│   │   ├── time-based-roadmaps-and-risks
+│   │   ├── roadmap-dependencies
+│   │   ├── roadmap-communication
+│   │   └── roadmap-review-and-evolution
+│   ├── prioritization-frameworks
+│   │   ├── value-and-effort
+│   │   ├── rice-scoring
+│   │   ├── kano-model
+│   │   ├── weighted-scoring
+│   │   ├── cost-of-delay
+│   │   ├── opportunity-cost
+│   │   ├── dependency-and-risk-prioritization
+│   │   └── prioritization-workshops
+│   ├── product-backlog-management
+│   │   ├── backlog-structure-and-hierarchy
+│   │   ├── backlog-refinement
+│   │   ├── feature-and-initiative-decomposition
+│   │   ├── backlog-prioritization
+│   │   ├── backlog-health-and-aging
+│   │   ├── technical-debt-and-maintenance-items
+│   │   └── backlog-transparency
+│   └── release-and-launch-planning
+│       ├── release-strategy
+│       ├── release-scope-and-cut-lines
+│       ├── phased-rollout-and-feature-flags
+│       ├── launch-readiness-criteria
+│       ├── go-to-market-coordination
+│       └── release-calendar-and-dependencies
+├── product-requirements-and-experience
+│   ├── product-requirements
+│   │   ├── product-requirements-document
+│   │   ├── business-requirements
+│   │   ├── user-and-system-requirements
+│   │   ├── functional-requirements
+│   │   ├── nonfunctional-requirements
+│   │   ├── constraints-and-assumptions
+│   │   ├── requirements-traceability
+│   │   └── requirements-change-control
+│   ├── user-stories-and-acceptance
+│   │   ├── user-story-format
+│   │   ├── story-mapping
+│   │   ├── acceptance-criteria
+│   │   ├── examples-and-edge-cases
+│   │   ├── definition-of-ready
+│   │   ├── definition-of-done
+│   │   └── behavior-driven-specification
+│   ├── user-experience-collaboration
+│   │   ├── information-architecture
+│   │   ├── interaction-design
+│   │   ├── wireframes-and-prototypes
+│   │   ├── usability-and-accessibility-reviews
+│   │   ├── design-systems-and-components
+│   │   ├── content-design-and-microcopy
+│   │   └── design-handoff-and-feedback
+│   ├── product-technical-collaboration
+│   │   ├── architecture-and-solution-reviews
+│   │   ├── api-and-integration-requirements
+│   │   ├── data-and-analytics-requirements
+│   │   ├── security-and-privacy-requirements
+│   │   ├── performance-and-scalability-requirements
+│   │   ├── technical-dependencies
+│   │   └── build-buy-and-reuse-decisions
+│   └── change-and-scope-management
+│       ├── requirement-baselines
+│       ├── scope-change-assessment
+│       ├── impact-analysis
+│       ├── stakeholder-approval
+│       ├── change-communication
+│       └── scope-creep-prevention
+├── project-management-fundamentals
+│   ├── project-initiation
+│   │   ├── project-charter
+│   │   ├── business-case-and-benefits
+│   │   ├── project-objectives-and-success-criteria
+│   │   ├── assumptions-and-constraints
+│   │   ├── feasibility-and-options-analysis
+│   │   ├── sponsor-and-project-owner
+│   │   └── project-authorization
+│   ├── project-planning
+│   │   ├── scope-management-plan
+│   │   ├── work-breakdown-structure
+│   │   ├── activity-definition-and-sequencing
+│   │   ├── effort-and-duration-estimation
+│   │   ├── dependency-mapping
+│   │   ├── critical-path-method
+│   │   ├── milestone-and-deliverable-planning
+│   │   └── integrated-project-plan
+│   ├── schedule-and-time-management
+│   │   ├── estimation-techniques
+│   │   ├── three-point-and-pert-estimation
+│   │   ├── story-points-and-relative-estimation
+│   │   ├── schedule-baselines
+│   │   ├── buffers-and-contingency
+│   │   ├── schedule-compression
+│   │   └── progress-and-variance-analysis
+│   ├── cost-and-budget-management
+│   │   ├── cost-estimation
+│   │   ├── project-budget-baseline
+│   │   ├── resource-costs-and-vendors
+│   │   ├── contingency-and-management-reserves
+│   │   ├── earned-value-management
+│   │   ├── cost-forecasting
+│   │   └── budget-control-and-reporting
+│   ├── resource-and-capacity-management
+│   │   ├── resource-planning
+│   │   ├── skills-and-capacity-mapping
+│   │   ├── workload-and-utilization
+│   │   ├── resource-leveling-and-smoothing
+│   │   ├── team-allocation-and-onboarding
+│   │   ├── external-resource-management
+│   │   └── capacity-and-demand-review
+│   ├── risk-and-issue-management
+│   │   ├── risk-identification
+│   │   ├── qualitative-and-quantitative-risk-analysis
+│   │   ├── probability-and-impact-matrix
+│   │   ├── risk-register
+│   │   ├── mitigation-and-contingency-plans
+│   │   ├── issue-log-and-escalation
+│   │   ├── dependency-and-assumption-tracking
+│   │   └── risk-review-cadence
+│   └── project-monitoring-and-control
+│       ├── project-status-and-health
+│       ├── milestone-and-deliverable-tracking
+│       ├── schedule-and-cost-variance
+│       ├── change-control-board
+│       ├── forecast-and-recovery-plans
+│       ├── project-reporting
+│       └── project-closure-and-lessons-learned
+├── agile-and-delivery-management
+│   ├── agile-principles-and-methods
+│   │   ├── agile-values-and-principles
+│   │   ├── scrum-framework
+│   │   ├── kanban-method
+│   │   ├── extreme-programming-overview
+│   │   ├── lean-software-development
+│   │   ├── hybrid-delivery-approaches
+│   │   └── method-selection-and-adaptation
+│   ├── scrum-product-and-project-practices
+│   │   ├── product-owner-accountabilities
+│   │   ├── scrum-master-accountabilities
+│   │   ├── development-team-collaboration
+│   │   ├── sprint-planning
+│   │   ├── daily-scrum
+│   │   ├── sprint-review
+│   │   ├── sprint-retrospective
+│   │   └── product-backlog-refinement
+│   ├── kanban-and-flow-management
+│   │   ├── workflow-visualization
+│   │   ├── work-in-progress-limits
+│   │   ├── pull-systems
+│   │   ├── cycle-time-and-lead-time
+│   │   ├── throughput-and-flow-efficiency
+│   │   ├── service-level-expectations
+│   │   └── flow-based-forecasting
+│   ├── delivery-planning-and-coordination
+│   │   ├── iteration-and-increment-planning
+│   │   ├── cross-team-dependencies
+│   │   ├── release-train-and-program-increments
+│   │   ├── integration-and-system-demos
+│   │   ├── delivery-readiness
+│   │   ├── blocker-removal
+│   │   └── continuous-improvement
+│   └── engineering-delivery-awareness
+│       ├── development-and-review-workflow
+│       ├── continuous-integration-and-delivery
+│       ├── testing-strategy-and-automation
+│       ├── environments-and-deployment
+│       ├── technical-debt-management
+│       ├── incident-and-defect-triage
+│       └── release-quality-and-stability
+├── stakeholder-and-team-management
+│   ├── stakeholder-identification-and-analysis
+│   │   ├── stakeholder-register
+│   │   ├── power-interest-and-influence-mapping
+│   │   ├── stakeholder-needs-and-expectations
+│   │   ├── decision-makers-and-approvers
+│   │   ├── stakeholder-engagement-strategy
+│   │   └── stakeholder-review
+│   ├── communication-management
+│   │   ├── communication-plan
+│   │   ├── audience-specific-messaging
+│   │   ├── status-reports-and-dashboards
+│   │   ├── executive-and-board-updates
+│   │   ├── asynchronous-communication
+│   │   ├── meeting-agendas-and-notes
+│   │   └── decision-and-action-tracking
+│   ├── cross-functional-team-leadership
+│   │   ├── engineering-and-architecture
+│   │   ├── design-and-research
+│   │   ├── quality-assurance
+│   │   ├── marketing-and-sales
+│   │   ├── customer-success-and-support
+│   │   ├── finance-legal-and-compliance
+│   │   └── team-working-agreements
+│   ├── conflict-and-negotiation
+│   │   ├── conflict-sources-and-styles
+│   │   ├── interest-based-negotiation
+│   │   ├── expectation-resetting
+│   │   ├── scope-and-priority-conflicts
+│   │   ├── escalation-and-resolution
+│   │   └── difficult-conversations
+│   └── team-health-and-development
+│       ├── psychological-safety
+│       ├── team-motivation-and-engagement
+│       ├── coaching-and-feedback
+│       ├── skills-and-development-plans
+│       ├── distributed-and-remote-teams
+│       └── team-health-assessment
+├── product-launch-and-growth
+│   ├── go-to-market-strategy
+│   │   ├── target-segment-and-positioning
+│   │   ├── messaging-and-value-proposition
+│   │   ├── pricing-and-packaging
+│   │   ├── launch-channels-and-partners
+│   │   ├── sales-enablement
+│   │   ├── customer-success-readiness
+│   │   └── launch-campaign-coordination
+│   ├── launch-execution
+│   │   ├── launch-plan-and-checklist
+│   │   ├── internal-beta-and-alpha
+│   │   ├── private-and-public-beta
+│   │   ├── phased-rollout
+│   │   ├── launch-day-operations
+│   │   ├── customer-communication
+│   │   └── launch-retrospective
+│   ├── product-adoption-and-growth
+│   │   ├── onboarding-and-activation
+│   │   ├── adoption-and-engagement
+│   │   ├── retention-and-churn
+│   │   ├── referral-and-virality
+│   │   ├── expansion-and-upsell
+│   │   ├── growth-loops
+│   │   └── lifecycle-communication
+│   ├── experimentation-and-optimization
+│   │   ├── conversion-rate-optimization
+│   │   ├── onboarding-experiments
+│   │   ├── pricing-and-packaging-tests
+│   │   ├── retention-experiments
+│   │   ├── funnel-drop-off-analysis
+│   │   └── experiment-prioritization
+│   └── product-lifecycle-management
+│       ├── introduction-and-validation
+│       ├── growth-and-expansion
+│       ├── maturity-and-optimization
+│       ├── decline-and-sunset
+│       ├── migration-and-deprecation
+│       └── customer-and-data-transition
+├── metrics-analytics-and-performance
+│   ├── product-metrics
+│   │   ├── north-star-and-input-metrics
+│   │   ├── acquisition-metrics
+│   │   ├── activation-metrics
+│   │   ├── engagement-metrics
+│   │   ├── retention-and-churn-metrics
+│   │   ├── revenue-and-monetization-metrics
+│   │   └── customer-satisfaction-metrics
+│   ├── project-and-delivery-metrics
+│   │   ├── schedule-and-milestone-performance
+│   │   ├── budget-and-cost-performance
+│   │   ├── scope-and-change-rate
+│   │   ├── velocity-and-throughput
+│   │   ├── cycle-time-and-lead-time
+│   │   ├── predictability-and-forecast-accuracy
+│   │   └── quality-and-defect-trends
+│   ├── analytics-and-data-literacy
+│   │   ├── event-taxonomy-and-instrumentation
+│   │   ├── metric-definitions-and-ownership
+│   │   ├── dashboards-and-self-service-analytics
+│   │   ├── segmentation-and-cohort-analysis
+│   │   ├── funnel-and-path-analysis
+│   │   ├── attribution-and-causality
+│   │   └── data-quality-and-trust
+│   ├── business-performance
+│   │   ├── revenue-and-margin
+│   │   ├── customer-acquisition-cost
+│   │   ├── customer-lifetime-value
+│   │   ├── payback-period
+│   │   ├── return-on-investment
+│   │   ├── benefit-realization
+│   │   └── business-outcome-review
+│   └── reporting-and-insight
+│       ├── metric-narratives
+│       ├── variance-and-trend-analysis
+│       ├── root-cause-investigation
+│       ├── executive-performance-reviews
+│       ├── decision-oriented-reporting
+│       └── action-tracking-from-insights
+├── governance-compliance-and-vendor-management
+│   ├── project-and-product-governance
+│   │   ├── governance-structures-and-roles
+│   │   ├── decision-rights-and-raci
+│   │   ├── stage-gates-and-approval
+│   │   ├── portfolio-and-steering-committees
+│   │   ├── audit-trails-and-documentation
+│   │   └── governance-effectiveness
+│   ├── procurement-and-vendor-management
+│   │   ├── procurement-planning
+│   │   ├── request-for-information-and-proposal
+│   │   ├── vendor-evaluation-and-selection
+│   │   ├── contract-and-sla-management
+│   │   ├── vendor-performance-review
+│   │   ├── outsourcing-and-partner-risks
+│   │   └── vendor-exit-and-transition
+│   ├── legal-security-and-compliance
+│   │   ├── privacy-and-data-protection
+│   │   ├── security-requirements-and-reviews
+│   │   ├── regulatory-and-industry-obligations
+│   │   ├── accessibility-and-inclusion-requirements
+│   │   ├── intellectual-property-and-licensing
+│   │   ├── records-and-retention
+│   │   └── compliance-evidence-and-signoff
+│   └── organizational-change-management
+│       ├── change-impact-assessment
+│       ├── change-readiness
+│       ├── communication-and-engagement
+│       ├── training-and-adoption
+│       ├── resistance-and-feedback
+│       └── adoption-measurement
+├── advanced-product-and-project-practices
+│   ├── product-operating-models
+│   │   ├── empowered-product-teams
+│   │   ├── outcome-oriented-planning
+│   │   ├── product-discovery-and-delivery-duality
+│   │   ├── product-operations
+│   │   ├── product-organization-design
+│   │   └── product-model-transformation
+│   ├── scaled-agile-and-program-management
+│   │   ├── multi-team-planning
+│   │   ├── program-increment-planning
+│   │   ├── dependency-and-integration-management
+│   │   ├── program-risk-and-impediments
+│   │   ├── portfolio-kanban
+│   │   └── scaled-agile-tradeoffs
+│   ├── complex-project-environments
+│   │   ├── hybrid-and-predictive-projects
+│   │   ├── multi-vendor-and-contract-delivery
+│   │   ├── global-and-distributed-programs
+│   │   ├── regulatory-and-fixed-date-projects
+│   │   ├── transformation-programs
+│   │   └── recovery-of-troubled-projects
+│   ├── product-and-project-risk-strategy
+│   │   ├── strategic-and-market-risk
+│   │   ├── technical-and-delivery-risk
+│   │   ├── dependency-and-concentration-risk
+│   │   ├── scenario-planning
+│   │   ├── uncertainty-and-options
+│   │   └── risk-adjusted-prioritization
+│   └── ai-and-automation-for-management
+│       ├── ai-assisted-research-and-synthesis
+│       ├── roadmap-and-backlog-assistance
+│       ├── project-status-automation
+│       ├── meeting-notes-and-action-extraction
+│       ├── workflow-and-report-automation
+│       ├── ai-output-validation-and-governance
+│       └── responsible-use-of-organizational-data
+├── professional-practice-and-career
+│   ├── product-manager-career
+│   │   ├── associate-and-junior-product-manager
+│   │   ├── product-manager
+│   │   ├── senior-and-lead-product-manager
+│   │   ├── group-and-principal-product-manager
+│   │   ├── head-and-director-of-product
+│   │   └── chief-product-officer
+│   ├── project-manager-career
+│   │   ├── project-coordinator
+│   │   ├── project-manager
+│   │   ├── senior-project-manager
+│   │   ├── program-manager
+│   │   ├── portfolio-manager
+│   │   └── project-management-office
+│   ├── professional-frameworks-and-certifications
+│   │   ├── pmi-and-pmbok
+│   │   ├── pmp-and-capm
+│   │   ├── prince2
+│   │   ├── scrum-and-agile-certifications
+│   │   ├── product-management-certifications
+│   │   └── framework-selection-and-limitations
+│   ├── portfolio-and-interviews
+│   │   ├── product-case-studies
+│   │   ├── product-requirements-and-roadmaps
+│   │   ├── project-charter-and-project-plan
+│   │   ├── delivery-and-metrics-reports
+│   │   ├── stakeholder-and-conflict-scenarios
+│   │   ├── product-sense-and-execution-interviews
+│   │   └── leadership-and-behavioral-interviews
+│   └── continuous-learning
+│       ├── product-and-project-literature
+│       ├── industry-benchmarks-and-research
+│       ├── product-launch-postmortems
+│       ├── project-retrospectives
+│       ├── professional-communities
+│       └── mentoring-and-peer-learning
+└── practice-projects
+    ├── customer-discovery-and-validation
+    │   ├── select-a-market-and-user-segment
+    │   ├── prepare-interview-and-survey-plan
+    │   ├── conduct-and-synthesize-research
+    │   ├── define-problem-and-opportunity
+    │   ├── formulate-and-test-hypotheses
+    │   └── present-evidence-based-recommendation
+    ├── product-strategy-and-roadmap
+    │   ├── define-product-vision-and-positioning
+    │   ├── analyze-market-and-competitors
+    │   ├── define-outcomes-and-north-star-metric
+    │   ├── prioritize-opportunities
+    │   ├── build-now-next-later-roadmap
+    │   └── communicate-strategy-and-tradeoffs
+    ├── mvp-discovery-and-launch
+    │   ├── define-target-users-and-problem
+    │   ├── create-prototype-and-acceptance-criteria
+    │   ├── design-validation-experiments
+    │   ├── define-mvp-scope
+    │   ├── prepare-go-to-market-plan
+    │   └── measure-launch-and-adoption
+    ├── software-project-planning
+    │   ├── project-charter-and-business-case
+    │   ├── stakeholder-and-raci-matrix
+    │   ├── work-breakdown-and-dependencies
+    │   ├── schedule-and-resource-plan
+    │   ├── budget-and-risk-register
+    │   └── baseline-and-status-dashboard
+    ├── agile-delivery-management
+    │   ├── product-backlog-and-story-map
+    │   ├── sprint-and-release-planning
+    │   ├── definition-of-ready-and-done
+    │   ├── team-flow-and-wip-limits
+    │   ├── dependency-and-blocker-management
+    │   └── retrospective-and-improvement-plan
+    ├── cross-functional-product-delivery
+    │   ├── align-product-design-and-engineering
+    │   ├── manage-requirements-and-scope
+    │   ├── coordinate-qa-and-release-readiness
+    │   ├── manage-stakeholder-expectations
+    │   ├── communicate-risks-and-decisions
+    │   └── evaluate-delivery-and-product-outcomes
+    ├── product-analytics-and-growth
+    │   ├── define-event-taxonomy
+    │   ├── build-product-metrics-dashboard
+    │   ├── analyze-funnel-and-cohorts
+    │   ├── identify-retention-opportunities
+    │   ├── design-and-evaluate-experiments
+    │   └── recommend-growth-actions
+    ├── vendor-and-implementation-project
+    │   ├── define-scope-and-procurement-needs
+    │   ├── prepare-vendor-evaluation-matrix
+    │   ├── assess-contract-and-sla
+    │   ├── plan-integration-and-migration
+    │   ├── manage-acceptance-and-handover
+    │   └── review-vendor-performance
+    ├── troubled-project-recovery
+    │   ├── assess-project-health-and-baselines
+    │   ├── identify-root-causes-and-critical-risks
+    │   ├── reset-scope-and-priorities
+    │   ├── negotiate-resources-and-dependencies
+    │   ├── create-recovery-and-communication-plan
+    │   └── track-recovery-and-lessons-learned
+    └── end-to-end-product-and-project-capstone
+        ├── discovery-and-business-case
+        │   ├── market-and-customer-research
+        │   ├── problem-validation-and-product-vision
+        │   ├── business-model-and-success-metrics
+        │   └── feasibility-and-investment-decision
+        ├── planning-and-delivery
+        │   ├── product-roadmap-and-prioritization
+        │   ├── requirements-and-acceptance-criteria
+        │   ├── project-charter-and-integrated-plan
+        │   ├── team-capacity-and-risk-management
+        │   └── iterative-build-and-quality-assurance
+        └── launch-and-measurement
+            ├── go-to-market-and-launch-readiness
+            ├── release-and-stakeholder-communication
+            ├── product-and-delivery-performance-review
+            ├── customer-feedback-and-iteration
+            ├── benefits-realization
+            └── closure-and-post-launch-retrospective
+

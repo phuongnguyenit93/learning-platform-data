@@ -1,0 +1,662 @@
+﻿flutter-module
+├── foundations
+│   ├── flutter-and-dart-overview
+│   │   ├── what-flutter-is-and-how-it-works
+│   │   ├── flutter-framework-and-engine
+│   │   ├── dart-language-and-runtime
+│   │   ├── declarative-ui-and-widget-model
+│   │   ├── native-cross-platform-and-web-targets
+│   │   ├── flutter-use-cases-and-tradeoffs
+│   │   └── flutter-developer-learning-path
+│   ├── development-environment
+│   │   ├── flutter-sdk-installation
+│   │   ├── dart-sdk-and-version-management
+│   │   ├── flutter-doctor-and-environment-validation
+│   │   ├── android-studio-and-android-sdk
+│   │   ├── xcode-and-ios-toolchain
+│   │   ├── visual-studio-code-and-extensions
+│   │   ├── emulator-simulator-and-device-setup
+│   │   └── command-line-and-build-tools
+│   ├── project-structure-and-tooling
+│   │   ├── flutter-create-and-project-layout
+│   │   ├── pubspec-yaml-and-package-configuration
+│   │   ├── dart-package-and-library-structure
+│   │   ├── assets-and-font-registration
+│   │   ├── flavors-and-environment-configuration
+│   │   ├── analysis-options-and-lint-rules
+│   │   ├── generated-files-and-build-runners
+│   │   └── editor-and-debugger-workflows
+│   └── flutter-development-workflow
+│       ├── run-and-hot-reload
+│       ├── hot-restart-and-full-restart
+│       ├── debug-and-profile-modes
+│       ├── logs-and-debug-console
+│       ├── widget-inspector
+│       ├── devtools-overview
+│       ├── documentation-and-api-reference
+│       └── reproducible-development-setup
+├── dart-programming-language
+│   ├── language-fundamentals
+│   │   ├── variables-and-type-inference
+│   │   ├── built-in-types-and-literals
+│   │   ├── operators-and-expressions
+│   │   ├── control-flow-and-patterns
+│   │   ├── functions-and-parameters
+│   │   ├── lexical-scope-and-closures
+│   │   ├── null-safety-and-nullable-types
+│   │   └── records-and-pattern-matching
+│   ├── object-oriented-programming
+│   │   ├── classes-and-constructors
+│   │   ├── named-and-factory-constructors
+│   │   ├── inheritance-and-interfaces
+│   │   ├── mixins-and-extensions
+│   │   ├── abstract-classes
+│   │   ├── enums-and-enhanced-enums
+│   │   ├── generics-and-type-constraints
+│   │   └── equality-and-operator-overrides
+│   ├── collections-and-functional-programming
+│   │   ├── lists-sets-and-maps
+│   │   ├── collection-operators
+│   │   ├── iterables-and-iterators
+│   │   ├── higher-order-functions
+│   │   ├── cascades-and-spread-operators
+│   │   ├── immutable-and-unmodifiable-collections
+│   │   └── functional-composition
+│   ├── asynchronous-dart
+│   │   ├── futures-and-future-chains
+│   │   ├── async-and-await
+│   │   ├── streams-and-stream-subscriptions
+│   │   ├── stream-transformations
+│   │   ├── error-handling-in-async-code
+│   │   ├── isolates-and-message-passing
+│   │   ├── event-loop-and-microtask-queue
+│   │   └── cancellation-and-resource-lifetimes
+│   ├── dart-packages-and-runtime
+│   │   ├── imports-exports-and-library-privacy
+│   │   ├── package-dependencies-and-version-constraints
+│   │   ├── pub-get-and-pub-upgrade
+│   │   ├── dart-cli-and-scripts
+│   │   ├── dart-virtual-machine-and-aot
+│   │   ├── dart-js-and-wasm-compilation-overview
+│   │   └── dart-interop-and-ffi
+│   └── dart-quality-and-testing
+│       ├── dart-format-and-analyzer
+│       ├── lints-and-static-analysis
+│       ├── exceptions-and-error-types
+│       ├── unit-testing-with-test-package
+│       ├── mocking-and-test-doubles
+│       ├── documentation-comments
+│       └── package-design-and-reusability
+├── flutter-widget-and-ui-fundamentals
+│   ├── widget-architecture
+│   │   ├── everything-is-a-widget
+│   │   ├── widget-element-and-render-object
+│   │   ├── stateless-widget
+│   │   ├── stateful-widget
+│   │   ├── build-method-and-rebuilds
+│   │   ├── widget-identity-and-keys
+│   │   ├── inherited-widget
+│   │   └── widget-composition-and-reuse
+│   ├── layout-and-constraints
+│   │   ├── box-constraints-and-layout-protocol
+│   │   ├── row-column-and-flex
+│   │   ├── stack-and-positioned
+│   │   ├── container-padding-and-align
+│   │   ├── expanded-flexible-and-spacer
+│   │   ├── constraints-and-overflow
+│   │   ├── scrollable-layouts
+│   │   ├── slivers-and-custom-scroll-views
+│   │   └── responsive-and-adaptive-layout
+│   ├── common-ui-widgets
+│   │   ├── text-and-rich-text
+│   │   ├── image-and-icon
+│   │   ├── buttons-and-ink-response
+│   │   ├── text-fields-and-form-controls
+│   │   ├── cards-and-list-tiles
+│   │   ├── dialogs-bottom-sheets-and-snackbars
+│   │   ├── lists-grids-and-expansion-widgets
+│   │   └── scaffold-appbar-and-navigation-rail
+│   ├── styling-and-theming
+│   │   ├── text-style-and-typography
+│   │   ├── color-scheme-and-color-system
+│   │   ├── material-design-3
+│   │   ├── cupertino-widgets
+│   │   ├── theme-data-and-theme-extension
+│   │   ├── light-dark-and-system-themes
+│   │   ├── custom-paint-and-decoration
+│   │   └── design-tokens-and-component-styles
+│   ├── user-interaction
+│   │   ├── gesture-detectors-and-inkwell
+│   │   ├── pointer-and-raw-gesture-events
+│   │   ├── focus-and-keyboard-input
+│   │   ├── forms-and-validation
+│   │   ├── text-editing-and-input-formatters
+│   │   ├── drag-and-drop
+│   │   ├── accessibility-semantics
+│   │   └── interaction-feedback-and-haptics
+│   └── animations-and-transitions
+│       ├── implicit-animations
+│       ├── explicit-animation-controller
+│       ├── tweens-and-curves
+│       ├── animated-builder
+│       ├── hero-and-shared-element-transitions
+│       ├── page-route-transitions
+│       ├── staggered-and-sequenced-animations
+│       └── animation-performance
+├── state-management-and-application-architecture
+│   ├── state-management-fundamentals
+│   │   ├── ephemeral-and-app-state
+│   │   ├── local-widget-state
+│   │   ├── state-lifting-and-sharing
+│   │   ├── immutable-state-models
+│   │   ├── unidirectional-data-flow
+│   │   └── state-lifecycle-and-disposal
+│   ├── built-in-state-and-reactivity
+│   │   ├── setstate-and-stateful-widgets
+│   │   ├── inheritedwidget-and-inheritedmodel
+│   │   ├── listenable-and-valuenotifier
+│   │   ├── changenotifier
+│   │   ├── animatedbuilder-and-listenablebuilder
+│   │   └── asynchronous-state-with-futures-and-streams
+│   ├── provider-and-riverpod
+│   │   ├── provider-and-consumer
+│   │   ├── changenotifierprovider
+│   │   ├── riverpod-provider-types
+│   │   ├── consumer-and-ref
+│   │   ├── asynchronous-providers
+│   │   ├── provider-lifecycle-and-auto-dispose
+│   │   ├── code-generation-with-riverpod
+│   │   └── testing-provider-based-state
+│   ├── bloc-and-cubit
+│   │   ├── bloc-and-cubit-fundamentals
+│   │   ├── events-states-and-transitions
+│   │   ├── bloc-builder-listener-and-consumer
+│   │   ├── repositories-and-bloc-boundaries
+│   │   ├── asynchronous-events-and-concurrency
+│   │   ├── bloc-observer-and-debugging
+│   │   └── bloc-testing
+│   ├── other-state-management-options
+│   │   ├── getx-overview
+│   │   ├── signals-and-reactive-state
+│   │   ├── redux-and-unidirectional-state
+│   │   ├── mobx-overview
+│   │   ├── state-management-comparison
+│   │   └── library-selection-and-maintenance
+│   ├── application-architecture
+│   │   ├── layered-and-clean-architecture
+│   │   ├── feature-first-and-layer-first-structure
+│   │   ├── model-view-viewmodel
+│   │   ├── repository-and-service-patterns
+│   │   ├── use-cases-and-domain-boundaries
+│   │   ├── dependency-injection
+│   │   ├── modularization-and-package-boundaries
+│   │   └── architecture-decision-records
+│   └── navigation-and-routing
+│       ├── navigator-and-routes
+│       ├── named-and-generated-routes
+│       ├── navigator-2-and-router-api
+│       ├── go-router
+│       ├── deep-links-and-route-information
+│       ├── nested-navigation-and-shell-routes
+│       ├── authentication-redirects
+│       └── navigation-state-restoration
+├── networking-and-backend-integration
+│   ├── http-and-api-communication
+│   │   ├── dart-http-client
+│   │   ├── dio-and-interceptors
+│   │   ├── rest-api-design-and-consumption
+│   │   ├── graphql-client-integration
+│   │   ├── grpc-and-protobuf-overview
+│   │   ├── request-cancellation-and-timeouts
+│   │   ├── pagination-and-infinite-scrolling
+│   │   └── file-upload-and-download
+│   ├── serialization-and-data-modeling
+│   │   ├── json-encoding-and-decoding
+│   │   ├── model-classes-and-immutability
+│   │   ├── json-serializable-and-build-runner
+│   │   ├── freezed-and-union-types
+│   │   ├── custom-converters-and-date-formats
+│   │   ├── api-contract-and-schema-evolution
+│   │   └── parsing-errors-and-validation
+│   ├── authentication-and-authorization
+│   │   ├── authentication-flows
+│   │   ├── oauth-2-and-openid-connect
+│   │   ├── access-and-refresh-tokens
+│   │   ├── secure-token-persistence
+│   │   ├── session-expiration-and-renewal
+│   │   ├── biometric-authentication
+│   │   └── role-and-permission-aware-ui
+│   ├── backend-platforms
+│   │   ├── firebase-core-and-project-setup
+│   │   ├── firebase-authentication
+│   │   ├── cloud-firestore-and-realtime-database
+│   │   ├── firebase-storage-and-cloud-functions
+│   │   ├── firebase-messaging-and-analytics
+│   │   ├── supabase-auth-and-database
+│   │   ├── appwrite-and-other-backend-services
+│   │   └── backend-as-a-service-tradeoffs
+│   └── real-time-and-resilient-communication
+│       ├── websocket-and-socket-io
+│       ├── server-sent-events
+│       ├── streams-and-live-data
+│       ├── connectivity-monitoring
+│       ├── retry-backoff-and-jitter
+│       ├── offline-queue-and-resynchronization
+│       ├── conflict-resolution
+│       └── error-and-empty-state-design
+├── local-storage-and-offline-first
+│   ├── local-persistence-options
+│   │   ├── shared-preferences
+│   │   ├── secure-storage-and-keychain
+│   │   ├── sqlite-and-drift
+│   │   ├── isar-and-objectbox-overview
+│   │   ├── hive-and-lightweight-storage
+│   │   ├── file-system-and-path-provider
+│   │   └── storage-selection-tradeoffs
+│   ├── database-and-data-access
+│   │   ├── relational-schema-and-migrations
+│   │   ├── queries-and-indexes
+│   │   ├── transactions-and-batch-operations
+│   │   ├── repository-data-sources
+│   │   ├── caching-and-expiration
+│   │   └── data-integrity-and-backups
+│   ├── offline-first-architecture
+│   │   ├── local-source-of-truth
+│   │   ├── optimistic-ui-updates
+│   │   ├── background-synchronization
+│   │   ├── pending-operation-queues
+│   │   ├── conflict-detection-and-resolution
+│   │   ├── retry-and-reconciliation
+│   │   └── offline-user-experience
+│   └── data-security-and-lifecycle
+│       ├── encryption-at-rest
+│       ├── secure-deletion-and-retention
+│       ├── local-database-migration
+│       ├── backup-and-restore
+│       ├── sensitive-data-minimization
+│       └── storage-performance-and-size
+├── platform-integration-and-device-features
+│   ├── android-and-ios-platform-channels
+│   │   ├── method-channel
+│   │   ├── event-channel
+│   │   ├── basic-message-channel
+│   │   ├── platform-interface-packages
+│   │   ├── pigeon-and-type-safe-bridges
+│   │   ├── plugin-registration-and-lifecycle
+│   │   └── native-error-and-thread-handling
+│   ├── camera-and-media
+│   │   ├── camera-plugin-and-capture
+│   │   ├── image-picker-and-gallery
+│   │   ├── image-cropping-and-processing
+│   │   ├── video-playback-and-recording
+│   │   ├── audio-recording-and-playback
+│   │   ├── media-compression-and-upload
+│   │   └── media-permissions-and-privacy
+│   ├── location-and-mapping
+│   │   ├── location-permissions
+│   │   ├── current-and-continuous-location
+│   │   ├── geocoding-and-geofencing
+│   │   ├── maps-and-markers
+│   │   ├── route-and-place-search
+│   │   └── background-location-and-power
+│   ├── sensors-and-connectivity
+│   │   ├── accelerometer-and-gyroscope
+│   │   ├── compass-and-motion-sensors
+│   │   ├── bluetooth-and-ble
+│   │   ├── nfc-and-contactless
+│   │   ├── wifi-and-network-state
+│   │   └── device-discovery-and-pairing
+│   ├── notifications-and-system-services
+│   │   ├── local-notifications
+│   │   ├── firebase-cloud-messaging
+│   │   ├── notification-channels-and-permissions
+│   │   ├── background-tasks-and-scheduling
+│   │   ├── app-shortcuts-and-share-intents
+│   │   ├── deep-links-and-app-links
+│   │   └── widgets-and-platform-extensions
+│   └── biometrics-and-device-security
+│       ├── fingerprint-and-face-authentication
+│       ├── secure-enclave-and-keystore
+│       ├── passkeys-and-credential-storage
+│       ├── device-integrity-signals
+│       └── authentication-fallback-and-recovery
+├── flutter-web-desktop-and-multiplatform
+│   ├── flutter-web
+│   │   ├── web-renderers-and-rendering-modes
+│   │   ├── browser-history-and-routing
+│   │   ├── web-plugins-and-platform-support
+│   │   ├── browser-storage-and-security
+│   │   ├── seo-and-web-deployment-considerations
+│   │   └── web-performance-and-bundle-size
+│   ├── flutter-desktop
+│   │   ├── windows-desktop
+│   │   ├── macos-desktop
+│   │   ├── linux-desktop
+│   │   ├── window-management-and-menus
+│   │   ├── keyboard-and-mouse-interaction
+│   │   ├── desktop-file-and-system-integration
+│   │   └── desktop-packaging-and-distribution
+│   ├── responsive-and-adaptive-multiplatform
+│   │   ├── platform-detection-and-capabilities
+│   │   ├── adaptive-navigation-and-layout
+│   │   ├── platform-specific-design-guidelines
+│   │   ├── input-modality-and-focus
+│   │   ├── shared-and-platform-specific-code
+│   │   └── cross-platform-feature-parity
+│   └── dart-and-flutter-interoperability
+│       ├── dart-ffi
+│       ├── native-assets-and-bindings
+│       ├── platform-plugins
+│       ├── web-javascript-interop
+│       ├── conditional-imports
+│       └── multiplatform-package-design
+├── testing-quality-and-performance
+│   ├── flutter-testing-fundamentals
+│   │   ├── unit-tests
+│   │   ├── widget-tests
+│   │   ├── integration-tests
+│   │   ├── golden-and-screenshot-tests
+│   │   ├── test-fixtures-and-test-organization
+│   │   ├── test-coverage-and-quality-gates
+│   │   └── test-isolation-and-determinism
+│   ├── mocking-and-test-architecture
+│   │   ├── mockito-and-mocktail
+│   │   ├── fake-and-in-memory-repositories
+│   │   ├── dependency-override-and-provider-tests
+│   │   ├── bloc-and-cubit-tests
+│   │   ├── navigation-and-routing-tests
+│   │   └── api-contract-and-error-tests
+│   ├── debugging-and-diagnostics
+│   │   ├── flutter-devtools
+│   │   ├── widget-inspector-and-layout-debugging
+│   │   ├── performance-overlay
+│   │   ├── memory-and-allocation-tracking
+│   │   ├── network-and-logging-inspection
+│   │   ├── platform-crash-and-native-logs
+│   │   └── minimal-reproduction-and-bug-triage
+│   ├── performance-engineering
+│   │   ├── build-and-frame-rendering-pipeline
+│   │   ├── build-method-and-rebuild-optimization
+│   │   ├── const-widgets-and-widget-reuse
+│   │   ├── list-and-image-performance
+│   │   ├── isolate-and-background-computation
+│   │   ├── startup-and-app-size-optimization
+│   │   ├── memory-and-image-cache-management
+│   │   └── jank-and-frame-budget-analysis
+│   └── compatibility-and-reliability
+│       ├── android-and-ios-version-matrix
+│       ├── device-and-screen-size-testing
+│       ├── network-and-offline-testing
+│       ├── permission-and-lifecycle-testing
+│       ├── accessibility-and-localization-testing
+│       ├── long-session-and-memory-leak-testing
+│       └── production-stability-monitoring
+├── security-and-privacy
+│   ├── mobile-application-security
+│   │   ├── threat-modeling-and-trust-boundaries
+│   │   ├── secure-storage-and-secret-management
+│   │   ├── tls-and-certificate-validation
+│   │   ├── authentication-and-authorization
+│   │   ├── deep-link-and-webview-security
+│   │   ├── dependency-and-plugin-security
+│   │   └── secure-build-and-release
+│   ├── privacy-and-permissions
+│   │   ├── least-privilege-permissions
+│   │   ├── consent-and-purpose-limitation
+│   │   ├── personal-and-sensitive-data
+│   │   ├── analytics-and-advertising-identifiers
+│   │   ├── data-retention-and-deletion
+│   │   ├── privacy-policy-and-store-disclosures
+│   │   └── privacy-review-and-auditing
+│   └── security-validation
+│       ├── static-analysis-and-dependency-audit
+│       ├── network-traffic-testing
+│       ├── insecure-storage-assessment
+│       ├── authentication-flow-testing
+│       ├── vulnerability-triage-and-remediation
+│       └── release-security-checks
+├── build-release-and-devops
+│   ├── flutter-build-system
+│   │   ├── debug-profile-and-release-modes
+│   │   ├── build-flavors-and-dart-defines
+│   │   ├── android-gradle-build-configuration
+│   │   ├── ios-xcode-build-configuration
+│   │   ├── web-and-desktop-builds
+│   │   ├── obfuscation-and-symbol-files
+│   │   └── reproducible-builds
+│   ├── continuous-integration-and-delivery
+│   │   ├── automated-analysis-and-formatting
+│   │   ├── unit-and-widget-tests-in-ci
+│   │   ├── platform-build-matrices
+│   │   ├── code-signing-and-secret-management
+│   │   ├── artifact-storage-and-distribution
+│   │   ├── beta-and-internal-testing
+│   │   └── release-approval-and-automation
+│   ├── app-store-and-play-store-release
+│   │   ├── android-app-bundle-and-signing
+│   │   ├── ios-archive-and-provisioning
+│   │   ├── app-store-connect-and-play-console
+│   │   ├── store-metadata-and-screenshots
+│   │   ├── privacy-and-data-safety-declarations
+│   │   ├── phased-and-staged-rollouts
+│   │   └── review-guidelines-and-compliance
+│   ├── release-management
+│   │   ├── semantic-versioning-and-build-numbers
+│   │   ├── release-branches-and-hotfixes
+│   │   ├── feature-flags-and-remote-config
+│   │   ├── backward-compatible-api-changes
+│   │   ├── rollback-and-recovery
+│   │   └── release-health-and-crash-monitoring
+│   └── environment-and-configuration-management
+│       ├── development-staging-and-production
+│       ├── environment-specific-endpoints
+│       ├── secrets-and-configuration-injection
+│       ├── firebase-project-and-app-flavors
+│       ├── remote-configuration
+│       └── configuration-validation
+├── analytics-monetization-and-product-growth
+│   ├── product-analytics
+│   │   ├── event-taxonomy-and-naming
+│   │   ├── screen-and-user-journey-tracking
+│   │   ├── firebase-analytics-and-alternatives
+│   │   ├── attribution-and-campaign-tracking
+│   │   ├── funnel-and-cohort-analysis
+│   │   ├── crash-and-performance-analytics
+│   │   └── consent-aware-analytics
+│   ├── monetization-and-payments
+│   │   ├── in-app-purchases
+│   │   ├── subscriptions-and-entitlements
+│   │   ├── purchase-validation-and-receipts
+│   │   ├── subscription-renewal-and-cancellation
+│   │   ├── payment-provider-integration
+│   │   ├── advertising-and-ad-mediation
+│   │   └── pricing-and-paywall-experiments
+│   ├── engagement-and-retention
+│   │   ├── onboarding-and-activation
+│   │   ├── push-notification-strategy
+│   │   ├── personalization-and-recommendations
+│   │   ├── referral-and-invitation-flows
+│   │   ├── lifecycle-messaging
+│   │   └── feedback-and-in-app-support
+│   └── experimentation-and-growth
+│       ├── a-b-testing-and-feature-experiments
+│       ├── conversion-and-retention-funnels
+│       ├── feature-adoption-measurement
+│       ├── remote-config-experiments
+│       ├── guardrail-metrics-and-analysis
+│       └── growth-iteration-and-reporting
+├── advanced-flutter-topics
+│   ├── rendering-and-framework-internals
+│   │   ├── widget-element-render-object-lifecycle
+│   │   ├── build-layout-and-paint-phases
+│   │   ├── pipeline-owner-and-frame-scheduling
+│   │   ├── compositing-and-layer-tree
+│   │   ├── raster-thread-and-ui-thread
+│   │   ├── impeller-rendering-engine
+│   │   └── custom-render-objects
+│   ├── custom-ui-and-graphics
+│   │   ├── custom-painter-and-canvas
+│   │   ├── paths-and-clipping
+│   │   ├── gestures-and-hit-testing
+│   │   ├── shaders-and-fragment-programs
+│   │   ├── custom-scroll-behavior
+│   │   └── advanced-animation-composition
+│   ├── advanced-concurrency-and-performance
+│   │   ├── isolate-pools-and-compute
+│   │   ├── transferable-typed-data
+│   │   ├── ffi-and-native-performance
+│   │   ├── frame-scheduling-and-jank-investigation
+│   │   ├── memory-pressure-and-resource-disposal
+│   │   └── startup-and-runtime-profiling
+│   ├── package-and-plugin-development
+│   │   ├── dart-package-authoring
+│   │   ├── flutter-plugin-architecture
+│   │   ├── federated-plugin-design
+│   │   ├── android-plugin-implementation
+│   │   ├── ios-plugin-implementation
+│   │   ├── platform-interface-and-pigeon
+│   │   ├── package-testing-and-publication
+│   │   └── semantic-versioning-and-maintenance
+│   └── emerging-and-specialized-experiences
+│       ├── desktop-and-embedded-flutter
+│       ├── foldables-and-large-screen-experiences
+│       ├── accessibility-and-assistive-technology
+│       ├── on-device-machine-learning
+│       ├── generative-ai-integration
+│       ├── augmented-and-spatial-experiences
+│       └── long-term-framework-migration
+├── professional-practice-and-career
+│   ├── flutter-engineering-workflow
+│   │   ├── feature-decomposition-and-estimation
+│   │   ├── technical-design-and-architecture-review
+│   │   ├── pull-requests-and-code-review
+│   │   ├── debugging-and-incident-response
+│   │   ├── documentation-and-maintenance
+│   │   └── cross-functional-collaboration
+│   ├── flutter-specializations
+│   │   ├── flutter-application-developer
+│   │   ├── dart-library-and-package-developer
+│   │   ├── flutter-platform-plugin-developer
+│   │   ├── mobile-application-architect
+│   │   ├── flutter-performance-engineer
+│   │   └── flutter-tech-lead
+│   ├── code-quality-and-engineering-standards
+│   │   ├── dart-style-and-linting
+│   │   ├── architecture-and-dependency-boundaries
+│   │   ├── testability-and-maintainability
+│   │   ├── accessibility-and-localization-review
+│   │   ├── security-and-privacy-review
+│   │   └── dependency-and-license-review
+│   ├── portfolio-and-interviews
+│   │   ├── polished-flutter-mobile-application
+│   │   ├── state-management-and-architecture-demo
+│   │   ├── offline-first-application
+│   │   ├── native-plugin-integration
+│   │   ├── performance-optimization-case-study
+│   │   └── flutter-technical-interview-practice
+│   └── continuous-learning
+│       ├── flutter-and-dart-release-notes
+│       ├── official-documentation-and-codelabs
+│       ├── package-and-plugin-ecosystem
+│       ├── framework-internals-and-research
+│       ├── open-source-contributions
+│       └── community-and-professional-development
+└── practice-projects
+    ├── personal-task-manager
+    │   ├── widget-layout-and-navigation
+    │   ├── forms-and-input-validation
+    │   ├── local-database-and-crud
+    │   ├── state-management
+    │   ├── reminders-and-notifications
+    │   └── widget-and-integration-tests
+    ├── weather-and-location-app
+    │   ├── location-permission-flow
+    │   ├── rest-api-and-json-models
+    │   ├── loading-error-and-empty-states
+    │   ├── caching-and-refresh
+    │   ├── responsive-weather-dashboard
+    │   └── location-privacy-and-testing
+    ├── ecommerce-mobile-application
+    │   ├── product-catalog-and-search
+    │   ├── authentication-and-user-profile
+    │   ├── cart-and-checkout-workflow
+    │   ├── payment-and-order-status
+    │   ├── state-management-and-routing
+    │   └── end-to-end-purchase-tests
+    ├── offline-first-notes-app
+    │   ├── local-storage-and-data-model
+    │   ├── repository-and-state-architecture
+    │   ├── offline-crud-and-search
+    │   ├── cloud-sync-and-conflict-resolution
+    │   ├── secure-storage-and-backup
+    │   └── synchronization-and-recovery-tests
+    ├── chat-and-messaging-app
+    │   ├── authentication-and-user-profiles
+    │   ├── websocket-or-realtime-backend
+    │   ├── message-stream-and-pagination
+    │   ├── local-message-persistence
+    │   ├── media-and-file-sharing
+    │   ├── push-notifications
+    │   └── offline-queue-and-reconnection
+    ├── camera-and-media-gallery
+    │   ├── camera-and-gallery-permissions
+    │   ├── image-capture-and-cropping
+    │   ├── video-recording-and-playback
+    │   ├── media-compression-and-upload
+    │   ├── background-upload-recovery
+    │   └── storage-and-privacy-controls
+    ├── booking-and-map-application
+    │   ├── map-and-location-integration
+    │   ├── place-search-and-filtering
+    │   ├── availability-and-booking-flow
+    │   ├── payment-and-confirmation
+    │   ├── deep-links-and-notifications
+    │   └── offline-and-error-handling
+    ├── firebase-social-application
+    │   ├── firebase-authentication
+    │   ├── user-profile-and-social-graph
+    │   ├── firestore-data-model
+    │   ├── media-storage-and-upload
+    │   ├── realtime-feed-and-notifications
+    │   └── security-rules-and-analytics
+    ├── reusable-flutter-design-system
+    │   ├── design-tokens-and-theming
+    │   ├── reusable-widget-library
+    │   ├── responsive-and-accessible-components
+    │   ├── documentation-and-widget-showcase
+    │   ├── golden-tests-and-visual-regression
+    │   └── package-and-version-management
+    ├── flutter-plugin-and-native-integration
+    │   ├── plugin-package-structure
+    │   ├── dart-platform-interface
+    │   ├── android-native-implementation
+    │   ├── ios-native-implementation
+    │   ├── platform-channel-and-pigeon
+    │   └── plugin-tests-and-publication
+    ├── flutter-web-and-desktop-dashboard
+    │   ├── responsive-multiplatform-layout
+    │   ├── desktop-navigation-and-keyboard
+    │   ├── web-routing-and-browser-history
+    │   ├── charts-and-data-visualization
+    │   ├── platform-specific-adapters
+    │   └── web-and-desktop-deployment
+    └── end-to-end-flutter-product
+        ├── discovery-and-design
+        │   ├── target-users-and-product-requirements
+        │   ├── user-flows-and-design-system
+        │   ├── platform-and-architecture-selection
+        │   └── functional-and-nonfunctional-requirements
+        ├── architecture-and-implementation
+        │   ├── feature-modules-and-state-management
+        │   ├── api-and-local-data-integration
+        │   ├── authentication-and-platform-features
+        │   ├── security-and-privacy-controls
+        │   └── analytics-and-observability
+        └── validation-and-release
+            ├── unit-widget-and-integration-tests
+            ├── android-and-ios-device-validation
+            ├── web-and-desktop-compatibility
+            ├── performance-and-accessibility-review
+            ├── ci-cd-and-store-submission
+            ├── crash-and-product-analytics
+            └── post-release-improvement

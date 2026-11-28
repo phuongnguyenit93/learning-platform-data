@@ -1,0 +1,3572 @@
+module
+├── foundation
+│   ├── devops-overview
+│   │   ├── business-value
+│   │   ├── software-delivery
+│   │   ├── operational-feedback
+│   │   ├── continuous-improvement
+│   │   ├── shared-responsibility
+│   │   ├── automation-and-learning
+│   │   └── devops-not-a-toolchain
+│   ├── role-and-discipline-boundaries
+│   │   ├── developer
+│   │   ├── system-administrator
+│   │   ├── devops-engineer
+│   │   ├── site-reliability-engineer
+│   │   ├── platform-engineer
+│   │   ├── security-engineer
+│   │   ├── cloud-engineer
+│   │   └── release-engineer
+│   ├── delivery-lifecycle
+│   │   ├── discover
+│   │   ├── plan
+│   │   ├── code
+│   │   ├── build
+│   │   ├── test
+│   │   ├── package
+│   │   ├── release
+│   │   ├── deploy
+│   │   ├── operate
+│   │   └── improve
+│   ├── systems-mental-model
+│   │   ├── desired-and-observed-state
+│   │   ├── control-loops
+│   │   ├── dependencies-and-failure-domains
+│   │   ├── immutable-artifacts
+│   │   ├── configuration-and-runtime-state
+│   │   ├── idempotence-and-convergence
+│   │   ├── blast-radius
+│   │   └── reversible-and-irreversible-change
+│   ├── environment-map
+│   │   ├── local-development
+│   │   ├── shared-development
+│   │   ├── integration
+│   │   ├── testing
+│   │   ├── staging
+│   │   ├── production
+│   │   ├── disaster-recovery
+│   │   └── sandbox
+│   ├── architectural-context
+│   │   ├── monolith
+│   │   ├── modular-monolith
+│   │   ├── microservices
+│   │   ├── event-driven-systems
+│   │   ├── batch-processing
+│   │   ├── serverless
+│   │   └── hybrid-and-on-premises
+│   ├── learning-environment
+│   │   ├── workstation-preparation
+│   │   ├── local-virtual-machines
+│   │   ├── container-runtime
+│   │   ├── local-kubernetes
+│   │   ├── sample-application
+│   │   ├── test-data
+│   │   ├── safe-network-boundaries
+│   │   └── lab-budget-and-cleanup
+│   ├── documentation-and-evidence
+│   │   ├── official-documentation
+│   │   ├── version-and-support-matrices
+│   │   ├── architecture-diagrams
+│   │   ├── command-output-evidence
+│   │   ├── reproducible-labs
+│   │   ├── assumptions-and-limitations
+│   │   └── learning-journal
+│   └── safe-operational-habits
+│       ├── identity-and-target-verification
+│       ├── read-only-inspection-first
+│       ├── plan-before-apply
+│       ├── least-privilege
+│       ├── explicit-destructive-approval
+│       ├── backup-before-risky-change
+│       ├── secret-redaction
+│       └── verified-readback
+├── culture-collaboration-and-delivery-metrics
+│   ├── collaboration-models
+│   │   ├── shared-service-ownership
+│   │   ├── cross-functional-teams
+│   │   ├── stream-aligned-teams
+│   │   ├── platform-enablement
+│   │   ├── team-interfaces
+│   │   ├── stakeholder-feedback
+│   │   └── psychological-safety
+│   ├── flow-and-feedback
+│   │   ├── small-batch-size
+│   │   ├── work-in-progress-limits
+│   │   ├── queue-time
+│   │   ├── handoff-reduction
+│   │   ├── continuous-integration-feedback
+│   │   ├── production-feedback
+│   │   └── bottleneck-identification
+│   ├── value-stream-mapping
+│   │   ├── work-intake
+│   │   ├── process-boundaries
+│   │   ├── lead-time-and-touch-time
+│   │   ├── wait-states
+│   │   ├── rework-loops
+│   │   ├── current-state-map
+│   │   ├── future-state-map
+│   │   └── improvement-experiments
+│   ├── dora-delivery-metrics
+│   │   ├── change-lead-time
+│   │   ├── deployment-frequency
+│   │   ├── failed-deployment-recovery-time
+│   │   ├── change-fail-rate
+│   │   ├── deployment-rework-rate
+│   │   ├── service-level-segmentation
+│   │   └── collection-and-definition-consistency
+│   ├── measurement-integrity
+│   │   ├── commits-to-deployments
+│   │   ├── incident-linkage
+│   │   ├── production-deployment-definition
+│   │   ├── medians-and-distributions
+│   │   ├── missing-and-late-events
+│   │   ├── time-window-consistency
+│   │   ├── metric-gaming-prevention
+│   │   └── no-individual-performance-ranking
+│   ├── developer-experience
+│   │   ├── feedback-loop-speed
+│   │   ├── cognitive-load
+│   │   ├── development-environment-friction
+│   │   ├── documentation-discoverability
+│   │   ├── self-service-success
+│   │   ├── qualitative-surveys
+│   │   └── balanced-measurement
+│   ├── improvement-practices
+│   │   ├── retrospectives
+│   │   ├── hypothesis-driven-change
+│   │   ├── improvement-backlog
+│   │   ├── toil-review
+│   │   ├── repeat-incident-analysis
+│   │   ├── outcome-validation
+│   │   └── stop-doing-decisions
+│   ├── ownership-and-communication
+│   │   ├── service-owners
+│   │   ├── responsibility-boundaries
+│   │   ├── escalation-paths
+│   │   ├── operational-readiness-review
+│   │   ├── architecture-decision-records
+│   │   ├── change-announcements
+│   │   └── handover-quality
+│   └── organizational-antipatterns
+│       ├── devops-as-ticket-silo
+│       ├── deployment-count-targets
+│       ├── hero-culture
+│       ├── automation-without-ownership
+│       ├── tool-first-transformation
+│       ├── approval-bottlenecks
+│       └── blame-oriented-incidents
+├── linux-and-operating-systems
+│   ├── system-architecture
+│   │   ├── kernel-and-user-space
+│   │   ├── distributions-and-packaging
+│   │   ├── boot-process
+│   │   ├── system-calls
+│   │   ├── processes-and-threads
+│   │   ├── virtual-memory
+│   │   ├── device-model
+│   │   └── filesystem-hierarchy
+│   ├── shell-and-files
+│   │   ├── paths-and-working-directory
+│   │   ├── globbing-and-quoting
+│   │   ├── pipes-and-redirection
+│   │   ├── exit-status
+│   │   ├── text-inspection
+│   │   ├── archive-and-compression
+│   │   ├── symbolic-and-hard-links
+│   │   └── safe-file-operations
+│   ├── users-and-permissions
+│   │   ├── users-and-groups
+│   │   ├── uid-and-gid
+│   │   ├── ownership
+│   │   ├── mode-bits
+│   │   ├── umask
+│   │   ├── access-control-lists
+│   │   ├── sudo-and-privilege-delegation
+│   │   └── service-accounts
+│   ├── process-management
+│   │   ├── process-tree
+│   │   ├── signals
+│   │   ├── foreground-and-background
+│   │   ├── jobs-and-sessions
+│   │   ├── process-priority
+│   │   ├── file-descriptors
+│   │   ├── process-limits
+│   │   ├── zombies-and-orphans
+│   │   └── graceful-termination
+│   ├── systemd-and-services
+│   │   ├── unit-files
+│   │   ├── service-types
+│   │   ├── dependencies-and-ordering
+│   │   ├── environment-files
+│   │   ├── restart-policies
+│   │   ├── timers-and-scheduling
+│   │   ├── journald
+│   │   ├── socket-activation
+│   │   └── service-hardening
+│   ├── storage-and-filesystems
+│   │   ├── partitions-and-mounts
+│   │   ├── inode-exhaustion
+│   │   ├── filesystem-capacity
+│   │   ├── lvm
+│   │   ├── block-device-performance
+│   │   ├── filesystem-permissions
+│   │   ├── deleted-open-files
+│   │   ├── mount-options
+│   │   └── network-filesystems
+│   ├── memory-and-cpu
+│   │   ├── load-average
+│   │   ├── cpu-utilization
+│   │   ├── memory-accounting
+│   │   ├── page-cache
+│   │   ├── swapping
+│   │   ├── out-of-memory-killer
+│   │   ├── cgroups-and-resource-limits
+│   │   ├── numa-basics
+│   │   └── pressure-stall-information
+│   ├── packages-and-patching
+│   │   ├── package-repositories
+│   │   ├── package-signatures
+│   │   ├── package-pinning
+│   │   ├── security-updates
+│   │   ├── kernel-upgrades
+│   │   ├── reboot-planning
+│   │   ├── package-lock-contention
+│   │   └── rollback-limitations
+│   ├── networking-operations
+│   │   ├── interface-configuration
+│   │   ├── routes-and-gateways
+│   │   ├── listening-sockets
+│   │   ├── local-dns-resolution
+│   │   ├── nftables-and-firewall-rules
+│   │   ├── connection-tracking
+│   │   ├── network-namespaces
+│   │   └── time-synchronization
+│   └── diagnostics-and-hardening
+│       ├── proc-and-sys
+│       ├── top-ps-and-pidstat
+│       ├── iostat-and-vmstat
+│       ├── strace-and-lsof
+│       ├── journal-and-kernel-logs
+│       ├── ssh-hardening
+│       ├── selinux-and-apparmor
+│       └── audit-logging
+├── windows-and-cross-platform-operations
+│   ├── windows-server-foundations
+│   │   ├── services-and-processes
+│   │   ├── registry-and-configuration
+│   │   ├── event-logs
+│   │   ├── filesystem-and-ntfs
+│   │   ├── local-users-and-groups
+│   │   ├── scheduled-tasks
+│   │   └── remote-management
+│   ├── powershell
+│   │   ├── objects-and-pipelines
+│   │   ├── cmdlets-and-modules
+│   │   ├── parameters-and-functions
+│   │   ├── error-records
+│   │   ├── structured-output
+│   │   ├── remoting
+│   │   ├── script-signing
+│   │   └── cross-platform-powershell
+│   ├── windows-application-hosting
+│   │   ├── iis-sites-and-bindings
+│   │   ├── application-pools
+│   │   ├── windows-services
+│   │   ├── dotnet-runtime-management
+│   │   ├── reverse-proxy-integration
+│   │   ├── certificate-store
+│   │   ├── health-checks
+│   │   └── deployment-permissions
+│   ├── identity-and-access
+│   │   ├── active-directory-concepts
+│   │   ├── domain-and-local-identities
+│   │   ├── group-policy
+│   │   ├── service-identities
+│   │   ├── managed-service-accounts
+│   │   ├── kerberos-and-ntlm-boundaries
+│   │   └── privilege-delegation
+│   ├── workstation-interoperability
+│   │   ├── wsl2
+│   │   ├── filesystem-boundaries
+│   │   ├── line-endings
+│   │   ├── path-separators
+│   │   ├── case-sensitivity
+│   │   ├── encoding-and-unicode
+│   │   ├── shell-portability
+│   │   └── permissions-mapping
+│   ├── windows-containers
+│   │   ├── host-and-image-compatibility
+│   │   ├── process-and-hyperv-isolation
+│   │   ├── base-image-servicing
+│   │   ├── container-networking
+│   │   ├── volume-permissions
+│   │   ├── resource-limits
+│   │   └── linux-workload-separation
+│   ├── patching-and-recovery
+│   │   ├── update-rings
+│   │   ├── maintenance-windows
+│   │   ├── reboot-coordination
+│   │   ├── application-compatibility
+│   │   ├── backup-and-restore
+│   │   ├── patch-rollback
+│   │   └── remote-access-recovery
+│   └── cross-platform-automation
+│       ├── environment-variables
+│       ├── executable-resolution
+│       ├── quoting-and-escaping
+│       ├── timezone-and-locale
+│       ├── file-locking
+│       ├── portable-scripts
+│       └── platform-specific-tests
+├── networking-dns-and-tls
+│   ├── networking-foundations
+│   │   ├── osi-and-tcp-ip
+│   │   ├── ipv4-and-ipv6
+│   │   ├── cidr-and-subnetting
+│   │   ├── private-and-public-addressing
+│   │   ├── routing-and-nat
+│   │   ├── mtu-and-fragmentation
+│   │   └── latency-bandwidth-and-loss
+│   ├── transport-protocols
+│   │   ├── tcp-handshake
+│   │   ├── tcp-retransmission
+│   │   ├── connection-lifecycle
+│   │   ├── keepalive-and-timeouts
+│   │   ├── udp-tradeoffs
+│   │   ├── quic-overview
+│   │   └── ephemeral-port-exhaustion
+│   ├── dns
+│   │   ├── recursive-and-authoritative-resolution
+│   │   ├── record-types
+│   │   ├── zones-and-delegation
+│   │   ├── ttl-and-caching
+│   │   ├── negative-caching
+│   │   ├── split-horizon-dns
+│   │   ├── dnssec-concepts
+│   │   └── resolver-troubleshooting
+│   ├── http
+│   │   ├── methods-and-status-codes
+│   │   ├── headers-and-cookies
+│   │   ├── caching-semantics
+│   │   ├── connection-reuse
+│   │   ├── http2-and-http3
+│   │   ├── request-size-limits
+│   │   ├── proxy-forwarding-headers
+│   │   └── retry-safe-methods
+│   ├── tls-and-certificates
+│   │   ├── trust-chains
+│   │   ├── certificate-authorities
+│   │   ├── certificate-signing-requests
+│   │   ├── hostname-validation
+│   │   ├── sni-and-alpn
+│   │   ├── certificate-renewal
+│   │   ├── mutual-tls
+│   │   └── expiry-monitoring
+│   ├── traffic-management
+│   │   ├── reverse-proxies
+│   │   ├── layer4-and-layer7-balancing
+│   │   ├── health-checks
+│   │   ├── session-affinity
+│   │   ├── connection-draining
+│   │   ├── weighted-routing
+│   │   ├── cdn-and-edge-caching
+│   │   └── origin-protection
+│   ├── network-security
+│   │   ├── segmentation
+│   │   ├── security-groups-and-firewalls
+│   │   ├── ingress-and-egress-controls
+│   │   ├── private-endpoints
+│   │   ├── bastion-and-session-access
+│   │   ├── vpn-and-private-connectivity
+│   │   ├── zero-trust-boundaries
+│   │   └── packet-capture-privacy
+│   ├── proxy-platforms
+│   │   ├── nginx
+│   │   ├── haproxy
+│   │   ├── envoy
+│   │   ├── traefik
+│   │   ├── configuration-validation
+│   │   ├── hot-reload
+│   │   ├── graceful-restart
+│   │   └── access-and-error-logs
+│   └── troubleshooting
+│       ├── dig-and-nslookup
+│       ├── curl-and-openssl
+│       ├── ip-and-ss
+│       ├── traceroute-and-mtr
+│       ├── tcpdump-and-wireshark
+│       ├── packet-loss-isolation
+│       ├── tls-handshake-failure
+│       └── asymmetric-routing
+├── scripting-and-automation
+│   ├── automation-design
+│   │   ├── task-discovery
+│   │   ├── inputs-outputs-and-contracts
+│   │   ├── deterministic-behavior
+│   │   ├── idempotent-operations
+│   │   ├── dry-run-mode
+│   │   ├── preconditions-and-postconditions
+│   │   └── destructive-action-guards
+│   ├── bash
+│   │   ├── quoting-and-expansion
+│   │   ├── arrays-and-functions
+│   │   ├── exit-code-handling
+│   │   ├── pipeline-error-handling
+│   │   ├── traps-and-cleanup
+│   │   ├── signal-handling
+│   │   ├── temporary-files
+│   │   └── shellcheck-and-tests
+│   ├── python
+│   │   ├── virtual-environments
+│   │   ├── package-pinning
+│   │   ├── cli-arguments
+│   │   ├── filesystem-automation
+│   │   ├── subprocess-safety
+│   │   ├── http-clients
+│   │   ├── structured-logging
+│   │   ├── exception-handling
+│   │   └── unit-tests
+│   ├── go-for-operations
+│   │   ├── single-binary-tools
+│   │   ├── modules-and-builds
+│   │   ├── context-and-cancellation
+│   │   ├── bounded-concurrency
+│   │   ├── http-clients
+│   │   ├── configuration-parsing
+│   │   ├── cross-compilation
+│   │   └── profiling-basics
+│   ├── structured-data
+│   │   ├── json
+│   │   ├── yaml
+│   │   ├── toml
+│   │   ├── csv
+│   │   ├── jq-and-yq
+│   │   ├── schema-validation
+│   │   ├── serialization-edge-cases
+│   │   └── safe-template-rendering
+│   ├── api-automation
+│   │   ├── authentication
+│   │   ├── pagination
+│   │   ├── rate-limits
+│   │   ├── timeouts
+│   │   ├── retries-with-jitter
+│   │   ├── idempotency-keys
+│   │   ├── asynchronous-jobs
+│   │   └── response-validation
+│   ├── reliable-execution
+│   │   ├── locking-and-concurrency
+│   │   ├── partial-failure
+│   │   ├── checkpoints-and-resume
+│   │   ├── backoff-and-deadlines
+│   │   ├── resource-cleanup
+│   │   ├── transactional-boundaries
+│   │   ├── audit-events
+│   │   └── human-approval-gates
+│   ├── scheduling-and-event-triggers
+│   │   ├── cron
+│   │   ├── timezones-and-dst
+│   │   ├── systemd-timers
+│   │   ├── webhook-triggers
+│   │   ├── workflow-schedulers
+│   │   ├── duplicate-trigger-handling
+│   │   └── missed-run-recovery
+│   ├── automation-testing
+│   │   ├── fixtures
+│   │   ├── stubs-and-fakes
+│   │   ├── contract-tests
+│   │   ├── integration-sandboxes
+│   │   ├── failure-injection
+│   │   ├── repeat-run-testing
+│   │   ├── permissions-testing
+│   │   └── output-redaction-tests
+│   └── maintainable-tooling
+│       ├── reusable-libraries
+│       ├── configuration-documentation
+│       ├── semantic-versioning
+│       ├── dependency-updates
+│       ├── installation-and-distribution
+│       ├── ownership-and-support
+│       └── deprecation-and-retirement
+├── git-and-source-control
+│   ├── repository-foundations
+│   │   ├── working-tree
+│   │   ├── staging-area
+│   │   ├── commits-and-objects
+│   │   ├── branches-and-tags
+│   │   ├── remote-tracking
+│   │   ├── clone-fetch-and-pull
+│   │   └── gitignore-and-attributes
+│   ├── everyday-workflows
+│   │   ├── focused-commits
+│   │   ├── meaningful-messages
+│   │   ├── diff-and-status
+│   │   ├── merge-and-rebase
+│   │   ├── conflict-resolution
+│   │   ├── cherry-pick
+│   │   ├── stash-and-worktrees
+│   │   └── reverting-changes
+│   ├── collaboration-strategies
+│   │   ├── trunk-based-development
+│   │   ├── short-lived-branches
+│   │   ├── pull-request-workflow
+│   │   ├── release-branches
+│   │   ├── fork-workflow
+│   │   ├── strategy-tradeoffs
+│   │   └── merge-queues
+│   ├── repository-governance
+│   │   ├── protected-branches
+│   │   ├── required-checks
+│   │   ├── codeowners
+│   │   ├── review-policy
+│   │   ├── signed-commits
+│   │   ├── signed-tags
+│   │   ├── least-privilege-access
+│   │   └── emergency-change-audit
+│   ├── history-and-recovery
+│   │   ├── reflog
+│   │   ├── bisect
+│   │   ├── blame-and-log
+│   │   ├── lost-commit-recovery
+│   │   ├── revert-versus-reset
+│   │   ├── force-push-risks
+│   │   ├── history-rewrite-coordination
+│   │   └── secret-removal-and-rotation
+│   ├── repository-organization
+│   │   ├── monorepo-and-polyrepo
+│   │   ├── submodules-and-subtrees
+│   │   ├── git-lfs
+│   │   ├── generated-artifact-policy
+│   │   ├── large-repository-performance
+│   │   ├── sparse-checkout
+│   │   └── partial-clone
+│   ├── application-and-infrastructure-code
+│   │   ├── source-repositories
+│   │   ├── environment-repositories
+│   │   ├── configuration-ownership
+│   │   ├── shared-pipeline-libraries
+│   │   ├── policy-repositories
+│   │   ├── change-traceability
+│   │   └── dependency-update-bots
+│   └── git-for-release-engineering
+│       ├── version-tags
+│       ├── release-notes
+│       ├── changelog-automation
+│       ├── commit-to-artifact-mapping
+│       ├── release-branch-hotfixes
+│       ├── immutable-release-references
+│       └── provenance-linkage
+├── application-builds-and-runtime-operations
+│   ├── build-foundations
+│   │   ├── source-to-artifact
+│   │   ├── dependency-graphs
+│   │   ├── compile-and-package
+│   │   ├── deterministic-inputs
+│   │   ├── toolchain-pinning
+│   │   ├── reproducible-builds
+│   │   ├── hermetic-build-boundaries
+│   │   └── build-cache-correctness
+│   ├── java-and-spring
+│   │   ├── jdk-toolchains
+│   │   ├── maven-wrapper
+│   │   ├── gradle-wrapper
+│   │   ├── dependency-locking
+│   │   ├── unit-and-integration-phases
+│   │   ├── executable-jar
+│   │   ├── container-aware-jvm
+│   │   ├── gc-and-heap-settings
+│   │   └── graceful-shutdown
+│   ├── nodejs-and-javascript
+│   │   ├── runtime-support-lines
+│   │   ├── package-manager-pinning
+│   │   ├── lockfiles
+│   │   ├── clean-install
+│   │   ├── lifecycle-script-risks
+│   │   ├── frontend-build-output
+│   │   ├── node-process-signals
+│   │   ├── source-maps
+│   │   └── memory-limits
+│   ├── python-services
+│   │   ├── interpreter-pinning
+│   │   ├── wheels-and-source-distributions
+│   │   ├── virtual-environments
+│   │   ├── dependency-locks
+│   │   ├── application-servers
+│   │   ├── worker-processes
+│   │   ├── native-extension-dependencies
+│   │   └── signal-propagation
+│   ├── dotnet-and-go
+│   │   ├── sdk-and-toolchain-pinning
+│   │   ├── restore-and-build
+│   │   ├── self-contained-and-framework-dependent
+│   │   ├── dotnet-publish
+│   │   ├── go-static-and-cgo-boundaries
+│   │   ├── cross-platform-output
+│   │   └── runtime-configuration
+│   ├── runtime-configuration
+│   │   ├── environment-variables
+│   │   ├── configuration-files
+│   │   ├── precedence-and-validation
+│   │   ├── secret-references
+│   │   ├── feature-configuration
+│   │   ├── configuration-reload
+│   │   └── immutable-deployment-settings
+│   ├── application-operability
+│   │   ├── startup-contract
+│   │   ├── readiness-and-liveness
+│   │   ├── structured-logs
+│   │   ├── metrics-and-traces
+│   │   ├── external-dependency-timeouts
+│   │   ├── graceful-drain
+│   │   └── termination-budget
+│   ├── dependency-management
+│   │   ├── direct-and-transitive-dependencies
+│   │   ├── repositories-and-mirrors
+│   │   ├── checksum-verification
+│   │   ├── version-constraints
+│   │   ├── vulnerability-updates
+│   │   ├── license-review
+│   │   └── dependency-confusion-prevention
+│   └── build-troubleshooting
+│       ├── cache-misses
+│       ├── flaky-downloads
+│       ├── toolchain-mismatch
+│       ├── native-library-errors
+│       ├── out-of-memory-builds
+│       ├── nondeterministic-output
+│       ├── network-isolation-failures
+│       └── artifact-comparison
+├── testing-and-quality-gates
+│   ├── test-strategy
+│   │   ├── risk-based-testing
+│   │   ├── unit-integration-and-end-to-end
+│   │   ├── contract-testing
+│   │   ├── nonfunctional-testing
+│   │   ├── feedback-speed
+│   │   ├── test-environment-fidelity
+│   │   └── ownership-and-triage
+│   ├── static-checks
+│   │   ├── formatting
+│   │   ├── linting
+│   │   ├── type-checking
+│   │   ├── configuration-linting
+│   │   ├── dockerfile-linting
+│   │   ├── shell-script-analysis
+│   │   ├── infrastructure-validation
+│   │   └── policy-evaluation
+│   ├── application-tests
+│   │   ├── isolated-unit-tests
+│   │   ├── component-tests
+│   │   ├── database-integration-tests
+│   │   ├── service-contract-tests
+│   │   ├── browser-tests
+│   │   ├── smoke-tests
+│   │   └── accessibility-checks
+│   ├── infrastructure-tests
+│   │   ├── module-unit-tests
+│   │   ├── plan-assertions
+│   │   ├── ephemeral-integration-tests
+│   │   ├── configuration-idempotence-tests
+│   │   ├── container-structure-tests
+│   │   ├── kubernetes-manifest-validation
+│   │   └── destructive-change-detection
+│   ├── test-data-and-environments
+│   │   ├── synthetic-data
+│   │   ├── data-masking
+│   │   ├── fixtures-and-seeding
+│   │   ├── environment-isolation
+│   │   ├── dependency-emulation
+│   │   ├── testcontainers
+│   │   └── cleanup-and-expiry
+│   ├── security-and-compliance-gates
+│   │   ├── secret-scanning
+│   │   ├── sast
+│   │   ├── sca
+│   │   ├── image-scanning
+│   │   ├── iac-scanning
+│   │   ├── approved-dast
+│   │   ├── license-checks
+│   │   └── evidence-retention
+│   ├── performance-and-resilience-gates
+│   │   ├── baseline-load
+│   │   ├── resource-regression
+│   │   ├── startup-time
+│   │   ├── dependency-timeouts
+│   │   ├── graceful-shutdown
+│   │   ├── canary-health-checks
+│   │   └── safe-failure-injection
+│   ├── quality-gate-design
+│   │   ├── blocking-and-advisory-checks
+│   │   ├── risk-based-thresholds
+│   │   ├── exception-expiry
+│   │   ├── false-positive-management
+│   │   ├── flaky-test-quarantine
+│   │   ├── release-signoff
+│   │   └── gate-bypass-audit
+│   └── test-reporting
+│       ├── junit-and-coverage-results
+│       ├── failure-classification
+│       ├── reproducible-failure-artifacts
+│       ├── trend-analysis
+│       ├── test-duration-budgets
+│       ├── ownership-routing
+│       └── report-retention
+├── continuous-integration
+│   ├── pipeline-foundations
+│   │   ├── event-triggers
+│   │   ├── workflow-dag
+│   │   ├── jobs-and-steps
+│   │   ├── pipeline-as-code
+│   │   ├── isolated-execution
+│   │   ├── feedback-on-every-change
+│   │   └── fail-fast-design
+│   ├── pipeline-data-flow
+│   │   ├── inputs-and-parameters
+│   │   ├── environment-scope
+│   │   ├── job-outputs
+│   │   ├── artifacts-versus-cache
+│   │   ├── secret-injection
+│   │   ├── matrix-builds
+│   │   └── conditional-execution
+│   ├── runner-engineering
+│   │   ├── hosted-and-self-hosted-runners
+│   │   ├── ephemeral-runners
+│   │   ├── workload-isolation
+│   │   ├── autoscaling
+│   │   ├── runner-images
+│   │   ├── network-access
+│   │   ├── runner-patching
+│   │   └── cache-and-disk-hygiene
+│   ├── pipeline-performance
+│   │   ├── dependency-caching
+│   │   ├── build-caching
+│   │   ├── parallel-jobs
+│   │   ├── test-sharding
+│   │   ├── affected-project-detection
+│   │   ├── queue-time-reduction
+│   │   ├── cache-key-design
+│   │   └── concurrency-limits
+│   ├── pipeline-security
+│   │   ├── untrusted-pull-requests
+│   │   ├── least-privilege-job-tokens
+│   │   ├── oidc-federation
+│   │   ├── action-version-pinning
+│   │   ├── command-injection-prevention
+│   │   ├── trusted-and-untrusted-separation
+│   │   └── runner-compromise-response
+│   ├── github-actions
+│   │   ├── workflow-events
+│   │   ├── reusable-workflows
+│   │   ├── composite-actions
+│   │   ├── environments-and-approvals
+│   │   ├── artifacts-and-caches
+│   │   ├── concurrency-groups
+│   │   ├── permissions-and-oidc
+│   │   └── required-checks
+│   ├── gitlab-ci
+│   │   ├── stages-and-needs
+│   │   ├── includes-and-components
+│   │   ├── rules-and-workflow
+│   │   ├── child-pipelines
+│   │   ├── environments-and-deployments
+│   │   ├── runners-and-executors
+│   │   ├── protected-variables
+│   │   └── artifact-and-cache-policy
+│   ├── jenkins
+│   │   ├── controller-and-agent-boundaries
+│   │   ├── declarative-pipelines
+│   │   ├── jenkinsfile
+│   │   ├── shared-libraries
+│   │   ├── credentials-binding
+│   │   ├── ephemeral-agents
+│   │   ├── plugin-governance
+│   │   ├── configuration-as-code
+│   │   └── backup-and-upgrades
+│   ├── other-ci-platforms
+│   │   ├── azure-pipelines
+│   │   ├── buildkite
+│   │   ├── circleci
+│   │   ├── tekton
+│   │   ├── portability-boundaries
+│   │   ├── managed-versus-self-hosted
+│   │   └── cost-and-maintenance-comparison
+│   └── pipeline-troubleshooting
+│       ├── trigger-mismatch
+│       ├── permission-denied
+│       ├── queue-starvation
+│       ├── stale-caches
+│       ├── missing-artifacts
+│       ├── timeout-and-cancellation
+│       ├── leaked-processes
+│       └── retry-versus-root-cause
+├── continuous-delivery-and-release-engineering
+│   ├── delivery-principles
+│   │   ├── continuous-delivery-versus-deployment
+│   │   ├── deployment-versus-release
+│   │   ├── build-once-promote-many
+│   │   ├── immutable-artifact-promotion
+│   │   ├── environment-parity
+│   │   ├── automated-verification
+│   │   └── business-release-control
+│   ├── environment-promotion
+│   │   ├── promotion-contracts
+│   │   ├── artifact-digests
+│   │   ├── configuration-separation
+│   │   ├── approvals-and-separation-of-duties
+│   │   ├── environment-locks
+│   │   ├── deployment-records
+│   │   └── promotion-evidence
+│   ├── deployment-strategies
+│   │   ├── recreate
+│   │   ├── rolling-update
+│   │   ├── blue-green
+│   │   ├── canary
+│   │   ├── ring-based-deployment
+│   │   ├── shadow-traffic
+│   │   └── strategy-selection
+│   ├── progressive-delivery
+│   │   ├── traffic-splitting
+│   │   ├── baseline-and-canary-comparison
+│   │   ├── analysis-windows
+│   │   ├── minimum-sample-size
+│   │   ├── automated-abort
+│   │   ├── manual-pause
+│   │   └── gradual-expansion
+│   ├── release-safety
+│   │   ├── preflight-checks
+│   │   ├── readiness-gates
+│   │   ├── dependency-compatibility
+│   │   ├── smoke-tests
+│   │   ├── change-correlation
+│   │   ├── automatic-stop-conditions
+│   │   └── deployment-freeze-exceptions
+│   ├── rollback-and-recovery
+│   │   ├── application-rollback
+│   │   ├── configuration-rollback
+│   │   ├── roll-forward
+│   │   ├── database-compatibility
+│   │   ├── feature-disable
+│   │   ├── traffic-reversal
+│   │   ├── irreversible-change-boundaries
+│   │   └── recovery-verification
+│   ├── database-aware-delivery
+│   │   ├── expand-and-contract
+│   │   ├── additive-schema-change
+│   │   ├── dual-version-support
+│   │   ├── backfill-coordination
+│   │   ├── lock-and-duration-budgets
+│   │   ├── migration-observability
+│   │   └── post-release-cleanup
+│   ├── feature-management
+│   │   ├── flag-lifecycle
+│   │   ├── targeting-and-cohorts
+│   │   ├── kill-switches
+│   │   ├── authorization-boundaries
+│   │   ├── stale-flag-cleanup
+│   │   ├── flag-audit
+│   │   └── testing-flag-combinations
+│   ├── release-coordination
+│   │   ├── release-manifests
+│   │   ├── dependency-ordering
+│   │   ├── maintenance-windows
+│   │   ├── stakeholder-notification
+│   │   ├── release-notes
+│   │   ├── customer-impact-summary
+│   │   └── operational-handover
+│   └── deployment-tools
+│       ├── argo-rollouts
+│       ├── flagger
+│       ├── spinnaker
+│       ├── octopus-deploy
+│       ├── cloud-native-deployment-services
+│       ├── runner-push-versus-controller-pull
+│       └── support-and-maintenance-evaluation
+├── artifact-management-and-software-supply-chain
+│   ├── artifact-model
+│   │   ├── binaries-packages-and-images
+│   │   ├── source-artifact-traceability
+│   │   ├── coordinates-and-versions
+│   │   ├── digests-and-checksums
+│   │   ├── immutability
+│   │   ├── retention-and-deletion
+│   │   └── artifact-metadata
+│   ├── package-repositories
+│   │   ├── nexus-repository
+│   │   ├── jfrog-artifactory
+│   │   ├── cloud-package-registries
+│   │   ├── proxy-and-hosted-repositories
+│   │   ├── repository-groups
+│   │   ├── upstream-availability
+│   │   └── scoped-access
+│   ├── container-registries
+│   │   ├── oci-distribution
+│   │   ├── image-manifests
+│   │   ├── tags-versus-digests
+│   │   ├── registry-authentication
+│   │   ├── image-promotion
+│   │   ├── replication-and-caching
+│   │   ├── vulnerability-metadata
+│   │   └── garbage-collection
+│   ├── dependency-integrity
+│   │   ├── lockfile-enforcement
+│   │   ├── checksum-validation
+│   │   ├── trusted-registries
+│   │   ├── dependency-confusion
+│   │   ├── typosquatting-risks
+│   │   ├── install-script-controls
+│   │   └── mirror-trust-boundaries
+│   ├── software-bill-of-materials
+│   │   ├── dependency-inventory
+│   │   ├── sbom-generation
+│   │   ├── spdx
+│   │   ├── cyclonedx
+│   │   ├── build-time-and-runtime-scope
+│   │   ├── sbom-artifact-linkage
+│   │   ├── sbom-validation
+│   │   └── lifecycle-updates
+│   ├── signing-and-attestations
+│   │   ├── artifact-signatures
+│   │   ├── signing-identity
+│   │   ├── keyless-signing
+│   │   ├── trust-roots
+│   │   ├── transparency-logs
+│   │   ├── attestation-predicates
+│   │   ├── verification-policy
+│   │   └── revocation-and-key-rotation
+│   ├── slsa-and-provenance
+│   │   ├── source-track
+│   │   ├── build-track
+│   │   ├── builder-identity
+│   │   ├── build-inputs
+│   │   ├── build-invocation
+│   │   ├── artifact-subject-digests
+│   │   ├── provenance-verification
+│   │   └── trust-boundary-assessment
+│   ├── supply-chain-controls
+│   │   ├── isolated-builders
+│   │   ├── protected-source
+│   │   ├── review-and-approval
+│   │   ├── trusted-workflow-references
+│   │   ├── dependency-review
+│   │   ├── release-authority
+│   │   └── admission-verification
+│   ├── vulnerability-management
+│   │   ├── scan-timing
+│   │   ├── severity-and-exploitability
+│   │   ├── reachability-context
+│   │   ├── fix-availability
+│   │   ├── exception-owner-and-expiry
+│   │   ├── rescan-and-notification
+│   │   ├── vex-and-limitations
+│   │   └── remediation-validation
+│   └── supply-chain-tooling
+│       ├── sigstore-cosign
+│       ├── syft
+│       ├── grype
+│       ├── trivy
+│       ├── in-toto
+│       ├── artifact-attestations
+│       ├── registry-policy-integrations
+│       └── compromised-artifact-response
+├── containers-and-image-engineering
+│   ├── container-foundations
+│   │   ├── images-and-containers
+│   │   ├── namespaces
+│   │   ├── cgroups
+│   │   ├── capabilities
+│   │   ├── root-filesystems
+│   │   ├── process-isolation
+│   │   ├── containers-versus-vms
+│   │   └── runtime-and-orchestrator-boundaries
+│   ├── runtime-ecosystem
+│   │   ├── oci-image-and-runtime-specifications
+│   │   ├── docker-engine
+│   │   ├── containerd
+│   │   ├── cri-o
+│   │   ├── podman
+│   │   ├── rootless-execution
+│   │   └── runtime-support-policy
+│   ├── dockerfile-design
+│   │   ├── base-image-selection
+│   │   ├── layer-order
+│   │   ├── build-context
+│   │   ├── copy-and-add
+│   │   ├── entrypoint-and-cmd
+│   │   ├── user-and-workdir
+│   │   ├── environment-and-arguments
+│   │   └── metadata-and-labels
+│   ├── efficient-builds
+│   │   ├── multi-stage-builds
+│   │   ├── buildkit
+│   │   ├── dependency-cache-mounts
+│   │   ├── secret-and-ssh-mounts
+│   │   ├── remote-cache
+│   │   ├── provenance-and-sbom-output
+│   │   ├── reproducibility
+│   │   └── build-context-exclusions
+│   ├── image-security
+│   │   ├── non-root-user
+│   │   ├── minimal-runtime-images
+│   │   ├── trusted-base-images
+│   │   ├── digest-pinning
+│   │   ├── no-embedded-secrets
+│   │   ├── filesystem-permissions
+│   │   ├── capability-reduction
+│   │   └── patch-and-rebuild-policy
+│   ├── container-lifecycle
+│   │   ├── foreground-process
+│   │   ├── pid-one-and-signals
+│   │   ├── graceful-stop
+│   │   ├── exit-codes
+│   │   ├── restart-behavior
+│   │   ├── health-checks
+│   │   ├── init-processes
+│   │   └── orphan-process-reaping
+│   ├── networking-and-storage
+│   │   ├── bridge-and-host-networking
+│   │   ├── port-publishing
+│   │   ├── name-resolution
+│   │   ├── user-defined-networks
+│   │   ├── bind-mounts
+│   │   ├── named-volumes
+│   │   ├── ephemeral-data
+│   │   └── volume-ownership
+│   ├── resource-management
+│   │   ├── cpu-requests-and-quotas
+│   │   ├── memory-limits
+│   │   ├── oom-behavior
+│   │   ├── process-limits
+│   │   ├── file-descriptor-limits
+│   │   ├── disk-growth
+│   │   ├── log-rotation
+│   │   └── resource-observation
+│   ├── multi-platform-images
+│   │   ├── architecture-and-os-targets
+│   │   ├── buildx
+│   │   ├── emulation
+│   │   ├── native-builders
+│   │   ├── manifest-lists
+│   │   ├── architecture-specific-dependencies
+│   │   └── cross-platform-smoke-tests
+│   └── debugging-and-maintenance
+│       ├── logs-and-inspect
+│       ├── exec-and-debug-containers
+│       ├── filesystem-diff
+│       ├── image-history
+│       ├── build-cache-investigation
+│       ├── registry-pull-failures
+│       ├── vulnerable-base-refresh
+│       └── safe-pruning
+├── local-environments-and-container-composition
+│   ├── local-development-design
+│   │   ├── reproducible-toolchains
+│   │   ├── local-versus-production-boundaries
+│   │   ├── dependency-inventory
+│   │   ├── resource-budget
+│   │   ├── test-data-contract
+│   │   ├── portable-onboarding
+│   │   └── offline-and-network-constraints
+│   ├── docker-compose
+│   │   ├── services
+│   │   ├── networks
+│   │   ├── volumes
+│   │   ├── profiles
+│   │   ├── environment-interpolation
+│   │   ├── override-files
+│   │   ├── health-based-dependencies
+│   │   └── service-scaling
+│   ├── dependency-sandboxes
+│   │   ├── relational-database
+│   │   ├── cache
+│   │   ├── message-broker
+│   │   ├── object-storage
+│   │   ├── identity-provider
+│   │   ├── mail-capture
+│   │   ├── external-api-stubs
+│   │   └── observability-stack
+│   ├── development-containers
+│   │   ├── devcontainer-configuration
+│   │   ├── tool-and-extension-pinning
+│   │   ├── filesystem-mounts
+│   │   ├── user-permissions
+│   │   ├── secret-forwarding
+│   │   ├── port-forwarding
+│   │   └── workstation-resource-limits
+│   ├── local-kubernetes
+│   │   ├── kind
+│   │   ├── minikube
+│   │   ├── k3d
+│   │   ├── cluster-lifecycle
+│   │   ├── image-loading
+│   │   ├── ingress-and-gateway-testing
+│   │   ├── local-storage
+│   │   └── resource-and-network-limitations
+│   ├── reproducible-labs
+│   │   ├── pinned-images
+│   │   ├── seed-data
+│   │   ├── bootstrap-scripts
+│   │   ├── reset-and-cleanup
+│   │   ├── environment-validation
+│   │   ├── smoke-tests
+│   │   └── lab-runbooks
+│   ├── preview-environments
+│   │   ├── pull-request-lifecycle
+│   │   ├── isolated-namespaces
+│   │   ├── unique-hostnames
+│   │   ├── temporary-data
+│   │   ├── scoped-credentials
+│   │   ├── time-to-live
+│   │   ├── quota-and-cost-controls
+│   │   └── teardown-verification
+│   └── environment-failure-cases
+│       ├── port-conflicts
+│       ├── volume-permission-errors
+│       ├── stale-state
+│       ├── dns-and-proxy-issues
+│       ├── image-architecture-mismatch
+│       ├── startup-races
+│       └── insufficient-resources
+├── kubernetes-foundations-and-workloads
+│   ├── architecture
+│   │   ├── control-plane
+│   │   ├── api-server
+│   │   ├── etcd
+│   │   ├── scheduler
+│   │   ├── controller-manager
+│   │   ├── kubelet
+│   │   ├── kube-proxy
+│   │   ├── container-runtime
+│   │   └── reconciliation-loops
+│   ├── api-and-resource-model
+│   │   ├── api-groups-and-versions
+│   │   ├── objects-and-manifests
+│   │   ├── spec-and-status
+│   │   ├── names-and-uids
+│   │   ├── namespaces
+│   │   ├── labels-and-selectors
+│   │   ├── annotations
+│   │   └── owner-references
+│   ├── kubectl-and-access
+│   │   ├── contexts-and-kubeconfig
+│   │   ├── get-describe-and-logs
+│   │   ├── explain-and-discovery
+│   │   ├── apply-and-diff
+│   │   ├── exec-and-port-forward
+│   │   ├── jsonpath-and-output-formatting
+│   │   └── context-safety
+│   ├── pods
+│   │   ├── pod-lifecycle
+│   │   ├── container-states
+│   │   ├── init-containers
+│   │   ├── sidecar-containers
+│   │   ├── shared-network-and-volumes
+│   │   ├── restart-policy
+│   │   ├── termination-grace-period
+│   │   └── pod-disruption
+│   ├── controllers
+│   │   ├── deployments
+│   │   ├── replicasets
+│   │   ├── statefulsets
+│   │   ├── daemonsets
+│   │   ├── jobs
+│   │   ├── cronjobs
+│   │   ├── controller-ownership
+│   │   └── rollout-history
+│   ├── workload-configuration
+│   │   ├── configmaps
+│   │   ├── secrets
+│   │   ├── configuration-injection
+│   │   ├── environment-and-volume-updates
+│   │   ├── command-and-arguments
+│   │   ├── downward-api
+│   │   ├── service-accounts
+│   │   └── configuration-reload-patterns
+│   ├── scheduling
+│   │   ├── resource-requests
+│   │   ├── resource-limits
+│   │   ├── node-selectors
+│   │   ├── affinity-and-anti-affinity
+│   │   ├── taints-and-tolerations
+│   │   ├── topology-spread
+│   │   ├── priority-and-preemption
+│   │   └── scheduling-failure-diagnosis
+│   ├── health-and-availability
+│   │   ├── startup-probes
+│   │   ├── readiness-probes
+│   │   ├── liveness-probes
+│   │   ├── probe-design
+│   │   ├── graceful-termination
+│   │   ├── pre-stop-hooks
+│   │   ├── pod-disruption-budgets
+│   │   └── termination-draining
+│   ├── scaling
+│   │   ├── horizontal-pod-autoscaling
+│   │   ├── metrics-dependencies
+│   │   ├── vertical-pod-autoscaling
+│   │   ├── event-driven-autoscaling
+│   │   ├── stabilization-windows
+│   │   ├── scaling-limits
+│   │   └── workload-and-node-scaling-interaction
+│   └── batch-and-special-workloads
+│       ├── job-completion-and-parallelism
+│       ├── cron-concurrency-policy
+│       ├── retry-and-backoff
+│       ├── deadlines
+│       ├── indexed-jobs
+│       ├── checkpointed-processing
+│       └── gpu-workload-boundaries
+├── kubernetes-networking-storage-and-security
+│   ├── service-networking
+│   │   ├── pod-addressing
+│   │   ├── cni-plugins
+│   │   ├── service-types
+│   │   ├── clusterip
+│   │   ├── headless-services
+│   │   ├── endpoint-slices
+│   │   ├── service-discovery
+│   │   └── dns-and-coredns
+│   ├── north-south-traffic
+│   │   ├── ingress-api-and-controller
+│   │   ├── gateway-api
+│   │   ├── gatewayclass-and-gateway
+│   │   ├── httproute
+│   │   ├── cross-namespace-references
+│   │   ├── tls-termination
+│   │   ├── external-load-balancers
+│   │   └── controller-conformance
+│   ├── gateway-operations
+│   │   ├── listener-and-route-status
+│   │   ├── backend-health
+│   │   ├── path-and-header-routing
+│   │   ├── weighted-backends
+│   │   ├── timeouts-and-retries
+│   │   ├── certificate-attachment
+│   │   ├── route-conflict-diagnosis
+│   │   └── migration-validation
+│   ├── network-policy
+│   │   ├── default-deny
+│   │   ├── ingress-rules
+│   │   ├── egress-rules
+│   │   ├── namespace-and-pod-selectors
+│   │   ├── dns-egress
+│   │   ├── policy-enforcement-dependencies
+│   │   ├── policy-testing
+│   │   └── least-privilege-connectivity
+│   ├── service-mesh
+│   │   ├── data-plane-and-control-plane
+│   │   ├── sidecar-and-ambient-models
+│   │   ├── workload-identity
+│   │   ├── mutual-tls
+│   │   ├── traffic-policy
+│   │   ├── telemetry
+│   │   ├── mesh-operational-cost
+│   │   └── mesh-adoption-criteria
+│   ├── persistent-storage
+│   │   ├── persistent-volumes
+│   │   ├── persistent-volume-claims
+│   │   ├── storageclasses
+│   │   ├── csi-drivers
+│   │   ├── access-modes
+│   │   ├── binding-and-topology
+│   │   ├── reclaim-policy
+│   │   └── volume-expansion
+│   ├── storage-operations
+│   │   ├── statefulset-volume-identity
+│   │   ├── snapshots-and-backups
+│   │   ├── attachment-failures
+│   │   ├── permission-and-fsgroup
+│   │   ├── restore-consistency
+│   │   ├── storage-performance
+│   │   ├── node-and-zone-failure
+│   │   └── data-retention
+│   ├── access-control
+│   │   ├── authentication
+│   │   ├── authorization
+│   │   ├── rbac-roles-and-bindings
+│   │   ├── service-account-tokens
+│   │   ├── workload-identity
+│   │   ├── audit-policy
+│   │   ├── namespace-isolation
+│   │   └── access-review
+│   ├── workload-hardening
+│   │   ├── pod-security-standards
+│   │   ├── pod-security-admission
+│   │   ├── security-context
+│   │   ├── seccomp
+│   │   ├── capabilities
+│   │   ├── read-only-root-filesystem
+│   │   ├── non-root-execution
+│   │   └── privileged-workload-exceptions
+│   └── admission-and-policy
+│       ├── validating-admission-policy
+│       ├── admission-webhooks
+│       ├── policy-fail-open-and-fail-closed
+│       ├── image-verification
+│       ├── resource-policy
+│       ├── policy-exceptions
+│       ├── policy-rollout
+│       └── webhook-availability
+├── kubernetes-cluster-operations
+│   ├── cluster-provisioning
+│   │   ├── managed-versus-self-managed
+│   │   ├── node-and-control-plane-topology
+│   │   ├── kubeadm-bootstrap
+│   │   ├── cluster-api
+│   │   ├── bootstrap-identities
+│   │   ├── network-and-storage-prerequisites
+│   │   └── conformance-checks
+│   ├── node-lifecycle
+│   │   ├── provisioning
+│   │   ├── node-images
+│   │   ├── node-readiness
+│   │   ├── cordon-and-drain
+│   │   ├── disruption-budget-interaction
+│   │   ├── node-pools
+│   │   ├── replacement-and-retirement
+│   │   └── autoscaler-behavior
+│   ├── control-plane-operations
+│   │   ├── api-server-availability
+│   │   ├── etcd-health
+│   │   ├── etcd-backup-and-restore
+│   │   ├── quorum-and-membership
+│   │   ├── controller-and-scheduler-health
+│   │   ├── control-plane-certificates
+│   │   └── api-request-load
+│   ├── upgrades
+│   │   ├── version-skew-policy
+│   │   ├── api-deprecation-inventory
+│   │   ├── addon-compatibility
+│   │   ├── pre-upgrade-tests
+│   │   ├── control-plane-upgrade
+│   │   ├── node-upgrade
+│   │   ├── canary-node-pool
+│   │   └── post-upgrade-validation
+│   ├── cluster-addons
+│   │   ├── dns
+│   │   ├── cni
+│   │   ├── csi
+│   │   ├── metrics-server
+│   │   ├── certificate-management
+│   │   ├── external-dns
+│   │   ├── observability-agents
+│   │   └── addon-ownership-and-updates
+│   ├── multitenancy
+│   │   ├── namespace-boundaries
+│   │   ├── resourcequotas
+│   │   ├── limitranges
+│   │   ├── network-isolation
+│   │   ├── identity-separation
+│   │   ├── shared-cluster-risks
+│   │   ├── dedicated-cluster-criteria
+│   │   └── noisy-neighbor-controls
+│   ├── capacity-and-cost
+│   │   ├── allocatable-resources
+│   │   ├── requests-versus-usage
+│   │   ├── bin-packing
+│   │   ├── node-autoscaling
+│   │   ├── spot-and-preemptible-nodes
+│   │   ├── daemonset-overhead
+│   │   ├── zonal-capacity
+│   │   └── scale-down-safety
+│   ├── operational-diagnostics
+│   │   ├── pending-pods
+│   │   ├── crashloopbackoff
+│   │   ├── imagepullbackoff
+│   │   ├── oomkilled
+│   │   ├── evicted-pods
+│   │   ├── terminating-resources
+│   │   ├── finalizer-stalls
+│   │   └── certificate-and-dns-failures
+│   ├── backup-and-recovery
+│   │   ├── cluster-state-backup
+│   │   ├── workload-data-backup
+│   │   ├── secret-and-key-recovery
+│   │   ├── external-dependency-inventory
+│   │   ├── rebuild-from-declarative-state
+│   │   ├── recovery-order
+│   │   └── restore-drills
+│   └── lifecycle-governance
+│       ├── support-windows
+│       ├── feature-gates
+│       ├── api-and-crd-compatibility
+│       ├── configuration-drift
+│       ├── cluster-inventory
+│       ├── end-of-life-planning
+│       └── cluster-decommissioning
+├── helm-kustomize-and-gitops
+│   ├── packaging-strategy
+│   │   ├── raw-manifests
+│   │   ├── parameterization-needs
+│   │   ├── reusable-components
+│   │   ├── configuration-overlays
+│   │   ├── package-ownership
+│   │   ├── version-and-environment-boundaries
+│   │   └── template-complexity-budget
+│   ├── helm
+│   │   ├── chart-layout
+│   │   ├── values-and-precedence
+│   │   ├── templates-and-functions
+│   │   ├── helpers-and-named-templates
+│   │   ├── dependency-charts
+│   │   ├── values-schema-validation
+│   │   ├── release-lifecycle
+│   │   └── chart-testing
+│   ├── helm-operations
+│   │   ├── install-upgrade-and-rollback
+│   │   ├── hooks-and-jobs
+│   │   ├── crd-lifecycle
+│   │   ├── secret-exposure-in-values
+│   │   ├── oci-chart-distribution
+│   │   ├── release-history
+│   │   └── partial-failure-recovery
+│   ├── kustomize
+│   │   ├── resources-and-bases
+│   │   ├── overlays
+│   │   ├── patches
+│   │   ├── image-transformations
+│   │   ├── configmap-and-secret-generators
+│   │   ├── name-and-namespace-transformations
+│   │   └── output-validation
+│   ├── gitops-principles
+│   │   ├── declarative-desired-state
+│   │   ├── versioned-and-immutable-state
+│   │   ├── automatically-pulled-state
+│   │   ├── continuous-reconciliation
+│   │   ├── drift-detection
+│   │   ├── auditability
+│   │   └── controller-trust-boundaries
+│   ├── repository-design
+│   │   ├── application-and-environment-repositories
+│   │   ├── environment-promotion
+│   │   ├── manifests-versus-packages
+│   │   ├── tenant-boundaries
+│   │   ├── bootstrap-repositories
+│   │   ├── secret-references
+│   │   └── ownership-and-review
+│   ├── argo-cd
+│   │   ├── applications
+│   │   ├── application-projects
+│   │   ├── applicationsets
+│   │   ├── sync-policies
+│   │   ├── sync-waves
+│   │   ├── health-assessment
+│   │   ├── diff-customization
+│   │   └── rbac-and-sso
+│   ├── flux
+│   │   ├── source-controllers
+│   │   ├── kustomizations
+│   │   ├── helmreleases
+│   │   ├── dependency-ordering
+│   │   ├── health-checks
+│   │   ├── image-automation
+│   │   ├── notification-controllers
+│   │   └── reconciliation-troubleshooting
+│   ├── operational-safety
+│   │   ├── prune-protection
+│   │   ├── destructive-change-review
+│   │   ├── secret-encryption
+│   │   ├── controller-availability
+│   │   ├── break-glass-and-reconciliation
+│   │   ├── drift-exceptions
+│   │   ├── multi-cluster-rollout
+│   │   └── disaster-bootstrap
+│   └── progressive-gitops
+│       ├── promotion-pull-requests
+│       ├── artifact-digest-updates
+│       ├── automated-analysis
+│       ├── rollout-controller-integration
+│       ├── rollback-commits
+│       ├── dependency-ordering
+│       └── deployment-evidence
+├── infrastructure-as-code
+│   ├── foundations
+│   │   ├── declarative-and-imperative-models
+│   │   ├── desired-state
+│   │   ├── resource-graphs
+│   │   ├── provider-apis
+│   │   ├── idempotence-and-convergence
+│   │   ├── plan-and-apply
+│   │   ├── drift-and-import
+│   │   └── infrastructure-lifecycle
+│   ├── terraform-and-opentofu
+│   │   ├── language
+│   │   │   ├── resources-and-data-sources
+│   │   │   ├── variables-and-types
+│   │   │   ├── locals-and-outputs
+│   │   │   ├── expressions-and-functions
+│   │   │   ├── count-and-for-each
+│   │   │   ├── dynamic-blocks
+│   │   │   ├── dependencies
+│   │   │   └── lifecycle-rules
+│   │   ├── state
+│   │   │   ├── resource-addresses
+│   │   │   ├── remote-backends
+│   │   │   ├── locking
+│   │   │   ├── encryption-and-access-control
+│   │   │   ├── state-backup
+│   │   │   ├── sensitive-state-data
+│   │   │   ├── state-moves-and-removal
+│   │   │   └── recovery-from-state-loss
+│   │   ├── modules
+│   │   │   ├── root-and-child-modules
+│   │   │   ├── module-contracts
+│   │   │   ├── provider-inheritance
+│   │   │   ├── versioning-and-registry
+│   │   │   ├── module-composition
+│   │   │   ├── testability
+│   │   │   ├── documentation
+│   │   │   └── upgrade-paths
+│   │   └── workflows
+│   │       ├── init-validate-and-plan
+│   │       ├── reviewed-saved-plans
+│   │       ├── apply-authorization
+│   │       ├── refresh-and-drift
+│   │       ├── import-blocks
+│   │       ├── moved-blocks
+│   │       ├── destroy-protection
+│   │       └── concurrent-change-control
+│   ├── tooling-alternatives
+│   │   ├── pulumi
+│   │   ├── cloudformation
+│   │   ├── aws-cdk
+│   │   ├── azure-bicep
+│   │   ├── crossplane
+│   │   ├── native-provider-templates
+│   │   └── abstraction-and-portability-tradeoffs
+│   ├── testing-and-policy
+│   │   ├── format-and-validate
+│   │   ├── module-tests
+│   │   ├── mocked-providers
+│   │   ├── integration-tests
+│   │   ├── plan-policy
+│   │   ├── cost-estimation
+│   │   ├── security-scans
+│   │   └── replacement-and-deletion-guards
+│   ├── production-iac
+│   │   ├── environment-separation
+│   │   ├── account-and-region-boundaries
+│   │   ├── short-lived-credentials
+│   │   ├── provider-lockfiles
+│   │   ├── staged-rollouts
+│   │   ├── bootstrap-state-infrastructure
+│   │   ├── private-provider-access
+│   │   └── audit-trails
+│   └── troubleshooting-and-migration
+│       ├── dependency-cycles
+│       ├── provider-timeouts
+│       ├── eventual-consistency
+│       ├── stale-locks
+│       ├── interrupted-apply
+│       ├── unintended-replacement
+│       ├── existing-resource-adoption
+│       └── tool-migration-compatibility
+├── configuration-management-and-image-provisioning
+│   ├── configuration-foundations
+│   │   ├── declarative-convergence
+│   │   ├── mutable-and-immutable-infrastructure
+│   │   ├── desired-configuration
+│   │   ├── ownership-boundaries
+│   │   ├── idempotent-tasks
+│   │   ├── drift-remediation
+│   │   └── configuration-precedence
+│   ├── ansible
+│   │   ├── inventory-and-connection
+│   │   │   ├── static-inventory
+│   │   │   ├── dynamic-inventory
+│   │   │   ├── groups-and-host-variables
+│   │   │   ├── ssh-and-winrm
+│   │   │   ├── privilege-escalation
+│   │   │   ├── connection-options
+│   │   │   ├── inventory-sources
+│   │   │   └── secret-boundaries
+│   │   ├── playbooks-and-roles
+│   │   │   ├── tasks-and-modules
+│   │   │   ├── handlers-and-notifications
+│   │   │   ├── conditions-and-loops
+│   │   │   ├── templates-and-facts
+│   │   │   ├── roles-and-collections
+│   │   │   ├── variable-precedence
+│   │   │   ├── tags-and-includes
+│   │   │   └── error-handling
+│   │   └── production-workflows
+│   │       ├── check-and-diff-mode
+│   │       ├── serial-rollouts
+│   │       ├── delegation
+│   │       ├── rolling-restarts
+│   │       ├── sensitive-output-protection
+│   │       ├── idempotence-tests
+│   │       ├── collection-pinning
+│   │       └── execution-environments
+│   ├── image-provisioning
+│   │   ├── golden-image-pipeline
+│   │   ├── packer
+│   │   ├── build-sources
+│   │   ├── provisioning-scripts
+│   │   ├── image-versioning
+│   │   ├── vulnerability-checks
+│   │   ├── image-signing
+│   │   └── promotion-and-retirement
+│   ├── bootstrapping
+│   │   ├── cloud-init
+│   │   ├── unattended-installation
+│   │   ├── bootstrap-identities
+│   │   ├── initial-networking
+│   │   ├── package-mirrors
+│   │   ├── configuration-fetch
+│   │   ├── startup-verification
+│   │   └── bootstrap-secret-lifetime
+│   ├── configuration-distribution
+│   │   ├── git-backed-config
+│   │   ├── object-storage-distribution
+│   │   ├── parameter-stores
+│   │   ├── service-discovery
+│   │   ├── dynamic-configuration
+│   │   ├── validation-before-reload
+│   │   └── rollback-to-known-good
+│   ├── configuration-testing
+│   │   ├── syntax-checks
+│   │   ├── schema-validation
+│   │   ├── molecule-and-testinfra
+│   │   ├── integration-vms
+│   │   ├── drift-tests
+│   │   ├── repeated-apply-tests
+│   │   ├── rollback-tests
+│   │   └── environment-specific-assertions
+│   └── fleet-management
+│       ├── inventory-and-ownership
+│       ├── patch-rings
+│       ├── configuration-compliance
+│       ├── exception-management
+│       ├── agent-health
+│       ├── rollout-concurrency
+│       ├── maintenance-windows
+│       └── out-of-band-recovery
+├── cloud-foundations-and-landing-zones
+│   ├── cloud-models
+│   │   ├── infrastructure-as-a-service
+│   │   ├── platform-as-a-service
+│   │   ├── software-as-a-service
+│   │   ├── serverless
+│   │   ├── managed-services
+│   │   ├── shared-responsibility
+│   │   ├── on-premises-and-hybrid
+│   │   └── deployment-model-tradeoffs
+│   ├── resource-hierarchy
+│   │   ├── organizations
+│   │   ├── accounts-subscriptions-and-projects
+│   │   ├── management-groups
+│   │   ├── folders-and-organizational-units
+│   │   ├── environment-separation
+│   │   ├── ownership-tags
+│   │   ├── policy-inheritance
+│   │   └── billing-boundaries
+│   ├── landing-zone-design
+│   │   ├── identity-baseline
+│   │   ├── network-baseline
+│   │   ├── logging-and-audit
+│   │   ├── security-controls
+│   │   ├── centralized-billing
+│   │   ├── account-vending
+│   │   ├── guardrails
+│   │   └── bootstrap-automation
+│   ├── cloud-networking
+│   │   ├── virtual-networks
+│   │   ├── subnet-design
+│   │   ├── route-tables
+│   │   ├── internet-and-nat-gateways
+│   │   ├── peering-and-transit
+│   │   ├── private-endpoints
+│   │   ├── hybrid-connectivity
+│   │   └── dns-integration
+│   ├── compute-and-storage
+│   │   ├── virtual-machines
+│   │   ├── autoscaling-groups
+│   │   ├── container-platforms
+│   │   ├── function-runtimes
+│   │   ├── block-file-and-object-storage
+│   │   ├── availability-zones
+│   │   ├── storage-lifecycle
+│   │   └── durability-and-availability
+│   ├── identity-and-governance
+│   │   ├── organization-policies
+│   │   ├── role-and-policy-design
+│   │   ├── workload-identities
+│   │   ├── federation
+│   │   ├── privileged-access
+│   │   ├── service-control-boundaries
+│   │   ├── resource-inventory
+│   │   └── policy-exceptions
+│   ├── reliability-design
+│   │   ├── regional-and-zonal-failure-domains
+│   │   ├── dependency-mapping
+│   │   ├── quotas-and-limits
+│   │   ├── managed-service-slas
+│   │   ├── multi-zone-deployment
+│   │   ├── multi-region-tradeoffs
+│   │   ├── backup-locations
+│   │   └── control-plane-dependencies
+│   ├── cloud-operations
+│   │   ├── api-and-cli-access
+│   │   ├── tagging-standards
+│   │   ├── activity-auditing
+│   │   ├── budget-alerts
+│   │   ├── quota-requests
+│   │   ├── support-escalation
+│   │   ├── service-health-monitoring
+│   │   └── resource-cleanup
+│   └── hybrid-and-multicloud
+│       ├── connectivity-and-latency
+│       ├── identity-federation
+│       ├── naming-and-addressing
+│       ├── data-location
+│       ├── platform-differences
+│       ├── portability-limits
+│       ├── operations-ownership
+│       └── exit-strategy
+├── cloud-platforms-and-managed-services
+│   ├── aws
+│   │   ├── identity-and-foundation
+│   │   │   ├── organizations
+│   │   │   ├── iam
+│   │   │   ├── identity-center
+│   │   │   ├── role-assumption
+│   │   │   ├── oidc-federation
+│   │   │   ├── control-tower
+│   │   │   ├── cloudtrail
+│   │   │   └── config
+│   │   ├── compute-and-delivery
+│   │   │   ├── ec2
+│   │   │   ├── autoscaling
+│   │   │   ├── ecs
+│   │   │   ├── eks
+│   │   │   ├── lambda
+│   │   │   ├── ecr
+│   │   │   ├── codebuild
+│   │   │   └── codedeploy
+│   │   └── network-data-and-operations
+│   │       ├── vpc
+│   │       ├── route53
+│   │       ├── elastic-load-balancing
+│   │       ├── cloudfront
+│   │       ├── s3
+│   │       ├── rds-and-aurora
+│   │       ├── cloudwatch
+│   │       └── systems-manager
+│   ├── azure
+│   │   ├── identity-and-foundation
+│   │   │   ├── tenants-and-subscriptions
+│   │   │   ├── entra-id
+│   │   │   ├── azure-rbac
+│   │   │   ├── managed-identities
+│   │   │   ├── management-groups
+│   │   │   ├── azure-policy
+│   │   │   ├── activity-logs
+│   │   │   └── landing-zones
+│   │   ├── compute-and-delivery
+│   │   │   ├── virtual-machines-and-scale-sets
+│   │   │   ├── aks
+│   │   │   ├── container-apps
+│   │   │   ├── app-service
+│   │   │   ├── functions
+│   │   │   ├── container-registry
+│   │   │   ├── azure-devops
+│   │   │   └── github-actions-integration
+│   │   └── network-data-and-operations
+│   │       ├── virtual-network
+│   │       ├── load-balancer-and-application-gateway
+│   │       ├── front-door
+│   │       ├── dns
+│   │       ├── blob-storage
+│   │       ├── managed-databases
+│   │       ├── key-vault
+│   │       └── azure-monitor
+│   ├── google-cloud
+│   │   ├── identity-and-foundation
+│   │   │   ├── organizations-and-projects
+│   │   │   ├── cloud-iam
+│   │   │   ├── workload-identity-federation
+│   │   │   ├── service-accounts
+│   │   │   ├── organization-policy
+│   │   │   ├── cloud-audit-logs
+│   │   │   ├── billing-accounts
+│   │   │   └── resource-manager
+│   │   ├── compute-and-delivery
+│   │   │   ├── compute-engine
+│   │   │   ├── managed-instance-groups
+│   │   │   ├── gke
+│   │   │   ├── cloud-run
+│   │   │   ├── cloud-build
+│   │   │   ├── cloud-deploy
+│   │   │   ├── artifact-registry
+│   │   │   └── cloud-scheduler
+│   │   └── network-data-and-operations
+│   │       ├── vpc
+│   │       ├── cloud-load-balancing
+│   │       ├── cloud-dns
+│   │       ├── cloud-storage
+│   │       ├── cloud-sql
+│   │       ├── pubsub
+│   │       ├── secret-manager
+│   │       └── cloud-monitoring-and-logging
+│   └── provider-comparison
+│       ├── identity-mapping
+│       ├── network-model-differences
+│       ├── deployment-contracts
+│       ├── managed-kubernetes-boundaries
+│       ├── observability-integration
+│       ├── regional-availability
+│       ├── service-quotas
+│       └── operating-cost-model
+├── identity-secrets-and-key-management
+│   ├── identity-foundations
+│   │   ├── human-and-workload-identities
+│   │   ├── authentication-and-authorization
+│   │   ├── federation
+│   │   ├── single-sign-on
+│   │   ├── least-privilege
+│   │   ├── role-and-attribute-based-access
+│   │   └── identity-lifecycle
+│   ├── workload-identity
+│   │   ├── short-lived-credentials
+│   │   ├── oidc-issuer-and-audience
+│   │   ├── subject-claim-restrictions
+│   │   ├── service-account-identity
+│   │   ├── cloud-role-assumption
+│   │   ├── identity-boundaries
+│   │   ├── credential-refresh
+│   │   └── revocation
+│   ├── secret-lifecycle
+│   │   ├── secret-inventory
+│   │   ├── ownership-and-classification
+│   │   ├── generation-and-storage
+│   │   ├── distribution
+│   │   ├── rotation
+│   │   ├── revocation
+│   │   ├── expiry-monitoring
+│   │   └── secret-access-audit
+│   ├── secret-delivery
+│   │   ├── runtime-fetch
+│   │   ├── environment-injection
+│   │   ├── file-mounts
+│   │   ├── sidecar-and-agent-patterns
+│   │   ├── csi-secret-mounts
+│   │   ├── external-secrets-controllers
+│   │   ├── startup-failure-policy
+│   │   └── refresh-and-reload
+│   ├── vault-and-secret-managers
+│   │   ├── vault-auth-methods
+│   │   ├── policies-and-paths
+│   │   ├── dynamic-database-secrets
+│   │   ├── leases-and-renewal
+│   │   ├── transit-encryption
+│   │   ├── cloud-secret-stores
+│   │   ├── seal-and-unseal
+│   │   └── backup-and-recovery
+│   ├── encryption-and-keys
+│   │   ├── encryption-at-rest
+│   │   ├── encryption-in-transit
+│   │   ├── envelope-encryption
+│   │   ├── kms
+│   │   ├── hsm
+│   │   ├── key-rotation
+│   │   ├── key-retention-and-deletion
+│   │   └── trust-root-protection
+│   ├── certificate-operations
+│   │   ├── private-pki
+│   │   ├── public-certificate-issuance
+│   │   ├── acme
+│   │   ├── automation-and-cert-manager
+│   │   ├── certificate-chain-validation
+│   │   ├── renewal-rollouts
+│   │   ├── expired-certificate-response
+│   │   └── mutual-tls-identity
+│   ├── secret-leak-prevention
+│   │   ├── source-scanning
+│   │   ├── log-redaction
+│   │   ├── build-context-exclusions
+│   │   ├── artifact-and-cache-audits
+│   │   ├── state-file-protection
+│   │   ├── clipboard-and-shell-history
+│   │   └── rotation-after-exposure
+│   ├── privileged-access
+│   │   ├── just-in-time-access
+│   │   ├── approval-and-expiry
+│   │   ├── session-recording
+│   │   ├── break-glass-identities
+│   │   ├── emergency-access-tests
+│   │   ├── credential-separation
+│   │   └── periodic-access-review
+│   └── identity-failure-cases
+│       ├── expired-tokens
+│       ├── clock-skew
+│       ├── incorrect-audience
+│       ├── changed-subject-claims
+│       ├── missing-trust-policy
+│       ├── identity-provider-outage
+│       ├── revoked-keys
+│       └── stale-secret-caches
+├── devsecops-and-policy-as-code
+│   ├── security-in-delivery
+│   │   ├── threat-modeling
+│   │   ├── trust-boundary-mapping
+│   │   ├── secure-defaults
+│   │   ├── risk-prioritization
+│   │   ├── security-champions
+│   │   ├── shared-security-ownership
+│   │   └── security-feedback-loops
+│   ├── code-and-dependency-security
+│   │   ├── sast
+│   │   ├── dependency-scanning
+│   │   ├── secret-detection
+│   │   ├── malicious-package-review
+│   │   ├── license-policy
+│   │   ├── security-review
+│   │   └── automated-fix-validation
+│   ├── infrastructure-and-container-security
+│   │   ├── iac-misconfiguration
+│   │   ├── scanning-images
+│   │   ├── hardening-baselines
+│   │   ├── least-privilege-runtime
+│   │   ├── exposed-service-detection
+│   │   ├── storage-access-controls
+│   │   └── patch-compliance
+│   ├── pipeline-threat-models
+│   │   ├── untrusted-code-execution
+│   │   ├── poisoned-pipeline-inputs
+│   │   ├── credential-exfiltration-risks
+│   │   ├── mutable-dependencies
+│   │   ├── artifact-tampering
+│   │   ├── cache-poisoning
+│   │   └── runner-isolation
+│   ├── policy-as-code
+│   │   ├── policy-input-and-data
+│   │   ├── opa-and-rego
+│   │   ├── conftest
+│   │   ├── kyverno
+│   │   ├── gatekeeper
+│   │   ├── cloud-policy-engines
+│   │   ├── policy-unit-tests
+│   │   └── policy-versioning
+│   ├── enforcement-design
+│   │   ├── audit-versus-enforce
+│   │   ├── staged-rollout
+│   │   ├── fail-open-and-fail-closed
+│   │   ├── admission-and-build-gates
+│   │   ├── exception-scope
+│   │   ├── exception-expiry
+│   │   ├── policy-owner
+│   │   └── policy-decision-logs
+│   ├── runtime-defense
+│   │   ├── workload-behavior-monitoring
+│   │   ├── falco
+│   │   ├── ebpf-based-observation
+│   │   ├── suspicious-process-detection
+│   │   ├── unauthorized-egress
+│   │   ├── container-escape-risk-controls
+│   │   └── alert-triage
+│   ├── vulnerability-response
+│   │   ├── asset-and-owner-inventory
+│   │   ├── exposure-and-exploitability
+│   │   ├── emergency-patching
+│   │   ├── compensating-controls
+│   │   ├── maintenance-coordination
+│   │   ├── exception-review
+│   │   └── remediation-evidence
+│   ├── approved-security-testing
+│   │   ├── test-authorization
+│   │   ├── isolated-environments
+│   │   ├── safe-dast
+│   │   ├── attack-surface-review
+│   │   ├── controlled-pentest-handoff
+│   │   ├── data-handling-rules
+│   │   └── remediation-retest
+│   └── security-operating-model
+│       ├── incident-escalation
+│       ├── security-observability
+│       ├── dependency-advisories
+│       ├── disclosure-process
+│       ├── secure-supply-chain-review
+│       ├── control-effectiveness
+│       └── continuous-improvement
+├── observability-and-telemetry-engineering
+│   ├── observability-model
+│   │   ├── user-visible-behavior
+│   │   ├── internal-state-evidence
+│   │   ├── monitoring-versus-observability
+│   │   ├── metrics-logs-traces-and-profiles
+│   │   ├── diagnostic-questions
+│   │   ├── observability-as-code
+│   │   └── service-ownership
+│   ├── instrumentation-design
+│   │   ├── service-identities
+│   │   ├── resource-attributes
+│   │   ├── semantic-conventions
+│   │   ├── request-context
+│   │   ├── correlation-identifiers
+│   │   ├── dependency-spans
+│   │   ├── domain-metrics
+│   │   └── sensitive-data-boundaries
+│   ├── metrics-engineering
+│   │   ├── counters
+│   │   ├── gauges
+│   │   ├── histograms
+│   │   ├── summaries
+│   │   ├── units-and-naming
+│   │   ├── label-cardinality
+│   │   ├── aggregation-and-rollups
+│   │   └── metric-type-selection
+│   ├── log-engineering
+│   │   ├── structured-events
+│   │   ├── severity-and-event-types
+│   │   ├── timestamps-and-timezones
+│   │   ├── correlation-fields
+│   │   ├── multiline-boundaries
+│   │   ├── redaction-and-pseudonymization
+│   │   ├── sampling-and-rate-limits
+│   │   └── schema-evolution
+│   ├── trace-engineering
+│   │   ├── spans-and-context
+│   │   ├── propagation-baggage
+│   │   ├── async-context
+│   │   ├── links-and-messaging
+│   │   ├── head-sampling
+│   │   ├── tail-sampling
+│   │   ├── trace-completeness
+│   │   └── trace-cost-controls
+│   ├── profiling
+│   │   ├── cpu-profiles
+│   │   ├── allocation-profiles
+│   │   ├── heap-profiles
+│   │   ├── lock-and-contention-profiles
+│   │   ├── continuous-profiling
+│   │   ├── symbol-and-source-mapping
+│   │   ├── production-overhead
+│   │   └── privacy-controls
+│   ├── opentelemetry
+│   │   ├── api-and-sdk
+│   │   ├── auto-and-manual-instrumentation
+│   │   ├── otlp
+│   │   ├── collector-receivers
+│   │   ├── processors-and-exporters
+│   │   ├── resource-detection
+│   │   ├── semantic-convention-versioning
+│   │   └── sdk-shutdown-and-flush
+│   ├── telemetry-pipelines
+│   │   ├── agent-and-gateway-topologies
+│   │   ├── batching-and-queues
+│   │   ├── retries-and-backpressure
+│   │   ├── load-shedding
+│   │   ├── sampling-placement
+│   │   ├── buffer-durability
+│   │   ├── pipeline-self-monitoring
+│   │   └── failure-isolation
+│   ├── telemetry-governance
+│   │   ├── retention-by-signal
+│   │   ├── tenant-isolation
+│   │   ├── access-controls
+│   │   ├── ingestion-budgets
+│   │   ├── cardinality-budgets
+│   │   ├── data-residency
+│   │   ├── schema-contracts
+│   │   └── deletion-workflows
+│   └── instrumentation-validation
+│       ├── telemetry-unit-tests
+│       ├── synthetic-transactions
+│       ├── missing-span-detection
+│       ├── metric-consistency
+│       ├── log-schema-validation
+│       ├── trace-log-correlation
+│       ├── overhead-benchmarks
+│       └── telemetry-outage-drills
+├── monitoring-platforms-and-alerting
+│   ├── prometheus
+│   │   ├── collection-and-storage
+│   │   │   ├── scrape-targets
+│   │   │   ├── exporters
+│   │   │   ├── service-discovery
+│   │   │   ├── relabeling
+│   │   │   ├── scrape-intervals
+│   │   │   ├── staleness
+│   │   │   ├── local-storage
+│   │   │   └── remote-write
+│   │   └── querying-and-rules
+│   │       ├── promql
+│   │       ├── rates-and-increases
+│   │       ├── histogram-quantiles
+│   │       ├── vector-matching
+│   │       ├── recording-rules
+│   │       ├── alert-rules
+│   │       ├── label-design
+│   │       └── query-cost
+│   ├── grafana
+│   │   ├── datasource-provisioning
+│   │   ├── dashboards-as-code
+│   │   ├── variables-and-templating
+│   │   ├── dashboard-navigation
+│   │   ├── annotations-and-deployments
+│   │   ├── access-controls
+│   │   ├── alerting-integration
+│   │   └── dashboard-review
+│   ├── logging-platforms
+│   │   ├── loki
+│   │   ├── opensearch
+│   │   ├── elastic-stack
+│   │   ├── fluent-bit
+│   │   ├── vector
+│   │   ├── grafana-alloy
+│   │   ├── log-routing
+│   │   └── retention-and-index-lifecycle
+│   ├── tracing-and-profiling-platforms
+│   │   ├── jaeger
+│   │   ├── tempo
+│   │   ├── pyroscope
+│   │   ├── collector-integration
+│   │   ├── trace-search
+│   │   ├── service-graphs
+│   │   ├── exemplars
+│   │   └── profiling-to-trace-navigation
+│   ├── alertmanager-and-notifications
+│   │   ├── routing-trees
+│   │   ├── grouping
+│   │   ├── inhibition
+│   │   ├── silences
+│   │   ├── deduplication
+│   │   ├── escalation
+│   │   ├── on-call-integration
+│   │   └── delivery-failure-monitoring
+│   ├── alert-design
+│   │   ├── symptom-based-alerts
+│   │   ├── actionable-runbooks
+│   │   ├── severity-and-urgency
+│   │   ├── alert-ownership
+│   │   ├── sustained-failure-windows
+│   │   ├── multiwindow-burn-rate-alerts
+│   │   ├── noise-reduction
+│   │   └── alert-tests
+│   ├── external-and-user-monitoring
+│   │   ├── blackbox-probes
+│   │   ├── synthetic-journeys
+│   │   ├── real-user-monitoring
+│   │   ├── certificate-and-domain-expiry
+│   │   ├── uptime-checks
+│   │   ├── dependency-status
+│   │   └── geographic-probes
+│   ├── platform-operations
+│   │   ├── high-availability
+│   │   ├── data-retention
+│   │   ├── storage-sizing
+│   │   ├── query-limits
+│   │   ├── ingestion-backpressure
+│   │   ├── backup-and-restore
+│   │   ├── tenant-security
+│   │   └── upgrade-compatibility
+│   └── incident-dashboards
+│       ├── golden-signals
+│       ├── red-method
+│       ├── use-method
+│       ├── service-dependencies
+│       ├── release-correlations
+│       ├── error-budget-view
+│       ├── capacity-view
+│       └── customer-impact-view
+├── site-reliability-engineering
+│   ├── sre-foundations
+│   │   ├── reliability-as-product-risk
+│   │   ├── engineering-versus-toil
+│   │   ├── shared-ownership
+│   │   ├── service-criticality
+│   │   ├── measurable-user-experience
+│   │   ├── simplicity-and-operability
+│   │   └── balanced-change-velocity
+│   ├── service-level-indicators
+│   │   ├── availability
+│   │   ├── latency
+│   │   ├── error-rate
+│   │   ├── throughput
+│   │   ├── freshness
+│   │   ├── correctness
+│   │   ├── durability
+│   │   └── coverage-and-measurement-boundaries
+│   ├── service-level-objectives
+│   │   ├── user-journey-mapping
+│   │   ├── sli-specification
+│   │   ├── target-selection
+│   │   ├── rolling-and-calendar-windows
+│   │   ├── low-traffic-services
+│   │   ├── dependency-slos
+│   │   └── stakeholder-agreement
+│   ├── error-budgets
+│   │   ├── budget-calculation
+│   │   ├── consumption-and-burn-rate
+│   │   ├── release-policy
+│   │   ├── budget-exhaustion
+│   │   ├── maintenance-accounting
+│   │   ├── exclusions-and-exceptions
+│   │   └── learning-from-budget-loss
+│   ├── toil-management
+│   │   ├── toil-identification
+│   │   ├── measurement-and-classification
+│   │   ├── manual-work-elimination
+│   │   ├── automation-prioritization
+│   │   ├── interruption-management
+│   │   ├── self-service-remediation
+│   │   └── toil-regression-tracking
+│   ├── production-readiness
+│   │   ├── service-catalog-entry
+│   │   ├── ownership-and-on-call
+│   │   ├── health-and-telemetry
+│   │   ├── capacity-and-load-evidence
+│   │   ├── deployment-and-rollback
+│   │   ├── data-recovery
+│   │   ├── security-and-dependencies
+│   │   └── runbook-readiness
+│   ├── reliability-design
+│   │   ├── graceful-degradation
+│   │   ├── dependency-isolation
+│   │   ├── overload-control
+│   │   ├── redundancy
+│   │   ├── failover-testing
+│   │   ├── recovery-oriented-design
+│   │   └── operational-complexity-limits
+│   ├── on-call-engineering
+│   │   ├── rotation-design
+│   │   ├── primary-and-secondary
+│   │   ├── responder-readiness
+│   │   ├── escalation-procedures
+│   │   ├── handoff-and-readiness-drills
+│   │   ├── fatigue-management
+│   │   └── sustainable-coverage
+│   ├── sre-engagement
+│   │   ├── service-tiering
+│   │   ├── early-design-review
+│   │   ├── launch-readiness
+│   │   ├── reliability-backlog
+│   │   ├── operational-load-review
+│   │   ├── shared-action-items
+│   │   └── exit-and-handover-criteria
+│   └── reliability-measurement
+│       ├── incident-frequency
+│       ├── severity-and-duration
+│       ├── user-impact
+│       ├── availability-accounting
+│       ├── recovery-measurement
+│       ├── repeat-failure-rate
+│       └── improvement-effectiveness
+├── incident-response-and-troubleshooting
+│   ├── incident-lifecycle
+│   │   ├── detection
+│   │   ├── triage
+│   │   ├── declaration
+│   │   ├── containment
+│   │   ├── mitigation
+│   │   ├── recovery
+│   │   ├── communication
+│   │   └── review
+│   ├── incident-roles
+│   │   ├── incident-commander
+│   │   ├── technical-lead
+│   │   ├── operations-lead
+│   │   ├── communications-lead
+│   │   ├── scribe
+│   │   ├── subject-matter-experts
+│   │   └── escalation-owner
+│   ├── response-coordination
+│   │   ├── severity-assessment
+│   │   ├── incident-channel
+│   │   ├── shared-timeline
+│   │   ├── ownership-and-handoffs
+│   │   ├── decision-log
+│   │   ├── stakeholder-updates
+│   │   ├── external-status-updates
+│   │   └── vendor-escalation
+│   ├── diagnostic-method
+│   │   ├── scope-and-impact
+│   │   ├── recent-change-analysis
+│   │   ├── hypothesis-and-evidence
+│   │   ├── dependency-traversal
+│   │   ├── compare-healthy-and-unhealthy
+│   │   ├── minimal-safe-tests
+│   │   └── avoid-competing-changes
+│   ├── common-service-failures
+│   │   ├── high-error-rate
+│   │   ├── latency-spikes
+│   │   ├── saturation
+│   │   ├── connection-exhaustion
+│   │   ├── dns-failure
+│   │   ├── certificate-expiry
+│   │   ├── authentication-outage
+│   │   └── dependency-degradation
+│   ├── infrastructure-failures
+│   │   ├── disk-and-inode-full
+│   │   ├── memory-exhaustion
+│   │   ├── cpu-throttling
+│   │   ├── node-loss
+│   │   ├── storage-detachment
+│   │   ├── networking-partition
+│   │   ├── quota-exhaustion
+│   │   └── control-plane-unavailability
+│   ├── mitigation-and-recovery
+│   │   ├── rollback
+│   │   ├── traffic-shift
+│   │   ├── load-shedding
+│   │   ├── disable-feature
+│   │   ├── scale-with-evidence
+│   │   ├── restore-dependency
+│   │   ├── failover
+│   │   └── validation-and-observation
+│   ├── evidence-and-forensics
+│   │   ├── timestamp-normalization
+│   │   ├── logs-and-traces
+│   │   ├── volatile-evidence-preservation
+│   │   ├── change-history
+│   │   ├── access-audit
+│   │   ├── sensitive-data-handling
+│   │   └── evidence-retention
+│   ├── postmortems
+│   │   ├── blameless-review
+│   │   ├── customer-impact
+│   │   ├── timeline
+│   │   ├── contributing-factors
+│   │   ├── detection-and-response-gaps
+│   │   ├── corrective-actions
+│   │   ├── action-owners
+│   │   └── effectiveness-followup
+│   └── operational-drills
+│       ├── tabletop-exercise
+│       ├── paging-test
+│       ├── runbook-walkthrough
+│       ├── sandbox-failure-injection
+│       ├── rollback-drill
+│       ├── backup-restore-drill
+│       └── communications-rehearsal
+├── performance-capacity-and-resilience
+│   ├── performance-modeling
+│   │   ├── latency-and-throughput
+│   │   ├── percentiles-and-tail-latency
+│   │   ├── concurrency-and-queueing
+│   │   ├── utilization-and-saturation
+│   │   ├── bottleneck-identification
+│   │   ├── workload-mix
+│   │   └── resource-demand
+│   ├── load-testing
+│   │   ├── baseline-tests
+│   │   ├── stress-tests
+│   │   ├── spike-tests
+│   │   ├── soak-tests
+│   │   ├── volume-tests
+│   │   ├── realistic-user-journeys
+│   │   ├── isolated-test-environments
+│   │   └── production-safety-boundaries
+│   ├── load-generation
+│   │   ├── k6
+│   │   ├── jmeter
+│   │   ├── locust
+│   │   ├── gatling
+│   │   ├── distributed-load-generators
+│   │   ├── coordinated-omission
+│   │   ├── generator-saturation
+│   │   └── test-data-realism
+│   ├── capacity-planning
+│   │   ├── demand-forecasting
+│   │   ├── seasonal-peaks
+│   │   ├── headroom
+│   │   ├── dependency-capacity
+│   │   ├── resource-quotas
+│   │   ├── lead-time-for-supply
+│   │   ├── capacity-reservations
+│   │   └── growth-scenarios
+│   ├── scaling-engineering
+│   │   ├── horizontal-and-vertical-scaling
+│   │   ├── scale-trigger-selection
+│   │   ├── warmup-time
+│   │   ├── stabilization-and-cooldown
+│   │   ├── scale-to-zero
+│   │   ├── queue-driven-scaling
+│   │   └── downstream-capacity-limits
+│   ├── latency-optimization
+│   │   ├── connection-reuse
+│   │   ├── caching
+│   │   ├── compression
+│   │   ├── query-and-index-tuning
+│   │   ├── batch-sizing
+│   │   ├── asynchronous-processing
+│   │   ├── cross-region-roundtrips
+│   │   └── profiling-before-change
+│   ├── resilience-patterns
+│   │   ├── deadlines-and-timeouts
+│   │   ├── bounded-retries
+│   │   ├── jitter
+│   │   ├── retry-budgets
+│   │   ├── circuit-breakers
+│   │   ├── bulkheads
+│   │   ├── rate-limits
+│   │   ├── backpressure
+│   │   └── load-shedding
+│   ├── failure-testing
+│   │   ├── steady-state-hypothesis
+│   │   ├── authorized-scope
+│   │   ├── blast-radius-limit
+│   │   ├── abort-conditions
+│   │   ├── network-delay
+│   │   ├── dependency-failure
+│   │   ├── node-failure
+│   │   └── post-test-recovery
+│   ├── resilience-tools-and-process
+│   │   ├── chaos-mesh
+│   │   ├── litmuschaos
+│   │   ├── fault-injection-services
+│   │   ├── game-days
+│   │   ├── experiment-review
+│   │   ├── customer-impact-guardrails
+│   │   └── evidence-based-remediation
+│   └── validation-and-reporting
+│       ├── baseline-comparison
+│       ├── service-level-pass-criteria
+│       ├── saturation-thresholds
+│       ├── confidence-and-repeatability
+│       ├── cost-performance-tradeoffs
+│       ├── regression-budgets
+│       └── improvement-verification
+├── backup-disaster-recovery-and-business-continuity
+│   ├── recovery-foundations
+│   │   ├── business-impact-analysis
+│   │   ├── service-criticality
+│   │   ├── recovery-time-objective
+│   │   ├── recovery-point-objective
+│   │   ├── maximum-tolerable-disruption
+│   │   ├── dependency-recovery-map
+│   │   └── risk-and-cost-tradeoffs
+│   ├── backup-design
+│   │   ├── full-and-incremental-backups
+│   │   ├── application-consistent-backups
+│   │   ├── snapshot-limitations
+│   │   ├── independent-backup-copies
+│   │   ├── offsite-and-offline-storage
+│   │   ├── immutability
+│   │   └── retention-and-expiry
+│   ├── data-protection
+│   │   ├── encryption
+│   │   ├── backup-identity-separation
+│   │   ├── access-controls
+│   │   ├── ransomware-resilience
+│   │   ├── key-availability
+│   │   ├── sensitive-data-retention
+│   │   └── backup-integrity-verification
+│   ├── database-recovery
+│   │   ├── logical-and-physical-backups
+│   │   ├── transaction-log-archiving
+│   │   ├── point-in-time-recovery
+│   │   ├── replica-versus-backup
+│   │   ├── restore-to-isolated-environment
+│   │   ├── consistency-checks
+│   │   └── recovery-cutover
+│   ├── infrastructure-recovery
+│   │   ├── infrastructure-code-rebuild
+│   │   ├── configuration-and-secrets
+│   │   ├── artifact-and-image-availability
+│   │   ├── dns-and-certificate-recovery
+│   │   ├── identity-bootstrap
+│   │   ├── dependency-order
+│   │   └── environment-revalidation
+│   ├── disaster-recovery-patterns
+│   │   ├── backup-and-restore
+│   │   ├── pilot-light
+│   │   ├── warm-standby
+│   │   ├── hot-standby
+│   │   ├── active-passive
+│   │   ├── active-active
+│   │   └── split-brain-prevention
+│   ├── failover-and-failback
+│   │   ├── disaster-declaration
+│   │   ├── data-loss-assessment
+│   │   ├── traffic-routing
+│   │   ├── write-authority
+│   │   ├── fencing
+│   │   ├── replication-catchup
+│   │   ├── reconciliation
+│   │   └── failback-approval
+│   ├── recovery-drills
+│   │   ├── restore-frequency
+│   │   ├── isolated-recovery-environment
+│   │   ├── measured-rto
+│   │   ├── measured-rpo
+│   │   ├── integrity-and-business-validation
+│   │   ├── missing-dependency-discovery
+│   │   ├── runbook-updates
+│   │   └── evidence-retention
+│   ├── continuity-and-communication
+│   │   ├── manual-workarounds
+│   │   ├── customer-and-partner-communication
+│   │   ├── business-ownership
+│   │   ├── remote-access-continuity
+│   │   ├── vendor-contacts
+│   │   ├── emergency-access
+│   │   └── decision-authority
+│   └── backup-platform-operations
+│       ├── backup-job-monitoring
+│       ├── capacity-and-retention
+│       ├── repository-health
+│       ├── restore-permissions
+│       ├── lifecycle-testing
+│       ├── failed-backup-triage
+│       ├── deletion-protection
+│       └── audit-review
+├── database-and-stateful-service-operations
+│   ├── database-operating-model
+│   │   ├── managed-versus-self-hosted
+│   │   ├── data-ownership
+│   │   ├── service-level-objectives
+│   │   ├── connection-contracts
+│   │   ├── storage-and-network-dependencies
+│   │   ├── backup-responsibility
+│   │   └── maintenance-ownership
+│   ├── relational-database-operations
+│   │   ├── postgresql
+│   │   ├── mysql
+│   │   ├── connection-pooling
+│   │   ├── transaction-isolation
+│   │   ├── lock-contention
+│   │   ├── query-plans
+│   │   ├── index-maintenance
+│   │   └── schema-change-control
+│   ├── schema-and-data-delivery
+│   │   ├── versioned-migrations
+│   │   ├── flyway
+│   │   ├── liquibase
+│   │   ├── expand-and-contract
+│   │   ├── backfill-throttling
+│   │   ├── backward-compatible-releases
+│   │   ├── migration-checksums
+│   │   ├── migration-locks
+│   │   └── rollback-limitations
+│   ├── availability-and-replication
+│   │   ├── primary-and-replica
+│   │   ├── replication-lag
+│   │   ├── synchronous-and-asynchronous-replication
+│   │   ├── failover-orchestration
+│   │   ├── leader-election
+│   │   ├── fencing
+│   │   ├── read-routing
+│   │   └── write-routing
+│   ├── database-observability
+│   │   ├── query-latency
+│   │   ├── slow-query-logs
+│   │   ├── connection-count
+│   │   ├── lock-waits
+│   │   ├── replication-status
+│   │   ├── storage-growth
+│   │   ├── transaction-log-growth
+│   │   └── backup-health
+│   ├── stateful-platforms
+│   │   ├── redis
+│   │   ├── mongodb
+│   │   ├── opensearch
+│   │   ├── object-storage
+│   │   ├── statefulset-versus-managed-service
+│   │   ├── persistence-settings
+│   │   ├── durability-tradeoffs
+│   │   └── data-lifecycle
+│   ├── caching-operations
+│   │   ├── eviction-policy
+│   │   ├── expiration-and-ttl
+│   │   ├── cache-stampede
+│   │   ├── hot-keys
+│   │   ├── invalidation
+│   │   ├── cache-warmup
+│   │   ├── stale-data-tolerance
+│   │   └── cache-outage-behavior
+│   ├── data-change-safety
+│   │   ├── production-access-boundaries
+│   │   ├── approved-data-fixes
+│   │   ├── read-only-diagnostics
+│   │   ├── transaction-size-budgets
+│   │   ├── maintenance-windows
+│   │   ├── double-checks-and-audit
+│   │   └── data-reconciliation
+│   ├── database-incidents
+│   │   ├── connection-pool-exhaustion
+│   │   ├── long-running-transactions
+│   │   ├── disk-full
+│   │   ├── replication-breakage
+│   │   ├── migration-locking
+│   │   ├── failover-divergence
+│   │   ├── accidental-deletion
+│   │   └── restoration-verification
+│   └── lifecycle-and-upgrades
+│       ├── engine-support-policy
+│       ├── extension-compatibility
+│       ├── parameter-changes
+│       ├── major-version-upgrades
+│       ├── rehearsal-and-comparison
+│       ├── cutover-validation
+│       ├── rollback-or-restore-plan
+│       └── decommissioning
+├── messaging-and-event-platform-operations
+│   ├── messaging-foundations
+│   │   ├── queues-and-topics
+│   │   ├── producers-and-consumers
+│   │   ├── brokers-and-partitions
+│   │   ├── acknowledgments
+│   │   ├── delivery-semantics
+│   │   ├── ordering
+│   │   ├── backpressure
+│   │   └── retention-versus-processing
+│   ├── kafka
+│   │   ├── cluster-and-storage
+│   │   │   ├── kraft-controllers
+│   │   │   ├── broker-roles
+│   │   │   ├── partitions-and-replicas
+│   │   │   ├── in-sync-replicas
+│   │   │   ├── leader-election
+│   │   │   ├── log-segments
+│   │   │   ├── retention-and-compaction
+│   │   │   └── capacity-planning
+│   │   └── producer-and-consumer-operations
+│   │       ├── producer-acks
+│   │       ├── idempotent-producers
+│   │       ├── consumer-groups
+│   │       ├── offsets-and-checkpoints
+│   │       ├── rebalance-behavior
+│   │       ├── consumer-lag
+│   │       ├── transactional-boundaries
+│   │       └── replay-safety
+│   ├── rabbitmq
+│   │   ├── exchanges-and-bindings
+│   │   ├── queue-types
+│   │   ├── quorum-queues
+│   │   ├── publisher-confirms
+│   │   ├── consumer-acknowledgments
+│   │   ├── prefetch
+│   │   ├── dead-lettering
+│   │   └── cluster-partitions
+│   ├── additional-platforms
+│   │   ├── nats-and-jetstream
+│   │   ├── cloud-queues
+│   │   ├── cloud-pubsub
+│   │   ├── event-buses
+│   │   ├── stream-processing-boundaries
+│   │   ├── protocol-compatibility
+│   │   └── managed-service-tradeoffs
+│   ├── schema-and-contracts
+│   │   ├── schema-registry
+│   │   ├── compatibility-rules
+│   │   ├── event-versioning
+│   │   ├── envelope-metadata
+│   │   ├── idempotency-identifiers
+│   │   ├── personally-identifiable-data
+│   │   └── retention-contracts
+│   ├── reliability-and-recovery
+│   │   ├── retry-topologies
+│   │   ├── poison-message-isolation
+│   │   ├── dead-letter-queue-ownership
+│   │   ├── duplicate-processing
+│   │   ├── idempotent-consumers
+│   │   ├── outbox-pattern
+│   │   ├── replay-and-backfill
+│   │   └── recovery-checkpoints
+│   ├── observability
+│   │   ├── publish-and-consume-rates
+│   │   ├── end-to-end-event-latency
+│   │   ├── consumer-lag
+│   │   ├── queue-depth
+│   │   ├── redelivery-rate
+│   │   ├── dead-letter-growth
+│   │   ├── broker-resource-saturation
+│   │   └── partition-skew
+│   ├── security-and-governance
+│   │   ├── transport-encryption
+│   │   ├── client-authentication
+│   │   ├── topic-and-queue-acls
+│   │   ├── tenant-boundaries
+│   │   ├── schema-permissions
+│   │   ├── credential-rotation
+│   │   └── event-access-audit
+│   └── operational-drills
+│       ├── broker-failure
+│       ├── consumer-outage
+│       ├── disk-pressure
+│       ├── partition-unavailability
+│       ├── stuck-poison-message
+│       ├── replay-without-duplicate-effects
+│       ├── capacity-exhaustion
+│       └── recovery-reconciliation
+├── distributed-systems-and-application-readiness
+│   ├── distributed-system-basics
+│   │   ├── partial-failure
+│   │   ├── time-and-ordering
+│   │   ├── network-partitions
+│   │   ├── consistency-models
+│   │   ├── replication
+│   │   ├── quorum
+│   │   ├── coordination
+│   │   └── tradeoffs-and-assumptions
+│   ├── service-boundaries
+│   │   ├── bounded-contexts
+│   │   ├── dependency-graphs
+│   │   ├── api-contracts
+│   │   ├── synchronous-and-asynchronous-coupling
+│   │   ├── ownership-and-team-boundaries
+│   │   ├── deployment-independence
+│   │   └── operational-complexity
+│   ├── communication-reliability
+│   │   ├── connection-timeouts
+│   │   ├── request-deadlines
+│   │   ├── retry-policy
+│   │   ├── retry-amplification
+│   │   ├── idempotency-keys
+│   │   ├── cancellation-propagation
+│   │   └── bounded-concurrency
+│   ├── consistency-and-workflows
+│   │   ├── distributed-transactions
+│   │   ├── saga-compensation
+│   │   ├── transactional-outbox
+│   │   ├── event-deduplication
+│   │   ├── eventual-consistency
+│   │   ├── read-your-writes
+│   │   └── reconciliation-jobs
+│   ├── discovery-and-configuration
+│   │   ├── dns-discovery
+│   │   ├── service-registry
+│   │   ├── health-aware-routing
+│   │   ├── dynamic-configuration
+│   │   ├── stale-config-handling
+│   │   ├── startup-dependencies
+│   │   └── configuration-validation
+│   ├── operational-application-design
+│   │   ├── stateless-processes
+│   │   ├── externalized-state
+│   │   ├── immutable-builds
+│   │   ├── health-endpoints
+│   │   ├── graceful-shutdown
+│   │   ├── structured-telemetry
+│   │   └── dependency-isolation
+│   ├── tenancy-and-isolation
+│   │   ├── tenant-identity
+│   │   ├── resource-isolation
+│   │   ├── cache-key-boundaries
+│   │   ├── rate-limit-partitions
+│   │   ├── tenant-observability
+│   │   ├── noisy-neighbor-control
+│   │   └── data-access-boundaries
+│   ├── dependency-management
+│   │   ├── dependency-catalog
+│   │   ├── critical-and-optional-dependencies
+│   │   ├── service-contracts
+│   │   ├── vendor-limits
+│   │   ├── dependency-timeouts
+│   │   ├── degraded-modes
+│   │   └── dependency-outage-drills
+│   └── readiness-review
+│       ├── threat-model
+│       ├── capacity-evidence
+│       ├── failure-mode-review
+│       ├── runbook-completeness
+│       ├── data-recovery
+│       ├── deployment-safety
+│       ├── ownership-signoff
+│       └── launch-checklist
+├── platform-engineering-and-developer-experience
+│   ├── platform-product-thinking
+│   │   ├── internal-user-research
+│   │   ├── developer-journeys
+│   │   ├── problem-validation
+│   │   ├── platform-value-proposition
+│   │   ├── adoption-friction
+│   │   ├── product-roadmap
+│   │   └── feedback-and-success-measures
+│   ├── platform-boundaries
+│   │   ├── infrastructure-platform
+│   │   ├── delivery-platform
+│   │   ├── runtime-platform
+│   │   ├── data-platform
+│   │   ├── security-services
+│   │   ├── observability-services
+│   │   └── shared-responsibility
+│   ├── golden-paths
+│   │   ├── service-templates
+│   │   ├── standardized-builds
+│   │   ├── secure-ci-templates
+│   │   ├── deployment-templates
+│   │   ├── observability-defaults
+│   │   ├── ownership-metadata
+│   │   ├── escape-hatches
+│   │   └── versioned-template-upgrades
+│   ├── self-service
+│   │   ├── service-provisioning
+│   │   ├── environment-provisioning
+│   │   ├── database-and-queue-requests
+│   │   ├── access-requests
+│   │   ├── quotas-and-approvals
+│   │   ├── lifecycle-state
+│   │   ├── cleanup-and-expiry
+│   │   └── auditability
+│   ├── developer-portals
+│   │   ├── backstage
+│   │   ├── software-catalog
+│   │   ├── ownership-and-relations
+│   │   ├── scaffolder
+│   │   ├── technical-documentation
+│   │   ├── service-scorecards
+│   │   ├── plugin-trust
+│   │   └── access-control
+│   ├── platform-apis-and-control-planes
+│   │   ├── declarative-requests
+│   │   ├── reconciliation
+│   │   ├── status-and-conditions
+│   │   ├── asynchronous-operations
+│   │   ├── idempotent-provisioning
+│   │   ├── operator-pattern
+│   │   ├── crossplane-compositions
+│   │   └── contract-versioning
+│   ├── platform-delivery
+│   │   ├── platform-as-code
+│   │   ├── integration-tests
+│   │   ├── upgrade-rehearsals
+│   │   ├── tenant-canaries
+│   │   ├── compatibility-policy
+│   │   ├── documentation-migrations
+│   │   ├── rollback-and-recovery
+│   │   └── support-model
+│   ├── developer-workflows
+│   │   ├── local-bootstrap
+│   │   ├── remote-development
+│   │   ├── preview-environments
+│   │   ├── test-data-self-service
+│   │   ├── dependency-sandboxes
+│   │   ├── debugging-access
+│   │   └── feedback-speed
+│   ├── platform-reliability
+│   │   ├── platform-slos
+│   │   ├── control-plane-availability
+│   │   ├── isolation-from-workloads
+│   │   ├── recovery-bootstrap
+│   │   ├── dependency-risk
+│   │   ├── capacity-and-rate-limits
+│   │   └── platform-incident-response
+│   └── adoption-and-measurement
+│       ├── time-to-first-deploy
+│       ├── onboarding-completion
+│       ├── self-service-success
+│       ├── developer-satisfaction
+│       ├── support-ticket-trends
+│       ├── golden-path-adoption
+│       ├── workflow-friction
+│       └── platform-unit-cost
+├── finops-and-sustainable-operations
+│   ├── cost-foundations
+│   │   ├── consumption-based-pricing
+│   │   ├── fixed-and-variable-costs
+│   │   ├── allocation-units
+│   │   ├── cost-of-idle-capacity
+│   │   ├── cost-and-reliability-tradeoffs
+│   │   ├── usage-versus-invoice-data
+│   │   └── ownership-and-accountability
+│   ├── cost-visibility
+│   │   ├── tagging-and-labeling
+│   │   ├── account-and-project-allocation
+│   │   ├── kubernetes-cost-allocation
+│   │   ├── shared-cost-rules
+│   │   ├── unallocated-cost
+│   │   ├── billing-exports
+│   │   └── cost-dashboards
+│   ├── budgeting-and-forecasting
+│   │   ├── budget-owners
+│   │   ├── thresholds-and-alerts
+│   │   ├── anomaly-detection
+│   │   ├── forecast-assumptions
+│   │   ├── seasonal-demand
+│   │   ├── expected-growth
+│   │   ├── forecast-error
+│   │   └── review-cadence
+│   ├── optimization
+│   │   ├── rightsizing
+│   │   ├── idle-resource-removal
+│   │   ├── storage-tiering
+│   │   ├── retention-tuning
+│   │   ├── network-egress-awareness
+│   │   ├── scheduling-nonproduction
+│   │   ├── request-and-limit-tuning
+│   │   └── telemetry-cost-control
+│   ├── purchasing-models
+│   │   ├── on-demand
+│   │   ├── committed-use-and-reservations
+│   │   ├── spot-and-preemptible-capacity
+│   │   ├── interruption-handling
+│   │   ├── coverage-and-utilization
+│   │   ├── commitment-risk
+│   │   └── workload-fit
+│   ├── unit-economics
+│   │   ├── cost-per-request
+│   │   ├── cost-per-customer
+│   │   ├── cost-per-build
+│   │   ├── cost-per-environment
+│   │   ├── cost-per-data-unit
+│   │   ├── allocated-versus-marginal-cost
+│   │   └── business-outcome-context
+│   ├── cost-controls-in-delivery
+│   │   ├── iac-cost-estimates
+│   │   ├── quota-guardrails
+│   │   ├── preview-environment-ttl
+│   │   ├── pipeline-concurrency-budgets
+│   │   ├── sandbox-spending-limits
+│   │   ├── owner-approval
+│   │   └── automated-cleanup
+│   ├── sustainable-engineering
+│   │   ├── utilization-efficiency
+│   │   ├── unnecessary-work-elimination
+│   │   ├── data-transfer-reduction
+│   │   ├── resource-scheduling
+│   │   ├── carbon-data-limitations
+│   │   ├── region-and-latency-tradeoffs
+│   │   └── hardware-lifecycle-awareness
+│   └── governance-and-tools
+│       ├── finops-collaboration
+│       ├── cloud-billing-tools
+│       ├── opencost
+│       ├── kubecost
+│       ├── cost-data-quality
+│       ├── optimization-validation
+│       └── savings-versus-cost-avoidance
+├── governance-compliance-and-operational-controls
+│   ├── governance-model
+│   │   ├── policies-standards-and-procedures
+│   │   ├── risk-ownership
+│   │   ├── control-owners
+│   │   ├── service-classification
+│   │   ├── operating-model
+│   │   ├── documented-exceptions
+│   │   └── review-cadence
+│   ├── asset-and-service-inventory
+│   │   ├── service-catalog
+│   │   ├── infrastructure-inventory
+│   │   ├── software-inventory
+│   │   ├── dependency-mapping
+│   │   ├── data-classification
+│   │   ├── ownership-lifecycle
+│   │   └── end-of-life-tracking
+│   ├── change-control
+│   │   ├── standard-and-normal-changes
+│   │   ├── emergency-changes
+│   │   ├── risk-based-approval
+│   │   ├── separation-of-duties
+│   │   ├── evidence-linkage
+│   │   ├── maintenance-notification
+│   │   └── change-effectiveness
+│   ├── access-governance
+│   │   ├── joiner-mover-leaver
+│   │   ├── least-privilege-review
+│   │   ├── privileged-access-breakglass
+│   │   ├── service-identity-inventory
+│   │   ├── access-recertification
+│   │   ├── third-party-access
+│   │   └── audit-evidence
+│   ├── auditability
+│   │   ├── source-to-production-traceability
+│   │   ├── deployment-evidence
+│   │   ├── infrastructure-change-history
+│   │   ├── access-logs
+│   │   ├── approval-records
+│   │   ├── evidence-integrity
+│   │   └── retention-policy
+│   ├── data-governance-boundaries
+│   │   ├── data-location
+│   │   ├── retention-and-deletion
+│   │   ├── backup-retention
+│   │   ├── log-and-telemetry-privacy
+│   │   ├── test-data-masking
+│   │   ├── vendor-data-access
+│   │   └── jurisdiction-specific-review
+│   ├── control-framework-literacy
+│   │   ├── iso27001-control-mapping
+│   │   ├── soc2-evidence-concepts
+│   │   ├── pci-dss-scope-awareness
+│   │   ├── nist-ssdf
+│   │   ├── cis-benchmark-use
+│   │   ├── control-selection-versus-certification
+│   │   └── qualified-review-boundaries
+│   ├── policy-operations
+│   │   ├── policy-versioning
+│   │   ├── automated-control-tests
+│   │   ├── exception-owner-and-expiry
+│   │   ├── drift-and-noncompliance
+│   │   ├── remediation-prioritization
+│   │   ├── control-failure-escalation
+│   │   └── periodic-effectiveness-review
+│   ├── third-party-and-service-risk
+│   │   ├── supplier-due-diligence
+│   │   ├── dependency-health
+│   │   ├── support-and-end-of-life
+│   │   ├── contractual-responsibilities
+│   │   ├── portability-and-exit
+│   │   ├── incident-notification
+│   │   └── shared-control-evidence
+│   └── governance-antipatterns
+│       ├── checkbox-compliance
+│       ├── evidence-without-effectiveness
+│       ├── blanket-manual-approval
+│       ├── undocumented-emergency-access
+│       ├── permanent-exceptions
+│       ├── secret-sprawl
+│       └── ownerless-controls
+├── specialized-workloads-and-delivery-patterns
+│   ├── frontend-delivery
+│   │   ├── static-builds
+│   │   ├── asset-fingerprinting
+│   │   ├── cdn-cache-invalidation
+│   │   ├── runtime-config-boundaries
+│   │   ├── source-map-protection
+│   │   ├── stale-client-compatibility
+│   │   ├── browser-observability
+│   │   └── frontend-rollback
+│   ├── mobile-and-desktop-delivery
+│   │   ├── code-signing
+│   │   ├── secure-signing-identities
+│   │   ├── build-agents
+│   │   ├── distribution-channels
+│   │   ├── phased-rollout
+│   │   ├── client-version-fragmentation
+│   │   ├── backend-compatibility
+│   │   └── release-recovery-limits
+│   ├── serverless-operations
+│   │   ├── function-packaging
+│   │   ├── cold-starts
+│   │   ├── concurrency-limits
+│   │   ├── event-retries
+│   │   ├── dead-letter-handling
+│   │   ├── connection-reuse
+│   │   ├── permission-boundaries
+│   │   └── tracing-and-cost
+│   ├── dataops
+│   │   ├── data-pipeline-delivery
+│   │   ├── schema-evolution
+│   │   ├── data-quality-gates
+│   │   ├── backfill-orchestration
+│   │   ├── lineage
+│   │   ├── pipeline-freshness
+│   │   ├── reproducible-data-transforms
+│   │   └── sensitive-data-controls
+│   ├── mlops
+│   │   ├── model-and-data-versioning
+│   │   ├── training-pipeline
+│   │   ├── model-registry
+│   │   ├── model-serving
+│   │   ├── gpu-capacity
+│   │   ├── inference-monitoring
+│   │   ├── drift-and-evaluation
+│   │   └── model-rollback
+│   ├── llm-and-agent-workloads
+│   │   ├── prompt-and-model-versioning
+│   │   ├── evaluation-gates
+│   │   ├── tool-access-boundaries
+│   │   ├── token-and-cost-budgets
+│   │   ├── inference-latency
+│   │   ├── prompt-injection-defense
+│   │   ├── human-approval
+│   │   └── service-rollback-and-disable
+│   ├── edge-and-iot
+│   │   ├── intermittent-connectivity
+│   │   ├── fleet-inventory
+│   │   ├── signed-updates
+│   │   ├── staged-device-rollouts
+│   │   ├── local-fallback
+│   │   ├── store-and-forward
+│   │   ├── telemetry-buffering
+│   │   └── device-recovery
+│   ├── regulated-and-isolated-environments
+│   │   ├── offline-artifact-mirrors
+│   │   ├── disconnected-builds
+│   │   ├── signed-update-bundles
+│   │   ├── controlled-media-transfer
+│   │   ├── isolated-observability
+│   │   ├── local-identity
+│   │   ├── restricted-egress
+│   │   └── audit-ready-evidence
+│   └── high-scale-and-multiregion
+│       ├── global-routing
+│       ├── regional-release-waves
+│       ├── data-consistency-contracts
+│       ├── regional-capacity
+│       ├── traffic-shift-state
+│       ├── failover-testing
+│       └── data-sovereignty-boundaries
+├── migration-upgrades-and-legacy-modernization
+│   ├── migration-planning
+│   │   ├── current-state-inventory
+│   │   ├── dependency-map
+│   │   ├── compatibility-matrix
+│   │   ├── risk-assessment
+│   │   ├── migration-waves
+│   │   ├── success-criteria
+│   │   └── rollback-and-exit-criteria
+│   ├── legacy-delivery-modernization
+│   │   ├── manual-deployment-capture
+│   │   ├── script-hardening
+│   │   ├── source-control-adoption
+│   │   ├── automated-build-baseline
+│   │   ├── environment-standardization
+│   │   ├── test-introduction
+│   │   └── incremental-release-automation
+│   ├── runtime-and-os-upgrades
+│   │   ├── support-window-inventory
+│   │   ├── dependency-compatibility
+│   │   ├── image-and-package-upgrades
+│   │   ├── canary-hosts
+│   │   ├── behavior-regression
+│   │   ├── performance-comparison
+│   │   └── rollback-or-rebuild
+│   ├── platform-migrations
+│   │   ├── virtual-machines-to-containers
+│   │   ├── self-managed-to-managed-service
+│   │   ├── ci-platform-migration
+│   │   ├── registry-migration
+│   │   ├── cloud-account-migration
+│   │   └── observability-backend-migration
+│   ├── kubernetes-migrations
+│   │   ├── deprecated-api-replacement
+│   │   ├── removed-feature-inventory
+│   │   ├── ingress-controller-support-review
+│   │   ├── ingress-nginx-retirement
+│   │   ├── gateway-api-adoption
+│   │   ├── cni-and-csi-compatibility
+│   │   └── crd-migration
+│   ├── observability-migrations
+│   │   ├── agent-lifecycle-inventory
+│   │   ├── promtail-to-alloy-migration
+│   │   ├── telemetry-schema-compatibility
+│   │   ├── dashboard-and-alert-parity
+│   │   ├── dual-shipping-cost
+│   │   ├── retained-history-access
+│   │   └── cutover-validation
+│   ├── infrastructure-code-refactoring
+│   │   ├── resource-import
+│   │   ├── state-address-moves
+│   │   ├── module-extraction
+│   │   ├── provider-upgrades
+│   │   ├── terraform-and-opentofu-compatibility
+│   │   ├── backend-migration
+│   │   └── no-unintended-replacement
+│   ├── data-and-traffic-cutover
+│   │   ├── initial-copy
+│   │   ├── incremental-sync
+│   │   ├── write-freeze-or-dual-write
+│   │   ├── data-reconciliation
+│   │   ├── dns-and-routing-change
+│   │   ├── shadow-validation
+│   │   └── failback-consistency
+│   └── retirement-and-cleanup
+│       ├── traffic-and-usage-verification
+│       ├── ownership-signoff
+│       ├── credential-revocation
+│       ├── artifact-and-data-retention
+│       ├── resource-deletion
+│       ├── billing-validation
+│       └── documentation-and-catalog-update
+├── professional-practice-and-ai-assisted-operations
+│   ├── operational-documentation
+│   │   ├── runbooks
+│   │   ├── playbooks
+│   │   ├── architecture-diagrams
+│   │   ├── dependency-maps
+│   │   ├── architecture-decision-records
+│   │   ├── service-catalogs
+│   │   ├── onboarding-guides
+│   │   └── change-records
+│   ├── delivery-planning
+│   │   ├── requirement-clarification
+│   │   ├── acceptance-criteria
+│   │   ├── risk-and-dependency-assessment
+│   │   ├── incremental-deliverables
+│   │   ├── implementation-tickets
+│   │   ├── demo-and-feedback
+│   │   └── stakeholder-alignment
+│   ├── professional-collaboration
+│   │   ├── developer-partnership
+│   │   ├── security-collaboration
+│   │   ├── database-team-boundaries
+│   │   ├── business-impact-communication
+│   │   ├── vendor-support-handoffs
+│   │   ├── incident-writing
+│   │   └── operational-review
+│   ├── ai-assisted-workflows
+│   │   ├── documentation-drafting
+│   │   ├── script-explanation
+│   │   ├── configuration-review
+│   │   ├── log-triage-assistance
+│   │   ├── incident-summary-drafting
+│   │   ├── test-generation
+│   │   └── migration-research
+│   ├── ai-safety-boundaries
+│   │   ├── no-secret-disclosure
+│   │   ├── untrusted-output-review
+│   │   ├── prompt-injection-awareness
+│   │   ├── least-privilege-tools
+│   │   ├── read-only-first
+│   │   ├── human-approved-mutations
+│   │   ├── sandbox-execution
+│   │   └── change-audit
+│   ├── ai-output-validation
+│   │   ├── authoritative-source-check
+│   │   ├── version-compatibility-check
+│   │   ├── static-validation
+│   │   ├── unit-and-integration-tests
+│   │   ├── plan-and-diff-review
+│   │   ├── destructive-command-review
+│   │   └── evidence-over-confidence
+│   ├── skill-development
+│   │   ├── linux-and-network-labs
+│   │   ├── delivery-system-labs
+│   │   ├── cloud-and-security-labs
+│   │   ├── incident-simulation
+│   │   ├── reliability-design-review
+│   │   ├── tool-selection-tradeoffs
+│   │   └── engineering-journal
+│   ├── portfolio-and-interviews
+│   │   ├── reproducible-repositories
+│   │   ├── architecture-and-tradeoff-notes
+│   │   ├── pipeline-evidence
+│   │   ├── security-controls
+│   │   ├── restore-and-rollback-evidence
+│   │   ├── incident-retrospectives
+│   │   └── honest-scope-and-limitations
+│   └── career-and-specialization
+│       ├── devops-engineering
+│       ├── sre
+│       ├── platform-engineering
+│       ├── cloud-engineering
+│       ├── release-engineering
+│       ├── devsecops
+│       └── technical-leadership
+└── practice-projects
+    ├── linux-service-operations-lab
+    │   ├── vm-bootstrap
+    │   ├── service-user
+    │   ├── systemd-unit
+    │   ├── tls-reverse-proxy
+    │   ├── health-and-logs
+    │   ├── resource-limits
+    │   ├── failure-diagnosis
+    │   └── restart-and-recovery
+    ├── windows-service-delivery-lab
+    │   ├── powershell-bootstrap
+    │   ├── service-packaging
+    │   ├── least-privilege-identity
+    │   ├── certificate-binding
+    │   ├── automated-deployment
+    │   ├── event-log-diagnostics
+    │   ├── patch-rehearsal
+    │   └── recovery-runbook
+    ├── dns-tls-and-network-diagnostics-lab
+    │   ├── isolated-network
+    │   ├── recursive-and-authoritative-dns
+    │   ├── certificate-issuance
+    │   ├── reverse-proxy-routing
+    │   ├── packet-capture
+    │   ├── handshake-failure-simulation
+    │   ├── certificate-renewal
+    │   └── evidence-report
+    ├── reliable-operations-cli
+    │   ├── typed-input-contract
+    │   ├── dry-run-mode
+    │   ├── idempotent-actions
+    │   ├── api-pagination
+    │   ├── bounded-retries
+    │   ├── secret-redaction
+    │   ├── unit-and-integration-tests
+    │   └── package-and-runbook
+    ├── git-and-release-workflow-lab
+    │   ├── trunk-and-feature-branches
+    │   ├── required-checks
+    │   ├── codeowner-review
+    │   ├── merge-queue
+    │   ├── release-tags
+    │   ├── hotfix-revert
+    │   ├── signed-artifact-linkage
+    │   └── audit-trail
+    ├── java-spring-ci-cd
+    │   ├── wrapper-and-jdk-pinning
+    │   ├── dependency-verification
+    │   ├── unit-and-integration-tests
+    │   ├── executable-artifact
+    │   ├── container-image-build
+    │   ├── health-and-telemetry
+    │   ├── staging-promotion
+    │   └── rollback-drill
+    ├── nodejs-api-delivery
+    │   ├── runtime-and-lockfile-pinning
+    │   ├── dependency-tests
+    │   ├── build-and-image-pipeline
+    │   ├── runtime-config
+    │   ├── secret-delivery
+    │   ├── graceful-shutdown
+    │   ├── deployment-smoke-tests
+    │   └── production-monitoring
+    ├── frontend-cdn-delivery
+    │   ├── deterministic-build
+    │   ├── asset-hashes
+    │   ├── environment-contract
+    │   ├── cdn-upload
+    │   ├── cache-policy
+    │   ├── stale-client-test
+    │   ├── source-map-security
+    │   └── release-rollback
+    ├── python-service-delivery
+    │   ├── locked-dependencies
+    │   ├── wheel-and-image-build
+    │   ├── test-pipeline
+    │   ├── application-server
+    │   ├── health-contract
+    │   ├── vulnerability-review
+    │   ├── staging-deployment
+    │   └── recovery-validation
+    ├── hardened-ci-runner-platform
+    │   ├── isolated-runner-image
+    │   ├── ephemeral-execution
+    │   ├── network-restrictions
+    │   ├── oidc-federation
+    │   ├── untrusted-pr-separation
+    │   ├── autoscaling
+    │   ├── audit-logs
+    │   └── compromise-recovery-drill
+    ├── software-supply-chain-lab
+    │   ├── dependency-locks
+    │   ├── sbom-generation
+    │   ├── provenance-attestation
+    │   ├── image-signing
+    │   ├── verification-policy
+    │   ├── tampered-artifact-rejection
+    │   ├── exception-expiry
+    │   └── evidence-bundle
+    ├── reproducible-compose-environment
+    │   ├── application-database-and-queue
+    │   ├── health-dependencies
+    │   ├── seeded-data
+    │   ├── isolated-networks
+    │   ├── local-observability
+    │   ├── resource-budget
+    │   ├── reset-scripts
+    │   └── onboarding-verification
+    ├── cloud-landing-zone
+    │   ├── account-and-project-layout
+    │   ├── federated-access
+    │   ├── network-baseline
+    │   ├── centralized-audit
+    │   ├── policy-guardrails
+    │   ├── budget-alerts
+    │   ├── infrastructure-code
+    │   └── cleanup-verification
+    ├── terraform-or-opentofu-platform
+    │   ├── reusable-network-module
+    │   ├── compute-and-database
+    │   ├── remote-state-locking
+    │   ├── short-lived-credentials
+    │   ├── plan-review
+    │   ├── module-tests
+    │   ├── drift-detection
+    │   └── recovery-from-interrupted-apply
+    ├── ansible-and-golden-image-fleet
+    │   ├── inventory
+    │   ├── playbooks-and-roles
+    │   ├── image-pipeline
+    │   ├── idempotence-tests
+    │   ├── canary-patching
+    │   ├── rolling-restarts
+    │   ├── compliance-checks
+    │   └── rollback-rebuild
+    ├── kubernetes-application-platform
+    │   ├── namespace-and-rbac
+    │   ├── deployment-and-services
+    │   ├── configuration-and-secrets
+    │   ├── probes-and-resources
+    │   ├── persistent-storage
+    │   ├── autoscaling
+    │   ├── dashboards
+    │   └── workload-failure-drills
+    ├── gateway-api-and-tls-migration
+    │   ├── controller-support-inventory
+    │   ├── route-map
+    │   ├── gateway-and-routes
+    │   ├── certificate-integration
+    │   ├── weighted-test-traffic
+    │   ├── policy-parity
+    │   ├── cutover-validation
+    │   └── rollback-window
+    ├── gitops-multienvironment-delivery
+    │   ├── repository-boundaries
+    │   ├── helm-or-kustomize
+    │   ├── argo-cd-or-flux
+    │   ├── environment-promotion
+    │   ├── secret-references
+    │   ├── drift-correction
+    │   ├── prune-guards
+    │   └── cluster-rebuild
+    ├── progressive-delivery-lab
+    │   ├── baseline-deployment
+    │   ├── canary-traffic
+    │   ├── sli-collection
+    │   ├── analysis-thresholds
+    │   ├── controlled-regression
+    │   ├── automatic-abort
+    │   ├── rollback-verification
+    │   └── release-evidence
+    ├── workload-identity-and-secret-rotation
+    │   ├── identity-trust-contract
+    │   ├── short-lived-tokens
+    │   ├── secret-store-integration
+    │   ├── application-refresh
+    │   ├── rotation-without-outage
+    │   ├── expired-credential-test
+    │   ├── audit-validation
+    │   └── recovery-access
+    ├── policy-as-code-platform
+    │   ├── policy-library
+    │   ├── unit-tests
+    │   ├── pipeline-checks
+    │   ├── admission-controls
+    │   ├── audit-first-rollout
+    │   ├── time-bound-exceptions
+    │   ├── rejected-workload-tests
+    │   └── policy-availability
+    ├── observability-reference-stack
+    │   ├── instrumented-services
+    │   ├── otel-collector
+    │   ├── metrics-logs-and-traces
+    │   ├── correlation-dashboard
+    │   ├── sampling-and-redaction
+    │   ├── telemetry-backpressure-test
+    │   ├── retention-budget
+    │   └── operational-runbook
+    ├── slo-and-alerting-workshop
+    │   ├── user-journey-map
+    │   ├── sli-definitions
+    │   ├── slo-targets
+    │   ├── error-budget-policy
+    │   ├── burn-rate-alerts
+    │   ├── low-traffic-tests
+    │   ├── notification-routing
+    │   └── alert-quality-review
+    ├── incident-response-game-day
+    │   ├── failure-scenario
+    │   ├── authorized-blast-radius
+    │   ├── incident-roles
+    │   ├── impact-triage
+    │   ├── mitigation-choice
+    │   ├── communication-timeline
+    │   ├── recovery-evidence
+    │   └── blameless-postmortem
+    ├── performance-and-capacity-lab
+    │   ├── realistic-workload
+    │   ├── load-generator-validation
+    │   ├── baseline-profiles
+    │   ├── saturation-test
+    │   ├── autoscaling-evaluation
+    │   ├── downstream-protection
+    │   ├── cost-performance-report
+    │   └── regression-gates
+    ├── database-release-and-recovery
+    │   ├── additive-migration
+    │   ├── mixed-version-application
+    │   ├── throttled-backfill
+    │   ├── lock-monitoring
+    │   ├── point-in-time-restore
+    │   ├── data-reconciliation
+    │   ├── rollback-limits
+    │   └── recovery-runbook
+    ├── event-platform-operations-lab
+    │   ├── broker-and-topics
+    │   ├── schema-contracts
+    │   ├── consumer-groups
+    │   ├── lag-alerts
+    │   ├── poison-message-isolation
+    │   ├── idempotent-replay
+    │   ├── broker-failure-test
+    │   └── recovery-reconciliation
+    ├── backup-and-disaster-recovery-lab
+    │   ├── dependency-inventory
+    │   ├── encrypted-independent-backups
+    │   ├── immutable-retention
+    │   ├── isolated-restore
+    │   ├── key-recovery
+    │   ├── measured-rto-and-rpo
+    │   ├── business-integrity-check
+    │   └── failback-rehearsal
+    ├── internal-developer-platform
+    │   ├── service-catalog
+    │   ├── golden-path-template
+    │   ├── self-service-environment
+    │   ├── secure-pipeline-defaults
+    │   ├── ownership-and-slos
+    │   ├── preview-environment-ttl
+    │   ├── adoption-feedback
+    │   └── platform-cost-view
+    ├── finops-optimization-lab
+    │   ├── billing-and-usage-inventory
+    │   ├── allocation-policy
+    │   ├── anomaly-alerts
+    │   ├── idle-resource-cleanup
+    │   ├── workload-rightsizing
+    │   ├── kubernetes-cost-map
+    │   ├── unit-cost-report
+    │   └── savings-validation
+    ├── serverless-event-application
+    │   ├── function-build
+    │   ├── event-trigger
+    │   ├── scoped-identity
+    │   ├── retry-and-dead-letter-contract
+    │   ├── idempotent-processing
+    │   ├── concurrency-limits
+    │   ├── tracing-and-cost
+    │   └── release-and-recovery
+    ├── kubernetes-upgrade-rehearsal
+    │   ├── api-inventory
+    │   ├── addon-compatibility
+    │   ├── backup-verification
+    │   ├── canary-node-pool
+    │   ├── control-plane-and-node-upgrade
+    │   ├── workload-regression
+    │   ├── disruption-observation
+    │   └── recovery-plan
+    ├── production-security-remediation
+    │   ├── authorized-asset-inventory
+    │   ├── vulnerable-component-identification
+    │   ├── exposure-prioritization
+    │   ├── patch-build
+    │   ├── artifact-signing
+    │   ├── staged-rollout
+    │   ├── post-patch-tests
+    │   └── audit-evidence
+    ├── multiregion-failover-simulation
+    │   ├── regional-dependency-map
+    │   ├── replication-contract
+    │   ├── traffic-routing
+    │   ├── failure-declaration
+    │   ├── write-fencing
+    │   ├── data-loss-measurement
+    │   ├── failback-reconciliation
+    │   └── service-level-report
+    └── end-to-end-devops-capstone
+        ├── requirements-and-design
+        │   ├── business-scope
+        │   ├── service-architecture
+        │   ├── ownership-map
+        │   ├── environment-boundaries
+        │   ├── threat-model
+        │   ├── sli-and-slo-contract
+        │   ├── recovery-objectives
+        │   └── cost-budget
+        ├── implementation
+        │   ├── versioned-application
+        │   ├── immutable-builds
+        │   ├── secure-ci
+        │   ├── artifact-provenance
+        │   ├── infrastructure-code
+        │   ├── gitops-promotion
+        │   ├── identity-and-secrets
+        │   └── telemetry-pipeline
+        └── validation-and-delivery
+            ├── automated-quality-gates
+            ├── canary-and-rollback
+            ├── data-restore-drill
+            ├── incident-game-day
+            ├── performance-evidence
+            ├── security-review
+            ├── operational-handover
+            └── results-and-retrospective

@@ -1,0 +1,1209 @@
+react-native-module
+├── foundations
+│   ├── react-native-overview
+│   │   ├── what-react-native-is
+│   │   ├── react-native-versus-react-web
+│   │   ├── native-rendering-and-native-components
+│   │   ├── javascript-and-native-platform-boundary
+│   │   ├── ios-and-android-platforms
+│   │   ├── cross-platform-development-tradeoffs
+│   │   ├── native-app-versus-webview
+│   │   ├── expo-and-community-cli-ecosystem
+│   │   └── react-native-learning-path
+│   ├── architecture-and-mental-model
+│   │   ├── component-tree-and-native-view-tree
+│   │   ├── declarative-ui-and-state
+│   │   ├── javascript-runtime-and-native-runtime
+│   │   ├── rendering-and-commit-lifecycle
+│   │   ├── layout-through-yoga
+│   │   ├── platform-capabilities-and-apis
+│   │   ├── bridge-history-and-jsi-era-architecture
+│   │   └── new-architecture-overview
+│   ├── platform-prerequisites
+│   │   ├── android-operating-system-and-app-model
+│   │   ├── ios-operating-system-and-app-model
+│   │   ├── mobile-app-lifecycle
+│   │   ├── permissions-and-sandboxing
+│   │   ├── application-identifiers-and-signing
+│   │   ├── emulators-and-simulators
+│   │   ├── physical-device-development
+│   │   └── mobile-network-and-storage-basics
+│   ├── javascript-and-react-prerequisites
+│   │   ├── modern-javascript-and-es-modules
+│   │   ├── asynchronous-javascript
+│   │   ├── promises-and-async-await
+│   │   ├── typescript-fundamentals
+│   │   ├── react-components-and-jsx
+│   │   ├── props-and-composition
+│   │   ├── state-and-event-handling
+│   │   ├── hooks-and-effect-lifecycle
+│   │   └── immutable-data-and-context
+│   └── development-environment
+│       ├── macos-and-xcode-requirements
+│       ├── windows-and-android-development
+│       ├── linux-and-android-development
+│       ├── nodejs-and-package-manager
+│       ├── watchman-and-file-watching
+│       ├── android-studio-and-sdk
+│       ├── xcode-and-command-line-tools
+│       ├── editor-and-debugger-setup
+│       └── environment-reproducibility
+├── project-setup-and-toolchain
+│   ├── project-starting-options
+│   │   ├── expo-managed-project
+│   │   ├── expo-development-build
+│   │   ├── react-native-community-cli
+│   │   ├── existing-native-application-integration
+│   │   ├── framework-and-toolchain-selection
+│   │   └── starter-template-and-version-review
+│   ├── expo-workflow
+│   │   ├── create-expo-app
+│   │   ├── app-config-and-app-json
+│   │   ├── expo-sdk-and-react-native-version-alignment
+│   │   ├── expo-router-project-structure
+│   │   ├── expo-go-limitations
+│   │   ├── development-builds
+│   │   ├── config-plugins
+│   │   ├── prebuild-and-native-project-generation
+│   │   └── expo-cli-and-doctor
+│   ├── community-cli-workflow
+│   │   ├── react-native-community-cli-init
+│   │   ├── android-and-ios-projects
+│   │   ├── metro-configuration
+│   │   ├── native-dependency-installation
+│   │   ├── pod-installation
+│   │   ├── gradle-configuration
+│   │   ├── autolinking
+│   │   └── native-build-and-run-commands
+│   ├── package-and-runtime-management
+│   │   ├── node-and-package-manager-versions
+│   │   ├── react-react-native-and-expo-compatibility
+│   │   ├── dependency-and-peer-dependency-management
+│   │   ├── lockfile-and-reproducible-installation
+│   │   ├── native-module-version-compatibility
+│   │   ├── npm-yarn-and-pnpm-considerations
+│   │   ├── dependency-upgrades
+│   │   └── duplicate-native-dependency-detection
+│   ├── metro-and-bundling
+│   │   ├── metro-bundler-overview
+│   │   ├── entry-points-and-resolution
+│   │   ├── asset-resolution
+│   │   ├── babel-and-transformations
+│   │   ├── module-and-package-resolution
+│   │   ├── metro-cache-and-invalidation
+│   │   ├── monorepo-and-workspace-support
+│   │   └── production-bundling
+│   ├── source-layout-and-conventions
+│   │   ├── app-and-screen-entry-points
+│   │   ├── feature-based-organization
+│   │   ├── components-and-design-system
+│   │   ├── hooks-and-services
+│   │   ├── navigation-and-routing
+│   │   ├── state-and-data-layer
+│   │   ├── assets-and-localization
+│   │   ├── native-platform-specific-files
+│   │   └── tests-and-fixtures
+│   └── development-feedback-loop
+│       ├── metro-development-server
+│       ├── fast-refresh
+│       ├── reload-versus-fast-refresh
+│       ├── device-logs-and-logcat
+│       ├── ios-console-and-device-logs
+│       ├── source-maps-and-breakpoints
+│       ├── cache-reset-and-recovery
+│       └── minimal-reproduction-workflow
+├── core-components-and-platform-ui
+│   ├── core-component-catalog
+│   │   ├── view
+│   │   ├── text
+│   │   ├── image-and-image-background
+│   │   ├── scrollview
+│   │   ├── flatlist
+│   │   ├── sectionlist
+│   │   ├── virtualizedlist
+│   │   ├── pressable
+│   │   ├── button-and-switch
+│   │   ├── textinput
+│   │   ├── activityindicator
+│   │   ├── modal
+│   │   ├── statusbar
+│   │   └── safeareaview-and-safe-area-context
+│   ├── component-composition
+│   │   ├── reusable-component-boundaries
+│   │   ├── props-and-children
+│   │   ├── controlled-and-uncontrolled-inputs
+│   │   ├── compound-component-patterns
+│   │   ├── platform-specific-component-variants
+│   │   ├── list-item-identity-and-keys
+│   │   ├── component-state-ownership
+│   │   └── design-system-primitives
+│   ├── interaction-and-touch
+│   │   ├── touch-responder-system
+│   │   ├── pressable-state-and-feedback
+│   │   ├── gesture-recognizers
+│   │   ├── touch-target-sizing
+│   │   ├── nested-scroll-and-touch-conflicts
+│   │   ├── keyboard-dismissal
+│   │   ├── long-press-and-repeat
+│   │   └── haptics-and-tactile-feedback
+│   ├── platform-ui-conventions
+│   │   ├── ios-human-interface-guidelines
+│   │   ├── android-material-design
+│   │   ├── native-control-behavior
+│   │   ├── platform-specific-feedback
+│   │   ├── system-bars-and-navigation-bars
+│   │   ├── dialogs-and-action-sheets
+│   │   └── platform-adaptive-components
+│   ├── images-and-assets
+│   │   ├── static-image-require
+│   │   ├── remote-image-sources
+│   │   ├── image-sizing-and-resize-modes
+│   │   ├── image-caching-and-prefetch
+│   │   ├── density-aware-assets
+│   │   ├── vector-icons-and-svg-options
+│   │   ├── app-icons-and-splash-screens
+│   │   └── asset-bundling-and-optimization
+│   └── native-ui-extension
+│       ├── platform-specific-implementation-files
+│       ├── native-view-components
+│       ├── native-props-and-events
+│       ├── view-manager-concepts
+│       ├── fabric-native-components
+│       └── when-to-build-a-custom-native-view
+├── styling-layout-and-responsive-design
+│   ├── react-native-styling
+│   │   ├── style-props-and-style-objects
+│   │   ├── stylesheet-create
+│   │   ├── style-composition-and-arrays
+│   │   ├── conditional-and-dynamic-styles
+│   │   ├── platform-specific-styles
+│   │   ├── style-precedence
+│   │   ├── dimensions-and-units
+│   │   └── unsupported-web-css-properties
+│   ├── flexbox-and-layout
+│   │   ├── flex-direction-and-axis
+│   │   ├── flex-grow-shrink-and-basis
+│   │   ├── justify-content-and-align-items
+│   │   ├── align-self-and-align-content
+│   │   ├── flex-wrap-and-gap
+│   │   ├── position-relative-and-absolute
+│   │   ├── dimensions-min-max-and-percentages
+│   │   └── layout-debugging
+│   ├── yoga-layout-engine
+│   │   ├── yoga-overview
+│   │   ├── web-flexbox-versus-yoga-differences
+│   │   ├── point-scale-and-pixel-rounding
+│   │   ├── intrinsic-size-and-measurement
+│   │   ├── layout-direction-and-rtl
+│   │   └── layout-performance
+│   ├── responsive-and-adaptive-layout
+│   │   ├── use-window-dimensions
+│   │   ├── usewindowdimensions-and-dimensions-api
+│   │   ├── screen-size-and-orientation
+│   │   ├── foldables-and-tablets
+│   │   ├── safe-area-insets
+│   │   ├── keyboard-aware-layout
+│   │   ├── split-screen-and-multitasking
+│   │   └── adaptive-layout-breakpoints
+│   ├── typography-and-color
+│   │   ├── font-family-and-platform-fonts
+│   │   ├── font-weight-and-line-height
+│   │   ├── text-measurement-and-wrapping
+│   │   ├── font-scaling-and-dynamic-type
+│   │   ├── color-systems-and-tokens
+│   │   ├── dark-mode-and-system-appearance
+│   │   ├── contrast-and-readable-content
+│   │   └── localization-aware-layout
+│   ├── advanced-layout-patterns
+│   │   ├── sticky-and-collapsible-headers
+│   │   ├── overlays-and-portals
+│   │   ├── bottom-sheets-and-drawers
+│   │   ├── grid-layout-patterns
+│   │   ├── masonry-and-variable-height-lists
+│   │   ├── nested-scroll-areas
+│   │   └── layout-animation-coordination
+│   └── styling-architecture
+│       ├── design-tokens
+│       ├── theme-provider
+│       ├── component-variants
+│       ├── utility-styling-libraries
+│       ├── styling-library-tradeoffs
+│       ├── style-organization-and-maintenance
+│       └── visual-regression-baselines
+├── navigation-and-application-structure
+│   ├── navigation-fundamentals
+│   │   ├── navigation-versus-rendering
+│   │   ├── stack-navigation
+│   │   ├── tab-navigation
+│   │   ├── drawer-navigation
+│   │   ├── nested-navigators
+│   │   ├── navigation-state-and-history
+│   │   ├── route-parameters
+│   │   └── navigation-lifecycle
+│   ├── react-navigation
+│   │   ├── installation-and-container
+│   │   ├── native-stack
+│   │   ├── bottom-tabs
+│   │   ├── drawer
+│   │   ├── linking-and-deep-linking
+│   │   ├── screen-options-and-headers
+│   │   ├── navigation-events
+│   │   ├── navigation-typescript-types
+│   │   └── state-persistence
+│   ├── expo-router
+│   │   ├── file-based-routing
+│   │   ├── route-files-and-layouts
+│   │   ├── groups-and-nesting
+│   │   ├── dynamic-and-typed-routes
+│   │   ├── modal-and-protected-routes
+│   │   ├── deep-links-and-universal-links
+│   │   ├── route-parameters-and-search-params
+│   │   ├── authentication-redirects
+│   │   └── web-and-native-route-behavior
+│   ├── navigation-experience
+│   │   ├── back-button-and-gesture-behavior
+│   │   ├── navigation-transitions
+│   │   ├── nested-back-stack
+│   │   ├── screen-focus-and-blur
+│   │   ├── preserving-screen-state
+│   │   ├── preventing-navigation-and-unsaved-changes
+│   │   └── accessibility-announcements
+│   └── deep-linking-and-external-entry
+│       ├── url-scheme-configuration
+│       ├── android-app-links
+│       ├── ios-universal-links
+│       ├── link-resolution-and-fallback
+│       ├── notification-driven-navigation
+│       ├── authentication-return-links
+│       ├── link-validation-and-security
+│       └── deep-link-testing
+├── state-management-and-data-flow
+│   ├── react-state-fundamentals
+│   │   ├── usestate-and-state-snapshots
+│   │   ├── usereducer-and-state-machines
+│   │   ├── context-and-provider-boundaries
+│   │   ├── derived-state
+│   │   ├── state-colocation
+│   │   ├── immutable-updates
+│   │   ├── state-reset-and-component-identity
+│   │   └── avoiding-effect-driven-state
+│   ├── app-wide-state-libraries
+│   │   ├── redux-toolkit
+│   │   ├── zustand
+│   │   ├── jotai
+│   │   ├── mobx
+│   │   ├── xstate
+│   │   ├── context-versus-state-library
+│   │   ├── persistence-and-hydration
+│   │   └── state-library-selection
+│   ├── server-state-and-caching
+│   │   ├── tanstack-query
+│   │   ├── query-keys-and-cache-scope
+│   │   ├── mutations-and-invalidation
+│   │   ├── optimistic-updates
+│   │   ├── pagination-and-infinite-queries
+│   │   ├── offline-cache-and-reconnect
+│   │   ├── stale-and-garbage-collection-policy
+│   │   └── request-cancellation-and-races
+│   ├── persistence-and-local-data
+│   │   ├── asyncstorage
+│   │   ├── securestore-and-secure-key-value
+│   │   ├── sqlite-and-relational-local-storage
+│   │   ├── mmkv-and-fast-key-value-storage
+│   │   ├── filesystem-and-document-storage
+│   │   ├── cache-versus-source-of-truth
+│   │   ├── migrations-and-versioning
+│   │   └── data-deletion-and-logout
+│   └── offline-first-and-synchronization
+│       ├── offline-capability-requirements
+│       ├── local-write-queue
+│       ├── reconnect-and-background-sync
+│       ├── conflict-detection-and-resolution
+│       ├── retry-and-idempotency
+│       ├── optimistic-state-reconciliation
+│       ├── sync-status-and-user-feedback
+│       └── offline-testing
+├── networking-and-backend-integration
+│   ├── networking-fundamentals
+│   │   ├── fetch-and-response-handling
+│   │   ├── axios-and-http-clients
+│   │   ├── request-headers-and-authentication
+│   │   ├── timeout-and-cancellation
+│   │   ├── retry-and-backoff
+│   │   ├── pagination-and-infinite-loading
+│   │   ├── upload-and-download
+│   │   └── network-connectivity-state
+│   ├── api-contract-and-data-modeling
+│   │   ├── rest-api-integration
+│   │   ├── graphql-client-integration
+│   │   ├── request-and-response-types
+│   │   ├── runtime-schema-validation
+│   │   ├── error-normalization
+│   │   ├── api-versioning
+│   │   ├── generated-api-clients
+│   │   └── contract-testing
+│   ├── realtime-communication
+│   │   ├── websocket-client
+│   │   ├── socketio-client
+│   │   ├── connection-lifecycle
+│   │   ├── reconnect-and-backoff
+│   │   ├── event-ordering-and-deduplication
+│   │   ├── background-and-foreground-reconnection
+│   │   └── realtime-state-reconciliation
+│   ├── authentication-and-session
+│   │   ├── login-and-registration-flows
+│   │   ├── access-and-refresh-tokens
+│   │   ├── secure-token-storage
+│   │   ├── oauth-and-openid-connect
+│   │   ├── biometric-authentication-boundary
+│   │   ├── session-expiry-and-refresh-races
+│   │   ├── logout-and-token-revocation
+│   │   └── authorization-and-role-aware-ui
+│   └── network-security
+│       ├── tls-and-certificate-validation
+│       ├── certificate-pinning-tradeoffs
+│       ├── cleartext-traffic-policy
+│       ├── api-key-and-secret-boundaries
+│       ├── request-signing-and-integrity
+│       ├── sensitive-data-redaction
+│       ├── secure-network-configuration
+│       └── proxy-and-network-debugging
+├── forms-input-and-user-experience
+│   ├── form-fundamentals
+│   │   ├── controlled-text-input
+│   │   ├── keyboard-types-and-return-keys
+│   │   ├── focus-and-blur-management
+│   │   ├── multiline-and-auto-grow-input
+│   │   ├── input-formatting-and-masking
+│   │   ├── field-level-validation
+│   │   ├── form-level-validation
+│   │   └── submission-and-pending-state
+│   ├── form-libraries-and-schema-validation
+│   │   ├── react-hook-form
+│   │   ├── formik-and-alternatives
+│   │   ├── zod-and-yup
+│   │   ├── schema-driven-validation
+│   │   ├── nested-and-array-fields
+│   │   ├── server-error-mapping
+│   │   └── dirty-state-and-draft-management
+│   ├── mobile-keyboard-and-focus
+│   │   ├── keyboard-avoiding-view
+│   │   ├── keyboard-events-and-insets
+│   │   ├── scroll-to-focused-input
+│   │   ├── input-accessory-views
+│   │   ├── keyboard-dismissal-and-submit
+│   │   ├── android-adjust-resize-and-pan
+│   │   └── ios-keyboard-interaction
+│   └── mobile-interaction-patterns
+│       ├── pull-to-refresh
+│       ├── swipe-actions
+│       ├── drag-and-drop
+│       ├── infinite-scroll
+│       ├── confirmation-and-destructive-actions
+│       ├── loading-empty-and-error-states
+│       ├── haptic-and-sound-feedback
+│       └── interruption-and-recovery
+├── native-capabilities-and-device-apis
+│   ├── permissions-and-device-access
+│   │   ├── runtime-permission-model
+│   │   ├── permission-status-and-request
+│   │   ├── denied-and-restricted-states
+│   │   ├── permission-rationale-and-settings-link
+│   │   ├── ios-usage-description-keys
+│   │   ├── android-permission-manifest
+│   │   └── least-privilege-and-permission-review
+│   ├── camera-and-media
+│   │   ├── camera-preview-and-capture
+│   │   ├── photo-library-access
+│   │   ├── image-picker
+│   │   ├── video-recording-and-playback
+│   │   ├── media-compression-and-resizing
+│   │   ├── metadata-and-exif
+│   │   └── upload-and-media-lifecycle
+│   ├── location-and-maps
+│   │   ├── foreground-location
+│   │   ├── background-location
+│   │   ├── location-permission-and-accuracy
+│   │   ├── geocoding-and-reverse-geocoding
+│   │   ├── maps-and-markers
+│   │   ├── geofencing-concepts
+│   │   ├── location-battery-cost
+│   │   └── privacy-and-location-retention
+│   ├── sensors-and-hardware
+│   │   ├── accelerometer-and-gyroscope
+│   │   ├── magnetometer-and-orientation
+│   │   ├── proximity-and-light-sensors
+│   │   ├── bluetooth-low-energy
+│   │   ├── nfc-and-contactless
+│   │   ├── usb-and-external-devices
+│   │   ├── device-information
+│   │   └── hardware-availability-and-fallback
+│   ├── audio-and-haptics
+│   │   ├── audio-playback
+│   │   ├── audio-recording
+│   │   ├── audio-focus-and-interruption
+│   │   ├── background-audio
+│   │   ├── audio-session-configuration
+│   │   ├── vibration-and-haptics
+│   │   └── media-controls-and-lock-screen
+│   ├── files-and-sharing
+│   │   ├── app-document-directory
+│   │   ├── cache-and-temporary-files
+│   │   ├── document-picker
+│   │   ├── file-provider-and-content-uri
+│   │   ├── share-sheet-and-intents
+│   │   ├── downloads-and-background-transfers
+│   │   └── file-permission-and-cleanup
+│   ├── device-authentication-and-security
+│   │   ├── face-id-and-touch-id
+│   │   ├── android-biometric-prompt
+│   │   ├── keychain-and-android-keystore
+│   │   ├── secure-enclave-concepts
+│   │   ├── device-compromise-signals
+│   │   └── authentication-fallback-policy
+│   └── native-module-selection
+│       ├── expo-sdk-module-catalog
+│       ├── community-native-library-evaluation
+│       ├── native-dependency-health
+│       ├── new-architecture-compatibility
+│       ├── platform-coverage-and-maintenance
+│       └── custom-native-module-decision
+├── application-lifecycle-and-background-work
+│   ├── app-state-and-lifecycle
+│   │   ├── active-background-and-inactive
+│   │   ├── cold-start-and-warm-start
+│   │   ├── foreground-and-background-transitions
+│   │   ├── app-state-subscriptions
+│   │   ├── process-termination-and-restoration
+│   │   ├── navigation-and-app-lifecycle-interaction
+│   │   └── lifecycle-testing
+│   ├── background-execution
+│   │   ├── platform-background-execution-limits
+│   │   ├── expo-background-task
+│   │   ├── android-workmanager-concepts
+│   │   ├── ios-background-tasks
+│   │   ├── background-fetch-and-refresh
+│   │   ├── task-registration-and-constraints
+│   │   ├── retries-and-expiration
+│   │   └── background-execution-observability
+│   ├── push-notifications
+│   │   ├── push-provider-and-token-registration
+│   │   ├── ios-apns-and-android-fcm
+│   │   ├── notification-permissions
+│   │   ├── foreground-and-background-handling
+│   │   ├── notification-channels-and-categories
+│   │   ├── deep-link-from-notification
+│   │   ├── token-refresh-and-device-registration
+│   │   ├── notification-delivery-and-analytics
+│   │   └── privacy-and-user-preferences
+│   ├── deep-link-and-app-intent-lifecycle
+│   │   ├── initial-url-and-runtime-url-events
+│   │   ├── notification-intent-routing
+│   │   ├── deferred-navigation-until-authenticated
+│   │   ├── duplicate-intent-prevention
+│   │   └── invalid-link-and-fallback-handling
+│   └── scheduling-and-local-notifications
+│       ├── local-notification-scheduling
+│       ├── calendar-and-timezone-behavior
+│       ├── notification-cancellation-and-updates
+│       ├── exact-alarm-and-platform-restrictions
+│       ├── recurring-reminders
+│       └── schedule-persistence-and-restoration
+├── animation-gestures-and-advanced-interaction
+│   ├── animation-fundamentals
+│   │   ├── animated-api
+│   │   ├── timing-and-spring-animations
+│   │   ├── interpolation-and-transforms
+│   │   ├── animated-values-and-listeners
+│   │   ├── layout-and-opacity-animation
+│   │   ├── native-driver-and-supported-properties
+│   │   ├── animation-composition
+│   │   └── reduced-motion-and-accessibility
+│   ├── reanimated
+│   │   ├── worklets-and-ui-runtime
+│   │   ├── shared-values
+│   │   ├── animated-styles-and-props
+│   │   ├── derived-values
+│   │   ├── reactions-and-animated-sensors
+│   │   ├── entering-and-exiting-animations
+│   │   ├── layout-transitions
+│   │   ├── cross-runtime-communication
+│   │   └── debugging-and-performance
+│   ├── gesture-handler
+│   │   ├── gesture-detectors
+│   │   ├── tap-and-long-press
+│   │   ├── pan-and-swipe
+│   │   ├── pinch-and-rotation
+│   │   ├── simultaneous-and-exclusive-gestures
+│   │   ├── gesture-composition
+│   │   ├── scroll-and-gesture-coordination
+│   │   └── gesture-accessibility
+│   ├── advanced-interaction-patterns
+│   │   ├── draggable-and-sortable-lists
+│   │   ├── swipeable-cards
+│   │   ├── bottom-sheet-interactions
+│   │   ├── shared-element-transition-options
+│   │   ├── interactive-charts-and-canvases
+│   │   ├── keyboard-driven-transitions
+│   │   └── interruption-and-gesture-cancellation
+│   └── animation-quality
+│       ├── frame-rate-and-jank
+│       ├── ui-thread-versus-js-thread
+│       ├── animation-profiling
+│       ├── motion-consistency
+│       ├── battery-and-thermal-impact
+│       └── animation-test-strategy
+├── platform-specific-development
+│   ├── android-development
+│   │   ├── android-project-structure
+│   │   ├── gradle-and-build-variants
+│   │   ├── manifest-and-intent-filters
+│   │   ├── activities-and-application-lifecycle
+│   │   ├── permissions-and-scoped-storage
+│   │   ├── android-resources-and-density
+│   │   ├── notification-channels
+│   │   ├── back-navigation-and-predictive-back
+│   │   ├── app-links
+│   │   └── android-device-testing
+│   ├── ios-development
+│   │   ├── xcode-project-and-workspaces
+│   │   ├── targets-schemes-and-configurations
+│   │   ├── plist-and-entitlements
+│   │   ├── signing-certificates-and-profiles
+│   │   ├── cocoapods-and-swift-package-manager
+│   │   ├── app-delegates-and-scene-lifecycle
+│   │   ├── safe-area-and-system-gestures
+│   │   ├── universal-links
+│   │   ├── privacy-manifest-and-usage-descriptions
+│   │   └── ios-device-testing
+│   ├── platform-specific-code
+│   │   ├── platform-module
+│   │   ├── platform-select
+│   │   ├── ios-and-android-file-extensions
+│   │   ├── shared-versus-native-implementation
+│   │   ├── platform-adapter-pattern
+│   │   ├── platform-feature-detection
+│   │   └── platform-parity-and-divergence
+│   ├── native-build-and-debugging
+│   │   ├── gradle-build-and-task-inspection
+│   │   ├── xcode-build-settings
+│   │   ├── native-symbols-and-crash-logs
+│   │   ├── android-logcat-and-crash-analysis
+│   │   ├── ios-crash-reports-and-symbolication
+│   │   ├── native-dependency-resolution
+│   │   ├── clean-build-and-cache-diagnosis
+│   │   └── reproducible-native-builds
+│   └── native-ui-and-platform-integration
+│       ├── android-kotlin-and-java-basics
+│       ├── ios-swift-and-objective-c-basics
+│       ├── native-view-hierarchy
+│       ├── native-navigation-integration
+│       ├── platform-service-integration
+│       ├── native-event-emission
+│       └── app-extension-and-system-integration
+├── native-modules-and-new-architecture
+│   ├── react-native-architecture-evolution
+│   │   ├── legacy-bridge-architecture
+│   │   ├── asynchronous-bridge-communication
+│   │   ├── javascript-interface-jsi
+│   │   ├── turbo-modules
+│   │   ├── fabric-renderer
+│   │   ├── codegen-and-specifications
+│   │   ├── bridgeless-mode
+│   │   └── architecture-compatibility-and-migration
+│   ├── javascript-interface-and-runtime
+│   │   ├── js-runtime-options
+│   │   ├── hermes-engine
+│   │   ├── jsi-host-objects-and-functions
+│   │   ├── synchronous-native-javascript-interaction
+│   │   ├── runtime-and-thread-affinity
+│   │   ├── garbage-collection-and-native-references
+│   │   └── runtime-initialization-and-teardown
+│   ├── turbo-native-modules
+│   │   ├── typed-module-specification
+│   │   ├── codegen-configuration
+│   │   ├── android-kotlin-module-implementation
+│   │   ├── ios-swift-module-implementation
+│   │   ├── constants-and-methods
+│   │   ├── events-and-listeners
+│   │   ├── synchronous-and-asynchronous-methods
+│   │   ├── platform-specific-module-implementations
+│   │   └── module-testing-and-packaging
+│   ├── fabric-native-components
+│   │   ├── component-specification
+│   │   ├── props-and-event-codegen
+│   │   ├── android-view-implementation
+│   │   ├── ios-view-implementation
+│   │   ├── native-layout-and-measurement
+│   │   ├── event-and-command-handling
+│   │   ├── component-state-and-lifecycle
+│   │   └── component-integration-tests
+│   ├── native-threading-and-scheduling
+│   │   ├── javascript-thread
+│   │   ├── main-ui-thread
+│   │   ├── native-module-threading
+│   │   ├── background-queues
+│   │   ├── thread-safety-and-shared-state
+│   │   ├── synchronous-call-risks
+│   │   ├── scheduling-and-priorities
+│   │   └── deadlock-and-race-diagnosis
+│   └── native-library-engineering
+│       ├── library-scaffolding
+│       ├── autolinking-and-podspec
+│       ├── gradle-plugin-and-maven-publication
+│       ├── codegen-and-build-integration
+│       ├── supported-platform-matrix
+│       ├── example-app-and-fixtures
+│       ├── semantic-versioning
+│       └── native-library-release-and-maintenance
+├── accessibility-internationalization-and-design-quality
+│   ├── mobile-accessibility
+│   │   ├── accessibility-label-role-and-hint
+│   │   ├── accessibility-state-and-value
+│   │   ├── voiceover-and-talkback
+│   │   ├── focus-order-and-accessibility-actions
+│   │   ├── touch-target-and-gesture-alternatives
+│   │   ├── dynamic-type-and-font-scaling
+│   │   ├── contrast-and-color-independence
+│   │   ├── reduced-motion
+│   │   └── accessibility-audit-and-testing
+│   ├── internationalization
+│   │   ├── locale-detection-and-selection
+│   │   ├── translation-catalogs
+│   │   ├── pluralization-and-interpolation
+│   │   ├── date-number-and-currency-formatting
+│   │   ├── timezone-and-calendar
+│   │   ├── right-to-left-layout
+│   │   ├── localized-input-and-validation
+│   │   └── pseudo-localization-and-testing
+│   ├── design-system-and-theming
+│   │   ├── design-tokens-and-semantic-colors
+│   │   ├── typography-and-spacing-scale
+│   │   ├── component-variants-and-states
+│   │   ├── light-dark-and-system-themes
+│   │   ├── platform-adaptive-components
+│   │   ├── iconography-and-illustration
+│   │   ├── design-to-code-handoff
+│   │   └── design-system-documentation
+│   └── user-experience-quality
+│       ├── perceived-performance
+│       ├── loading-and-skeleton-strategy
+│       ├── offline-and-poor-network-feedback
+│       ├── error-recovery-and-user-control
+│       ├── destructive-action-confirmation
+│       ├── onboarding-and-permission-education
+│       └── usability-testing-on-real-devices
+├── performance-memory-and-reliability
+│   ├── performance-fundamentals
+│   │   ├── startup-time-and-time-to-interactive
+│   │   ├── js-thread-and-ui-thread-performance
+│   │   ├── frame-rate-and-frame-budget
+│   │   ├── render-frequency-and-component-cost
+│   │   ├── list-virtualization-and-windowing
+│   │   ├── image-memory-and-decoding
+│   │   ├── network-latency-and-waterfalls
+│   │   └── performance-baselines-and-budgets
+│   ├── profiling-and-diagnostics
+│   │   ├── react-native-devtools
+│   │   ├── hermes-profiling
+│   │   ├── android-studio-profiler
+│   │   ├── xcode-instruments
+│   │   ├── performance-monitoring
+│   │   ├── native-and-js-stack-traces
+│   │   ├── memory-snapshot-and-allocation
+│   │   └── production-performance-traces
+│   ├── memory-management
+│   │   ├── js-heap-and-native-memory
+│   │   ├── image-and-bitmap-memory
+│   │   ├── event-listener-and-subscription-leaks
+│   │   ├── timer-and-background-task-cleanup
+│   │   ├── navigation-screen-retention
+│   │   ├── native-resource-lifecycle
+│   │   └── low-memory-behavior
+│   ├── app-reliability
+│   │   ├── crash-versus-js-exception
+│   │   ├── error-boundaries-and-fallback-ui
+│   │   ├── native-crash-reporting
+│   │   ├── unhandled-promise-rejections
+│   │   ├── network-and-service-failure-recovery
+│   │   ├── app-state-restoration
+│   │   ├── watchdog-and-application-not-responding
+│   │   └── resilience-testing
+│   └── optimization-techniques
+│       ├── memoization-and-render-optimization
+│       ├── list-item-and-key-optimization
+│       ├── image-resizing-and-caching
+│       ├── bundle-size-and-code-splitting
+│       ├── native-driver-and-worklet-offloading
+│       ├── startup-dependency-optimization
+│       ├── database-query-and-cache-optimization
+│       └── measure-before-and-after
+├── security-and-privacy
+│   ├── mobile-security-fundamentals
+│   │   ├── mobile-threat-model
+│   │   ├── client-as-untrusted-environment
+│   │   ├── secure-defaults
+│   │   ├── platform-sandbox-and-app-isolation
+│   │   ├── reverse-engineering-and-tampering-awareness
+│   │   └── security-review-lifecycle
+│   ├── secure-storage-and-secrets
+│   │   ├── securestore-keychain-and-keystore
+│   │   ├── avoid-plaintext-token-storage
+│   │   ├── local-database-encryption-options
+│   │   ├── environment-variable-and-build-secret-boundaries
+│   │   ├── secret-rotation-and-revocation
+│   │   ├── backup-and-device-migration-risks
+│   │   └── sensitive-data-redaction
+│   ├── authentication-and-authorization-security
+│   │   ├── oauth-pkce
+│   │   ├── token-lifecycle-and-refresh
+│   │   ├── biometric-gating-versus-server-authentication
+│   │   ├── role-and-permission-enforcement
+│   │   ├── session-fixation-and-replay-risks
+│   │   ├── deep-link-authentication-risks
+│   │   └── server-authoritative-access-control
+│   ├── data-protection-and-privacy
+│   │   ├── data-minimization
+│   │   ├── consent-and-purpose-limitation
+│   │   ├── personal-and-sensitive-data
+│   │   ├── location-and-media-privacy
+│   │   ├── clipboard-and-screenshot-considerations
+│   │   ├── analytics-and-crash-report-redaction
+│   │   ├── data-retention-and-deletion
+│   │   └── privacy-disclosures-and-permissions
+│   └── application-hardening
+│       ├── dependency-vulnerability-management
+│       ├── certificate-and-transport-security
+│       ├── app-integrity-and-attestation
+│       ├── jailbreak-and-root-detection-limitations
+│       ├── obfuscation-and-code-protection
+│       ├── secure-deep-links-and-intents
+│       ├── exported-component-and-url-scheme-review
+│       └── security-testing-and-remediation
+├── testing-and-quality-engineering
+│   ├── testing-fundamentals
+│   │   ├── test-pyramid-and-testing-strategy
+│   │   ├── deterministic-test-design
+│   │   ├── test-data-and-fixtures
+│   │   ├── platform-specific-test-cases
+│   │   ├── device-and-os-version-matrix
+│   │   ├── flaky-test-diagnosis
+│   │   └── coverage-and-risk-based-testing
+│   ├── unit-and-component-testing
+│   │   ├── jest-configuration
+│   │   ├── react-native-testing-library
+│   │   ├── component-render-and-interaction-tests
+│   │   ├── hook-and-context-tests
+│   │   ├── navigation-and-state-tests
+│   │   ├── api-and-service-mocking
+│   │   ├── timer-and-async-tests
+│   │   └── snapshot-test-limitations
+│   ├── native-integration-testing
+│   │   ├── native-module-integration-tests
+│   │   ├── permissions-and-device-api-tests
+│   │   ├── database-and-storage-tests
+│   │   ├── deep-link-and-notification-tests
+│   │   ├── network-failure-and-offline-tests
+│   │   └── platform-parity-tests
+│   ├── end-to-end-testing
+│   │   ├── detox
+│   │   ├── maestro
+│   │   ├── appium-and-alternatives
+│   │   ├── device-farm-and-cloud-device-testing
+│   │   ├── authentication-and-critical-journeys
+│   │   ├── test-build-and-environment-setup
+│   │   ├── screenshots-and-artifact-capture
+│   │   └── flaky-e2e-test-management
+│   ├── visual-and-accessibility-testing
+│   │   ├── screenshot-and-visual-regression
+│   │   ├── font-scale-and-layout-tests
+│   │   ├── voiceover-and-talkback-checks
+│   │   ├── color-contrast-and-touch-targets
+│   │   ├── localization-and-rtl-tests
+│   │   └── real-device-ux-review
+│   └── quality-automation
+│       ├── eslint-and-typescript-checks
+│       ├── prettier-and-formatting
+│       ├── dependency-and-license-scanning
+│       ├── native-build-validation
+│       ├── test-sharding-and-parallelization
+│       ├── coverage-reporting
+│       └── pull-request-quality-gates
+├── build-release-and-deployment
+│   ├── native-build-system
+│   │   ├── android-gradle-build-types
+│   │   ├── android-product-flavors
+│   │   ├── ios-schemes-and-configurations
+│   │   ├── build-settings-and-environment
+│   │   ├── native-dependency-linking
+│   │   ├── hermes-and-js-bundle-generation
+│   │   └── reproducible-builds
+│   ├── application-configuration
+│   │   ├── app-name-and-identifiers
+│   │   ├── icons-and-splash-assets
+│   │   ├── permissions-and-entitlements
+│   │   ├── environment-specific-configuration
+│   │   ├── runtime-configuration-and-secrets
+│   │   ├── version-and-build-number
+│   │   └── config-plugin-and-native-config-validation
+│   ├── signing-and-distribution
+│   │   ├── android-keystore-and-app-signing
+│   │   ├── android-aab-and-apk
+│   │   ├── ios-certificates-and-provisioning
+│   │   ├── archive-and-ipa
+│   │   ├── internal-and-beta-distribution
+│   │   ├── testflight
+│   │   ├── google-play-internal-testing
+│   │   └── signing-key-backup-and-rotation
+│   ├── expo-application-services
+│   │   ├── eas-build-profiles
+│   │   ├── eas-build-and-credentials
+│   │   ├── eas-submit
+│   │   ├── eas-update-and-runtime-version
+│   │   ├── update-channels-and-branches
+│   │   ├── build-cache-and-artifacts
+│   │   └── local-versus-cloud-builds
+│   ├── app-store-release-management
+│   │   ├── app-store-connect-metadata
+│   │   ├── google-play-console-release
+│   │   ├── privacy-labels-and-data-safety
+│   │   ├── review-guidelines-and-compliance
+│   │   ├── staged-and-phased-rollouts
+│   │   ├── versioning-and-release-notes
+│   │   ├── store-rejection-diagnosis
+│   │   └── rollback-and-hotfix-strategy
+│   └── over-the-air-updates
+│       ├── js-and-asset-update-boundaries
+│       ├── native-runtime-compatibility
+│       ├── runtime-version-policy
+│       ├── update-channel-strategy
+│       ├── rollout-and-rollback
+│       ├── update-failure-recovery
+│       └── store-policy-and-user-transparency
+├── ci-cd-and-developer-experience
+│   ├── continuous-integration
+│   │   ├── github-actions-for-mobile
+│   │   ├── gitlab-ci-for-mobile
+│   │   ├── macos-runner-and-xcode-management
+│   │   ├── android-sdk-and-gradle-caching
+│   │   ├── lint-typecheck-and-test-pipelines
+│   │   ├── android-and-ios-build-matrix
+│   │   ├── signing-secret-management
+│   │   └── artifact-retention
+│   ├── continuous-delivery
+│   │   ├── automated-beta-distribution
+│   │   ├── release-approval-gates
+│   │   ├── staged-rollout-automation
+│   │   ├── store-submission-workflows
+│   │   ├── release-notes-generation
+│   │   └── rollback-and-hotfix-pipeline
+│   ├── monorepo-and-team-workflows
+│   │   ├── workspace-and-package-boundaries
+│   │   ├── shared-mobile-and-web-packages
+│   │   ├── native-project-ownership
+│   │   ├── dependency-graph-and-task-caching
+│   │   ├── codeowners-and-review-rules
+│   │   └── shared-design-system-and-sdk
+│   └── developer-productivity
+│       ├── project-scaffolding-and-generators
+│       ├── environment-doctor-and-diagnostics
+│       ├── local-device-and-simulator-automation
+│       ├── debugging-and-log-collection-tools
+│       ├── build-time-and-feedback-optimization
+│       ├── onboarding-and-development-docs
+│       └── release-runbooks
+├── observability-and-production-operations
+│   ├── crash-and-error-monitoring
+│   │   ├── javascript-error-reporting
+│   │   ├── native-crash-reporting
+│   │   ├── source-map-and-symbol-upload
+│   │   ├── release-and-user-context
+│   │   ├── error-grouping-and-triage
+│   │   └── privacy-aware-diagnostics
+│   ├── performance-monitoring
+│   │   ├── startup-and-screen-load-metrics
+│   │   ├── frame-rate-and-frozen-frame-monitoring
+│   │   ├── memory-and-resource-metrics
+│   │   ├── api-latency-and-failure-rates
+│   │   ├── app-not-responding-and-hangs
+│   │   ├── real-user-monitoring
+│   │   └── performance-regression-alerts
+│   ├── product-analytics
+│   │   ├── event-taxonomy-and-tracking-plan
+│   │   ├── screen-and-interaction-events
+│   │   ├── identity-and-consent-management
+│   │   ├── funnel-and-retention-analysis
+│   │   ├── attribution-and-deep-link-measurement
+│   │   ├── experiment-and-feature-flag-events
+│   │   └── analytics-validation-and-privacy
+│   └── incident-and-maintenance
+│       ├── mobile-incident-triage
+│       ├── crash-and-regression-investigation
+│       ├── remote-feature-disablement
+│       ├── backend-and-client-fault-isolation
+│       ├── hotfix-and-store-release-process
+│       ├── user-communication-and-support
+│       ├── postmortems-and-prevention
+│       └── dependency-and-os-upgrade-calendar
+├── architecture-and-application-design
+│   ├── application-architecture
+│   │   ├── feature-based-architecture
+│   │   ├── layered-architecture
+│   │   ├── clean-architecture-adaptation
+│   │   ├── domain-and-data-boundaries
+│   │   ├── presentation-and-navigation-boundaries
+│   │   ├── dependency-inversion
+│   │   ├── shared-versus-feature-specific-code
+│   │   └── architecture-decision-records
+│   ├── domain-and-data-modeling
+│   │   ├── domain-entities-and-value-objects
+│   │   ├── repository-and-service-patterns
+│   │   ├── api-dto-versus-domain-model
+│   │   ├── data-normalization-and-caching
+│   │   ├── local-and-remote-source-of-truth
+│   │   ├── migrations-and-schema-evolution
+│   │   └── domain-invariant-testing
+│   ├── dependency-management-and-injection
+│   │   ├── service-registration
+│   │   ├── constructor-and-factory-injection
+│   │   ├── environment-specific-adapters
+│   │   ├── test-double-and-mocking-boundaries
+│   │   ├── module-cycle-prevention
+│   │   └── dependency-lifecycle
+│   ├── mobile-design-patterns
+│   │   ├── adapter-and-facade
+│   │   ├── repository-and-unit-of-work
+│   │   ├── observer-and-event-bus
+│   │   ├── state-machine-and-workflow
+│   │   ├── command-and-strategy
+│   │   ├── offline-queue-and-outbox
+│   │   └── platform-adapter
+│   └── architecture-quality
+│       ├── modularity-and-coupling
+│       ├── testability-and-observability
+│       ├── startup-and-runtime-cost
+│       ├── platform-divergence-cost
+│       ├── dependency-risk-and-upgrades
+│       ├── architecture-fitness-functions
+│       └── incremental-refactoring
+├── advanced-mobile-capabilities
+│   ├── maps-and-geospatial-experiences
+│   │   ├── map-provider-integration
+│   │   ├── markers-and-clustering
+│   │   ├── routes-and-directions
+│   │   ├── location-tracking
+│   │   ├── geofencing-and-regions
+│   │   └── map-performance-and-battery
+│   ├── payments-and-commerce
+│   │   ├── payment-provider-mobile-sdk
+│   │   ├── app-store-in-app-purchase
+│   │   ├── purchase-validation-and-receipts
+│   │   ├── subscription-state-and-entitlements
+│   │   ├── checkout-and-payment-recovery
+│   │   ├── webhook-and-server-reconciliation
+│   │   └── payment-security-and-compliance
+│   ├── media-and-content
+│   │   ├── video-player-and-streaming
+│   │   ├── audio-player-and-queues
+│   │   ├── image-processing
+│   │   ├── document-viewing
+│   │   ├── media-caching-and-downloads
+│   │   ├── DRM-and-content-protection-overview
+│   │   └── media-performance
+│   ├── bluetooth-and-connected-devices
+│   │   ├── bluetooth-permission-and-discovery
+│   │   ├── ble-gatt-services-and-characteristics
+│   │   ├── pairing-and-connection-lifecycle
+│   │   ├── data-transfer-and-notifications
+│   │   ├── reconnect-and-device-state
+│   │   ├── firmware-update-workflows
+│   │   └── device-compatibility-testing
+│   ├── widgets-and-system-extensions
+│   │   ├── android-app-widgets
+│   │   ├── ios-widgetkit-and-live-activities
+│   │   ├── share-extensions
+│   │   ├── app-shortcuts-and-intents
+│   │   ├── background-extension-boundaries
+│   │   └── native-target-and-data-sharing
+│   └── web-and-desktop-interoperability
+│       ├── react-native-web
+│       ├── expo-web-and-platform-conditions
+│       ├── shared-ui-and-platform-adapters
+│       ├── react-native-macos-and-windows-overview
+│       ├── shared-domain-packages
+│       └── cross-platform-test-strategy
+├── professional-practice-and-career
+│   ├── engineering-workflow
+│   │   ├── requirement-to-screen-and-state-mapping
+│   │   ├── acceptance-criteria-and-edge-cases
+│   │   ├── vertical-slice-delivery
+│   │   ├── code-review-and-pull-requests
+│   │   ├── technical-design-and-estimation
+│   │   ├── release-and-maintenance-ownership
+│   │   └── technical-debt-management
+│   ├── collaboration
+│   │   ├── product-and-design-collaboration
+│   │   ├── backend-api-contract-collaboration
+│   │   ├── native-ios-and-android-team-collaboration
+│   │   ├── qa-and-automation-collaboration
+│   │   ├── app-store-and-release-coordination
+│   │   └── incident-communication
+│   ├── career-levels-and-specializations
+│   │   ├── junior-react-native-developer
+│   │   ├── react-native-developer
+│   │   ├── senior-mobile-developer
+│   │   ├── mobile-tech-lead
+│   │   ├── mobile-architect
+│   │   ├── expo-specialist
+│   │   ├── native-module-engineer
+│   │   └── mobile-platform-engineer
+│   ├── portfolio-and-interview-preparation
+│   │   ├── project-scope-and-architecture-explanation
+│   │   ├── navigation-and-state-management-explanation
+│   │   ├── native-integration-demonstration
+│   │   ├── performance-before-and-after
+│   │   ├── testing-and-release-evidence
+│   │   ├── app-store-quality-and-compliance
+│   │   └── practical-mobile-interview-exercises
+│   └── professional-quality-rubric
+│       ├── user-experience-and-platform-fit
+│       ├── accessibility-and-localization
+│       ├── architecture-and-maintainability
+│       ├── runtime-and-native-correctness
+│       ├── security-and-privacy
+│       ├── test-coverage-and-reliability
+│       ├── performance-and-observability
+│       └── release-readiness
+└── practice-projects
+    ├── mobile-ui-and-component-lab
+    │   ├── core-components-and-layout
+    │   ├── reusable-component-library
+    │   ├── touch-and-gesture-interactions
+    │   ├── theme-and-platform-variants
+    │   ├── accessibility-and-font-scaling
+    │   └── component-tests
+    ├── navigation-and-authentication-app
+    │   ├── stack-tabs-and-nested-navigation
+    │   ├── login-and-registration
+    │   ├── secure-session-storage
+    │   ├── protected-routes
+    │   ├── deep-links-and-auth-return
+    │   ├── session-expiry-and-logout
+    │   └── navigation-e2e-tests
+    ├── task-and-productivity-app
+    │   ├── task-domain-and-crud
+    │   ├── reducer-or-state-library
+    │   ├── local-persistence
+    │   ├── search-filter-and-sort
+    │   ├── offline-edits-and-sync
+    │   ├── accessible-forms
+    │   └── unit-and-component-tests
+    ├── ecommerce-mobile-app
+    │   ├── catalog-and-product-detail
+    │   ├── cart-and-server-authoritative-pricing
+    │   ├── checkout-and-address-forms
+    │   ├── payment-provider-sandbox
+    │   ├── order-history-and-status
+    │   ├── push-notification-and-deep-link
+    │   ├── analytics-and-funnel-events
+    │   └── end-to-end-purchase-tests
+    ├── maps-and-location-app
+    │   ├── permission-and-location-flow
+    │   ├── map-and-marker-interface
+    │   ├── place-search-and-details
+    │   ├── route-and-distance-display
+    │   ├── location-error-and-denial-states
+    │   ├── battery-aware-tracking
+    │   └── device-and-platform-tests
+    ├── media-gallery-and-upload-app
+    │   ├── camera-and-library-permissions
+    │   ├── image-and-video-selection
+    │   ├── compression-and-preview
+    │   ├── resumable-upload-flow
+    │   ├── progress-and-retry-ui
+    │   ├── filesystem-cache-management
+    │   └── media-lifecycle-tests
+    ├── realtime-chat-application
+    │   ├── authentication-and-conversation-model
+    │   ├── websocket-connection-management
+    │   ├── message-list-and-pagination
+    │   ├── optimistic-send-and-reconciliation
+    │   ├── offline-outbox-and-retry
+    │   ├── push-notification-routing
+    │   ├── attachment-upload
+    │   └── reconnect-and-failure-tests
+    ├── offline-first-field-service-app
+    │   ├── work-order-and-task-model
+    │   ├── local-sqlite-storage
+    │   ├── offline-form-and-media-capture
+    │   ├── background-sync
+    │   ├── conflict-resolution
+    │   ├── location-and-signature-capture
+    │   ├── audit-and-sync-status
+    │   └── unreliable-network-test-plan
+    ├── push-notification-and-deep-link-lab
+    │   ├── push-token-registration
+    │   ├── permission-and-preference-management
+    │   ├── foreground-and-background-handling
+    │   ├── notification-categories-and-actions
+    │   ├── authenticated-deep-link-routing
+    │   ├── duplicate-event-protection
+    │   └── physical-device-validation
+    ├── custom-native-module
+    │   ├── module-requirements-and-api-spec
+    │   ├── turbo-module-codegen
+    │   ├── android-kotlin-implementation
+    │   ├── ios-swift-implementation
+    │   ├── event-and-error-contracts
+    │   ├── platform-fallbacks
+    │   ├── example-app-and-tests
+    │   └── package-and-version-release
+    ├── animation-and-gesture-experience
+    │   ├── reanimated-worklet-setup
+    │   ├── gesture-driven-card-stack
+    │   ├── sortable-and-reorderable-list
+    │   ├── bottom-sheet-interaction
+    │   ├── reduced-motion-support
+    │   ├── frame-rate-profiling
+    │   └── interaction-regression-tests
+    ├── mobile-performance-diagnostics-lab
+    │   ├── startup-and-screen-render-baseline
+    │   ├── slow-list-and-image-reproduction
+    │   ├── js-and-ui-thread-profiling
+    │   ├── memory-leak-investigation
+    │   ├── bundle-and-asset-optimization
+    │   ├── crash-and-hang-reporting
+    │   └── measured-regression-report
+    ├── expo-production-release-pipeline
+    │   ├── expo-router-and-app-configuration
+    │   ├── development-and-preview-build-profiles
+    │   ├── eas-build-and-credential-setup
+    │   ├── automated-test-and-lint-gates
+    │   ├── eas-submit-and-store-metadata
+    │   ├── runtime-version-and-ota-update
+    │   ├── staged-rollout-and-rollback
+    │   └── release-runbook
+    ├── enterprise-mobile-app
+    │   ├── modular-feature-architecture
+    │   ├── role-and-tenant-aware-navigation
+    │   ├── secure-authentication-and-storage
+    │   ├── api-and-enterprise-system-integration
+    │   ├── offline-and-background-workflows
+    │   ├── audit-and-privacy-controls
+    │   ├── accessibility-and-localization
+    │   ├── automated-test-and-device-matrix
+    │   └── production-observability
+    └── end-to-end-react-native-capstone
+        ├── product-requirements-and-user-journeys
+        ├── architecture-and-platform-decisions
+        ├── design-system-and-accessibility-plan
+        ├── navigation-and-domain-module-design
+        ├── api-authentication-and-data-layer
+        ├── native-capability-integration
+        ├── offline-and-background-behavior
+        ├── unit-integration-and-e2e-tests
+        ├── performance-security-and-privacy-review
+        ├── android-and-ios-build-pipelines
+        ├── store-release-and-ota-strategy
+        ├── monitoring-and-incident-runbook
+        └── retrospective-and-portfolio-presentation

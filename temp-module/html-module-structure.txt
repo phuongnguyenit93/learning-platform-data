@@ -1,0 +1,2750 @@
+module
+├── foundation
+│   ├── html-overview
+│   │   ├── hypertext-and-markup
+│   │   ├── html-and-the-web-platform
+│   │   ├── html-css-and-javascript
+│   │   ├── documents-and-applications
+│   │   ├── declarative-content-and-behavior
+│   │   ├── use-cases-and-boundaries
+│   │   └── learning-path
+│   ├── web-prerequisites
+│   │   ├── browsers-and-servers
+│   │   ├── requests-and-responses
+│   │   ├── domains-and-origins
+│   │   ├── urls-and-file-paths
+│   │   ├── text-encoding-and-unicode
+│   │   ├── files-directories-and-extensions
+│   │   └── mime-types
+│   ├── mental-model
+│   │   ├── source-markup
+│   │   ├── document-tree
+│   │   ├── semantic-meaning
+│   │   ├── browser-default-behavior
+│   │   ├── visual-presentation
+│   │   ├── accessibility-tree
+│   │   └── progressive-enhancement
+│   ├── environment-setup
+│   │   ├── code-editor
+│   │   ├── browser-developer-tools
+│   │   ├── local-http-server
+│   │   ├── project-and-asset-layout
+│   │   ├── first-html-document
+│   │   ├── browser-refresh-and-inspection
+│   │   └── version-control-basics
+│   ├── authoring-workflow
+│   │   ├── content-before-markup
+│   │   ├── structure-before-styling
+│   │   ├── write-inspect-validate
+│   │   ├── small-reproducible-examples
+│   │   ├── keyboard-first-checks
+│   │   ├── multi-browser-review
+│   │   └── change-and-regression-review
+│   ├── standards-and-documentation
+│   │   ├── whatwg-living-standard
+│   │   ├── author-and-implementer-requirements
+│   │   ├── w3c-wai-resources
+│   │   ├── mdn-reference-navigation
+│   │   ├── browser-compatibility-data
+│   │   ├── normative-and-informative-text
+│   │   └── specification-versus-implementation
+│   └── platform-boundaries
+│       ├── html-versus-dom
+│       ├── html-versus-xml
+│       ├── html-versus-jsx
+│       ├── html-versus-markdown
+│       ├── native-controls-versus-custom-widgets
+│       ├── browser-features-versus-server-features
+│       └── document-markup-versus-application-logic
+├── syntax-and-document-construction
+│   ├── document-skeleton
+│   │   ├── doctype
+│   │   ├── html-root
+│   │   ├── head-and-body
+│   │   ├── document-title
+│   │   ├── character-encoding-declaration
+│   │   ├── document-language
+│   │   └── minimal-conforming-document
+│   ├── element-anatomy
+│   │   ├── start-tags
+│   │   ├── end-tags
+│   │   ├── element-content
+│   │   ├── nested-elements
+│   │   ├── parent-child-and-sibling-relations
+│   │   ├── tag-name-case
+│   │   └── whitespace-and-indentation
+│   ├── element-syntax-categories
+│   │   ├── normal-elements
+│   │   ├── void-elements
+│   │   ├── raw-text-elements
+│   │   ├── escapable-raw-text-elements
+│   │   ├── template-content
+│   │   ├── foreign-content
+│   │   └── self-closing-syntax-limitations
+│   ├── attribute-syntax
+│   │   ├── attribute-names
+│   │   ├── quoted-values
+│   │   ├── unquoted-value-restrictions
+│   │   ├── empty-attribute-syntax
+│   │   ├── duplicate-attributes
+│   │   ├── whitespace-separation
+│   │   └── escaping-attribute-delimiters
+│   ├── text-and-character-references
+│   │   ├── literal-text
+│   │   ├── named-character-references
+│   │   ├── decimal-numeric-references
+│   │   ├── hexadecimal-numeric-references
+│   │   ├── ampersand-and-less-than
+│   │   ├── nonbreaking-spaces
+│   │   ├── literal-unicode-versus-references
+│   │   └── invalid-and-ambiguous-references
+│   ├── comments-and-formatting
+│   │   ├── comment-delimiters
+│   │   ├── invalid-comment-content
+│   │   ├── comments-versus-visible-content
+│   │   ├── indentation-conventions
+│   │   ├── meaningful-whitespace
+│   │   ├── source-readability
+│   │   └── comment-data-exposure
+│   ├── optional-tags-and-error-prevention
+│   │   ├── optional-start-tags
+│   │   ├── optional-end-tags
+│   │   ├── omission-preconditions
+│   │   ├── paragraph-auto-closing
+│   │   ├── list-item-omission
+│   │   ├── table-section-omission
+│   │   └── explicit-markup-for-maintainability
+│   ├── serialization-and-syntax-choice
+│   │   ├── text-html
+│   │   ├── application-xhtml-xml
+│   │   ├── xml-well-formedness
+│   │   ├── namespace-declarations
+│   │   ├── case-sensitivity-differences
+│   │   ├── boolean-attribute-serialization
+│   │   └── round-trip-differences
+│   └── source-integrity
+│       ├── balanced-structure
+│       ├── accidental-text-in-head
+│       ├── unescaped-template-output
+│       ├── pasted-editor-markup
+│       ├── invisible-characters
+│       ├── incorrect-mime-types
+│       └── truncated-responses
+├── attributes-and-global-behavior
+│   ├── attribute-value-models
+│   │   ├── boolean-attributes
+│   │   ├── enumerated-attributes
+│   │   ├── missing-value-defaults
+│   │   ├── invalid-value-defaults
+│   │   ├── space-separated-tokens
+│   │   ├── integer-and-floating-values
+│   │   └── url-valued-attributes
+│   ├── identity-and-hooks
+│   │   ├── unique-id-values
+│   │   ├── id-reference-relationships
+│   │   ├── class-token-lists
+│   │   ├── naming-conventions
+│   │   ├── stable-fragment-targets
+│   │   ├── repeated-component-identifiers
+│   │   └── id-versus-name
+│   ├── data-attributes
+│   │   ├── data-attribute-naming
+│   │   ├── dataset-name-conversion
+│   │   ├── string-value-contracts
+│   │   ├── configuration-versus-content
+│   │   ├── custom-data-versus-standard-semantics
+│   │   ├── escaping-and-serialization
+│   │   └── sensitive-data-avoidance
+│   ├── language-and-text-hints
+│   │   ├── lang
+│   │   ├── dir
+│   │   ├── translate
+│   │   ├── title
+│   │   ├── spellcheck
+│   │   ├── autocapitalize
+│   │   ├── autocorrect
+│   │   └── inputmode-and-enterkeyhint
+│   ├── visibility-and-interaction
+│   │   ├── hidden
+│   │   ├── hidden-until-found
+│   │   ├── inert
+│   │   ├── tabindex
+│   │   ├── accesskey
+│   │   ├── autofocus
+│   │   └── visibility-versus-accessibility
+│   ├── editing-and-dragging
+│   │   ├── contenteditable
+│   │   ├── plaintext-only-editing
+│   │   ├── inherited-editability
+│   │   ├── nested-editable-regions
+│   │   ├── draggable
+│   │   ├── editing-host-boundaries
+│   │   └── scripting-and-accessibility-responsibilities
+│   ├── attribute-and-property-reflection
+│   │   ├── content-attributes
+│   │   ├── dom-properties
+│   │   ├── reflected-and-unreflected-properties
+│   │   ├── boolean-reflection
+│   │   ├── url-resolution-in-properties
+│   │   ├── default-versus-current-values
+│   │   └── removal-versus-empty-values
+│   ├── component-and-style-hooks
+│   │   ├── slot
+│   │   ├── part
+│   │   ├── exportparts
+│   │   ├── inline-style
+│   │   ├── css-class-contracts
+│   │   ├── role-and-aria-boundaries
+│   │   └── custom-attribute-conformance
+│   └── attribute-quality
+│       ├── valid-values
+│       ├── cross-element-applicability
+│       ├── duplicate-id-detection
+│       ├── broken-id-references
+│       ├── unknown-attribute-review
+│       ├── framework-generated-attributes
+│       └── source-and-dom-comparison
+├── parsing-dom-and-document-lifecycle
+│   ├── parsing-pipeline
+│   │   ├── byte-decoding
+│   │   ├── encoding-detection
+│   │   ├── tokenization
+│   │   ├── tree-construction
+│   │   ├── incremental-parsing
+│   │   ├── parser-inserted-elements
+│   │   └── document-readiness
+│   ├── parser-contexts
+│   │   ├── data-state
+│   │   ├── attribute-value-states
+│   │   ├── raw-text-state
+│   │   ├── escapable-raw-text-state
+│   │   ├── script-data-state
+│   │   ├── foreign-content-state
+│   │   └── context-sensitive-fragment-parsing
+│   ├── tree-construction-behavior
+│   │   ├── insertion-modes
+│   │   ├── implied-html-head-and-body
+│   │   ├── implied-end-tags
+│   │   ├── automatic-tbody-insertion
+│   │   ├── table-foster-parenting
+│   │   ├── misnested-formatting-repair
+│   │   └── select-and-option-parsing
+│   ├── source-dom-and-rendering
+│   │   ├── view-source-versus-elements-panel
+│   │   ├── dom-node-types
+│   │   ├── element-and-text-nodes
+│   │   ├── comments-and-doctypes
+│   │   ├── whitespace-text-nodes
+│   │   ├── live-dom-mutations
+│   │   └── dom-versus-rendered-output
+│   ├── document-modes
+│   │   ├── standards-mode
+│   │   ├── quirks-mode
+│   │   ├── limited-quirks-mode
+│   │   ├── doctype-triggered-behavior
+│   │   ├── compat-mode-inspection
+│   │   └── legacy-layout-diagnosis
+│   ├── scripting-and-parser-coordination
+│   │   ├── parser-blocking-scripts
+│   │   ├── script-created-markup
+│   │   ├── deferred-script-execution
+│   │   ├── module-script-execution
+│   │   ├── stylesheet-script-interactions
+│   │   ├── document-write-risks
+│   │   └── parser-reentrancy
+│   ├── lifecycle-and-readiness
+│   │   ├── loading-state
+│   │   ├── interactive-state
+│   │   ├── complete-state
+│   │   ├── dom-content-loaded
+│   │   ├── window-load
+│   │   ├── resource-load-failures
+│   │   └── page-restoration
+│   ├── fragments-and-serialization
+│   │   ├── document-fragments
+│   │   ├── innerhtml-context
+│   │   ├── outerhtml-context
+│   │   ├── contextual-fragments
+│   │   ├── domparser-mime-selection
+│   │   ├── template-fragment-ownership
+│   │   └── serialize-reparse-differences
+│   └── parsing-diagnostics
+│       ├── invalid-nesting-reproductions
+│       ├── response-bytes-and-headers
+│       ├── parser-repaired-dom
+│       ├── hydration-sensitive-repairs
+│       ├── cross-browser-comparison
+│       ├── validator-and-browser-differences
+│       └── minimal-test-documents
+├── content-models-and-semantic-design
+│   ├── content-categories
+│   │   ├── metadata-content
+│   │   ├── flow-content
+│   │   ├── sectioning-content
+│   │   ├── heading-content
+│   │   ├── phrasing-content
+│   │   ├── embedded-content
+│   │   ├── interactive-content
+│   │   ├── palpable-content
+│   │   └── script-supporting-elements
+│   ├── content-model-rules
+│   │   ├── permitted-parents
+│   │   ├── permitted-children
+│   │   ├── transparent-content-models
+│   │   ├── empty-content-models
+│   │   ├── text-only-content
+│   │   ├── conditional-content-models
+│   │   └── descendant-restrictions
+│   ├── category-versus-presentation
+│   │   ├── flow-versus-block-display
+│   │   ├── phrasing-versus-inline-display
+│   │   ├── css-display-independence
+│   │   ├── semantic-role-versus-appearance
+│   │   ├── hidden-content-and-palpability
+│   │   └── replaced-element-behavior
+│   ├── semantic-element-selection
+│   │   ├── meaning-before-default-style
+│   │   ├── document-content-versus-controls
+│   │   ├── section-versus-div
+│   │   ├── article-versus-section
+│   │   ├── link-versus-button
+│   │   ├── list-versus-table
+│   │   └── native-element-first
+│   ├── interactive-content-boundaries
+│   │   ├── nested-links
+│   │   ├── nested-buttons
+│   │   ├── interactive-content-in-labels
+│   │   ├── interactive-content-in-summary
+│   │   ├── linked-cards-with-secondary-actions
+│   │   ├── focusable-descendant-restrictions
+│   │   └── transparent-link-content
+│   ├── semantic-composition
+│   │   ├── reusable-content-units
+│   │   ├── page-context-and-component-context
+│   │   ├── heading-contracts
+│   │   ├── landmark-contracts
+│   │   ├── nested-content-ownership
+│   │   ├── wrappers-without-extra-semantics
+│   │   └── cms-content-constraints
+│   ├── conformance-and-pragmatism
+│   │   ├── author-conformance
+│   │   ├── browser-error-recovery
+│   │   ├── accessibility-conformance
+│   │   ├── machine-readable-semantics
+│   │   ├── custom-element-content
+│   │   ├── validator-limitations
+│   │   └── maintainable-markup-decisions
+│   └── semantic-anti-patterns
+│       ├── div-and-span-overuse
+│       ├── heading-for-font-size
+│       ├── tables-for-layout
+│       ├── line-breaks-for-spacing
+│       ├── labels-without-controls
+│       ├── fake-links-and-buttons
+│       └── aria-as-a-semantic-repair
+├── document-head-and-metadata
+│   ├── head-structure
+│   │   ├── head-content-model
+│   │   ├── metadata-ordering
+│   │   ├── single-document-title
+│   │   ├── early-charset-declaration
+│   │   ├── resource-declarations
+│   │   ├── head-versus-body-placement
+│   │   └── duplicate-head-output
+│   ├── document-title
+│   │   ├── descriptive-page-titles
+│   │   ├── unique-route-titles
+│   │   ├── title-and-heading-relationship
+│   │   ├── brand-and-context
+│   │   ├── dynamic-title-updates
+│   │   ├── localized-titles
+│   │   └── title-escaping
+│   ├── character-encoding
+│   │   ├── utf-8
+│   │   ├── meta-charset
+│   │   ├── http-content-type-charset
+│   │   ├── byte-order-mark
+│   │   ├── encoding-declaration-placement
+│   │   ├── mojibake-diagnosis
+│   │   └── mixed-encoding-imports
+│   ├── viewport-and-mobile
+│   │   ├── device-width
+│   │   ├── initial-scale
+│   │   ├── zoom-accessibility
+│   │   ├── viewport-fit
+│   │   ├── interactive-widget-behavior
+│   │   ├── desktop-and-mobile-viewport
+│   │   └── platform-support-checks
+│   ├── name-value-metadata
+│   │   ├── description
+│   │   ├── author
+│   │   ├── application-name
+│   │   ├── theme-color
+│   │   ├── color-scheme
+│   │   ├── generator
+│   │   └── unknown-and-platform-specific-names
+│   ├── base-url
+│   │   ├── base-href
+│   │   ├── base-target
+│   │   ├── relative-link-resolution
+│   │   ├── fragment-link-side-effects
+│   │   ├── form-and-resource-resolution
+│   │   ├── first-base-element
+│   │   └── base-url-security-review
+│   ├── link-metadata
+│   │   ├── canonical-link
+│   │   ├── alternate-language-links
+│   │   ├── feeds-and-alternate-representations
+│   │   ├── author-and-license-relations
+│   │   ├── icons
+│   │   ├── web-app-manifest
+│   │   └── resource-link-versus-hyperlink
+│   ├── http-equiv-and-header-boundaries
+│   │   ├── supported-pragma-directives
+│   │   ├── content-security-policy-meta
+│   │   ├── refresh-and-navigation
+│   │   ├── content-type-legacy-syntax
+│   │   ├── unsupported-header-substitutions
+│   │   ├── server-header-precedence
+│   │   └── redirect-accessibility
+│   └── metadata-governance
+│       ├── document-level-ownership
+│       ├── template-and-component-conflicts
+│       ├── per-route-defaults-and-overrides
+│       ├── generated-metadata-validation
+│       ├── absolute-and-relative-urls
+│       ├── non-html-consumer-behavior
+│       └── head-size-and-duplication
+├── page-structure-and-landmarks
+│   ├── page-anatomy
+│   │   ├── site-header
+│   │   ├── primary-navigation
+│   │   ├── main-content
+│   │   ├── complementary-content
+│   │   ├── site-footer
+│   │   ├── skip-navigation
+│   │   └── document-reading-order
+│   ├── sectioning-elements
+│   │   ├── article
+│   │   │   ├── independent-composition
+│   │   │   ├── nested-articles
+│   │   │   ├── syndicated-content
+│   │   │   ├── article-header-and-footer
+│   │   │   ├── article-contact-details
+│   │   │   └── article-versus-card
+│   │   ├── section
+│   │   │   ├── thematic-grouping
+│   │   │   ├── meaningful-headings
+│   │   │   ├── section-versus-wrapper
+│   │   │   ├── nested-sections
+│   │   │   ├── named-region-behavior
+│   │   │   └── avoiding-region-overload
+│   │   ├── aside
+│   │   │   ├── tangential-content
+│   │   │   ├── document-level-aside
+│   │   │   ├── article-level-aside
+│   │   │   ├── complementary-landmarks
+│   │   │   ├── related-resources
+│   │   │   └── advertising-context
+│   │   └── nav
+│   │       ├── major-navigation-blocks
+│   │       ├── multiple-navigation-regions
+│   │       ├── navigation-labels
+│   │       ├── lists-of-links
+│   │       ├── breadcrumb-navigation
+│   │       └── non-navigation-link-groups
+│   ├── headings
+│   │   ├── h1-through-h6
+│   │   ├── logical-rank-hierarchy
+│   │   ├── explicit-heading-levels
+│   │   ├── nested-section-heading-myths
+│   │   ├── headings-versus-visual-size
+│   │   ├── hgroup-and-supporting-text
+│   │   ├── component-heading-context
+│   │   └── heading-navigation-review
+│   ├── main-content
+│   │   ├── main-element
+│   │   ├── dominant-document-content
+│   │   ├── unique-visible-main
+│   │   ├── hidden-alternate-main-regions
+│   │   ├── main-landmark
+│   │   ├── skip-link-target
+│   │   └── application-shell-boundaries
+│   ├── header-and-footer
+│   │   ├── page-level-context
+│   │   ├── section-level-context
+│   │   ├── banner-landmark-conditions
+│   │   ├── contentinfo-landmark-conditions
+│   │   ├── repeated-component-headers
+│   │   └── footer-contact-and-legal-content
+│   ├── search-and-contact
+│   │   ├── search-element
+│   │   ├── search-region-labeling
+│   │   ├── search-form-composition
+│   │   ├── address-element
+│   │   ├── article-author-contact
+│   │   └── postal-address-versus-contact-semantics
+│   ├── page-patterns
+│   │   ├── editorial-page
+│   │   ├── documentation-page
+│   │   ├── product-detail-page
+│   │   ├── search-results-page
+│   │   ├── dashboard-shell
+│   │   ├── account-page
+│   │   └── error-and-status-page
+│   └── structure-review
+│       ├── landmark-inventory
+│       ├── accessible-region-names
+│       ├── heading-tree-review
+│       ├── source-order-versus-layout
+│       ├── nested-landmark-conflicts
+│       ├── repeated-navigation-consistency
+│       └── no-css-reading-check
+├── text-and-inline-semantics
+│   ├── paragraphs-and-breaks
+│   │   ├── paragraph-content-model
+│   │   ├── paragraph-boundaries
+│   │   ├── br-for-content-line-breaks
+│   │   ├── wbr-for-break-opportunities
+│   │   ├── thematic-break-with-hr
+│   │   ├── whitespace-versus-structure
+│   │   └── empty-paragraph-avoidance
+│   ├── emphasis-and-importance
+│   │   ├── em
+│   │   ├── strong
+│   │   ├── nested-emphasis
+│   │   ├── b-without-extra-importance
+│   │   ├── i-for-alternate-voice
+│   │   ├── mark-for-contextual-relevance
+│   │   ├── u-for-non-textual-annotation
+│   │   └── s-for-no-longer-accurate-content
+│   ├── quotations-and-references
+│   │   ├── inline-q
+│   │   ├── blockquote
+│   │   ├── cite-element
+│   │   ├── cite-attribute
+│   │   ├── attribution-outside-quotation
+│   │   ├── quotation-language
+│   │   └── source-links
+│   ├── technical-and-editorial-text
+│   │   ├── code
+│   │   ├── pre-and-code
+│   │   ├── kbd
+│   │   ├── samp
+│   │   ├── var
+│   │   ├── sub
+│   │   ├── sup
+│   │   └── escaping-example-markup
+│   ├── terms-and-annotations
+│   │   ├── abbr
+│   │   ├── dfn
+│   │   ├── first-definition-context
+│   │   ├── abbreviation-expansion
+│   │   ├── title-attribute-limitations
+│   │   ├── glossary-links
+│   │   └── inline-span-boundaries
+│   ├── machine-readable-text
+│   │   ├── time-element
+│   │   ├── datetime-value-formats
+│   │   ├── date-only-values
+│   │   ├── time-and-time-zone-values
+│   │   ├── durations
+│   │   ├── data-element
+│   │   └── visible-and-machine-value-consistency
+│   ├── edits-and-annotations
+│   │   ├── ins
+│   │   ├── del
+│   │   ├── edit-datetime
+│   │   ├── edit-citation
+│   │   ├── change-history-markup
+│   │   ├── insertion-versus-emphasis
+│   │   └── deleted-versus-outdated-content
+│   ├── small-print-and-neutral-text
+│   │   ├── small-element
+│   │   ├── legal-and-side-comments
+│   │   ├── span-element
+│   │   ├── language-spans
+│   │   ├── icon-text-combinations
+│   │   ├── visually-hidden-text-contract
+│   │   └── avoiding-meaning-through-style-only
+│   └── text-quality
+│       ├── readable-link-context
+│       ├── punctuation-and-spacing
+│       ├── unicode-and-symbols
+│       ├── screen-reader-pronunciation
+│       ├── copy-and-paste-output
+│       ├── text-selection-behavior
+│       └── structured-text-in-cms
+├── lists-and-grouping-content
+│   ├── unordered-lists
+│   │   ├── ul-and-li
+│   │   ├── order-independent-items
+│   │   ├── nested-lists
+│   │   ├── navigation-lists
+│   │   ├── content-rich-list-items
+│   │   ├── list-versus-paragraph-group
+│   │   └── native-list-semantics
+│   ├── ordered-lists
+│   │   ├── ol-and-li
+│   │   ├── sequence-and-priority
+│   │   ├── start-attribute
+│   │   ├── reversed-lists
+│   │   ├── list-item-value
+│   │   ├── numbering-type
+│   │   ├── interrupted-numbering
+│   │   └── nested-procedures
+│   ├── description-lists
+│   │   ├── dl-dt-and-dd
+│   │   ├── term-description-pairs
+│   │   ├── multiple-terms
+│   │   ├── multiple-descriptions
+│   │   ├── grouped-pairs-with-div
+│   │   ├── metadata-and-glossaries
+│   │   └── dl-versus-two-column-table
+│   ├── figures
+│   │   ├── figure-element
+│   │   ├── figcaption-element
+│   │   ├── first-or-last-caption
+│   │   ├── media-and-code-figures
+│   │   ├── multi-image-figures
+│   │   ├── standalone-content-unit
+│   │   └── caption-versus-alt-text
+│   ├── preformatted-content
+│   │   ├── pre-element
+│   │   ├── whitespace-preservation
+│   │   ├── initial-newline-handling
+│   │   ├── code-and-log-examples
+│   │   ├── long-line-content
+│   │   ├── ascii-art-accessibility
+│   │   └── safe-escaping
+│   ├── menus-and-toolbars
+│   │   ├── menu-element
+│   │   ├── list-of-commands
+│   │   ├── menu-versus-nav
+│   │   ├── menu-versus-aria-menu
+│   │   ├── list-item-controls
+│   │   └── toolbar-enhancement-boundaries
+│   ├── neutral-grouping
+│   │   ├── div-element
+│   │   ├── span-element
+│   │   ├── grouping-without-semantics
+│   │   ├── styling-and-script-hooks
+│   │   ├── wrapper-minimization
+│   │   ├── fragment-versus-wrapper
+│   │   └── semantic-upgrade-decisions
+│   ├── grouping-patterns
+│   │   ├── glossary
+│   │   ├── faq-content
+│   │   ├── recipe-instructions
+│   │   ├── feature-list
+│   │   ├── bibliography
+│   │   ├── document-table-of-contents
+│   │   ├── changelog
+│   │   └── product-specifications
+│   └── content-review
+│       ├── valid-list-children
+│       ├── preserved-list-relationships
+│       ├── numbering-consistency
+│       ├── nested-list-placement
+│       ├── caption-association
+│       ├── copied-rich-text-cleanup
+│       └── list-and-figure-accessibility
+├── links-urls-and-navigation
+│   ├── url-foundations
+│   │   ├── absolute-urls
+│   │   ├── relative-urls
+│   │   ├── root-relative-paths
+│   │   ├── path-segment-resolution
+│   │   ├── query-strings
+│   │   ├── fragments
+│   │   ├── percent-encoding
+│   │   └── unicode-url-display
+│   ├── anchor-elements
+│   │   ├── href-and-link-semantics
+│   │   ├── link-text
+│   │   ├── links-around-content
+│   │   ├── placeholder-anchors
+│   │   ├── id-based-fragment-targets
+│   │   ├── nested-interactive-restrictions
+│   │   └── native-keyboard-activation
+│   ├── navigation-targets
+│   │   ├── self-navigation
+│   │   ├── new-browsing-context
+│   │   ├── named-targets
+│   │   ├── parent-and-top-targets
+│   │   ├── opener-relationships
+│   │   ├── new-window-disclosure
+│   │   └── sandbox-target-restrictions
+│   ├── link-relationships
+│   │   ├── noopener
+│   │   ├── noreferrer
+│   │   ├── external
+│   │   ├── author
+│   │   ├── license
+│   │   ├── alternate
+│   │   ├── next-and-prev
+│   │   └── search-engine-specific-relations
+│   ├── special-destinations
+│   │   ├── email-links
+│   │   ├── telephone-links
+│   │   ├── sms-links
+│   │   ├── downloads
+│   │   ├── download-filename-hints
+│   │   ├── cross-origin-download-limitations
+│   │   └── blob-and-data-url-boundaries
+│   ├── in-page-navigation
+│   │   ├── table-of-contents
+│   │   ├── stable-anchor-identifiers
+│   │   ├── skip-links
+│   │   ├── focus-after-fragment-navigation
+│   │   ├── fragment-encoding
+│   │   ├── fragment-target-visibility
+│   │   └── text-fragment-support
+│   ├── navigation-patterns
+│   │   ├── primary-and-secondary-navigation
+│   │   ├── breadcrumbs
+│   │   ├── pagination
+│   │   ├── related-content
+│   │   ├── language-switchers
+│   │   ├── account-navigation
+│   │   └── active-page-indication
+│   ├── request-and-privacy-hints
+│   │   ├── referrerpolicy
+│   │   ├── ping-and-auditing
+│   │   ├── hreflang-hints
+│   │   ├── media-type-hints
+│   │   ├── sensitive-query-avoidance
+│   │   ├── safe-external-links
+│   │   └── tracking-parameter-review
+│   └── link-quality
+│       ├── broken-links
+│       ├── missing-destinations
+│       ├── descriptive-purpose
+│       ├── repeated-ambiguous-text
+│       ├── icon-only-link-names
+│       ├── file-type-and-size-disclosure
+│       ├── link-versus-action-tests
+│       └── external-resource-lifecycle
+├── images-and-responsive-media
+│   ├── image-element
+│   │   ├── src
+│   │   ├── alt
+│   │   ├── intrinsic-width-and-height
+│   │   ├── aspect-ratio-reservation
+│   │   ├── decoding
+│   │   ├── loading
+│   │   ├── fetchpriority
+│   │   ├── crossorigin
+│   │   └── referrerpolicy
+│   ├── image-purpose-and-alternatives
+│   │   ├── informative-images
+│   │   │   ├── essential-information
+│   │   │   ├── surrounding-context
+│   │   │   ├── concise-descriptions
+│   │   │   ├── avoiding-redundant-labels
+│   │   │   └── text-in-images
+│   │   ├── decorative-images
+│   │   │   ├── empty-alt
+│   │   │   ├── decorative-versus-informative
+│   │   │   ├── css-background-alternatives
+│   │   │   ├── decorative-images-inside-controls
+│   │   │   └── missing-alt-versus-empty-alt
+│   │   ├── functional-images
+│   │   │   ├── link-purpose
+│   │   │   ├── button-purpose
+│   │   │   ├── image-submit-controls
+│   │   │   ├── icon-and-text-combinations
+│   │   │   └── accessible-name-consistency
+│   │   └── complex-images
+│   │       ├── charts-and-diagrams
+│   │       ├── short-alt-and-long-description
+│   │       ├── adjacent-data-tables
+│   │       ├── description-links
+│   │       └── grouped-image-alternatives
+│   ├── responsive-image-selection
+│   │   ├── srcset
+│   │   │   ├── density-descriptors
+│   │   │   ├── width-descriptors
+│   │   │   ├── descriptor-consistency
+│   │   │   ├── candidate-urls
+│   │   │   └── invalid-candidate-handling
+│   │   ├── sizes
+│   │   │   ├── source-size-list
+│   │   │   ├── media-conditions
+│   │   │   ├── slot-width-versus-viewport
+│   │   │   ├── default-source-size
+│   │   │   ├── auto-sizes-support
+│   │   │   └── sizing-debugging
+│   │   └── picture
+│   │       ├── source-order
+│   │       ├── media-based-art-direction
+│   │       ├── type-based-format-selection
+│   │       ├── fallback-img
+│   │       ├── source-srcset
+│   │       └── source-dimensions
+│   ├── formats-and-assets
+│   │   ├── jpeg
+│   │   ├── png
+│   │   ├── webp
+│   │   ├── avif
+│   │   ├── svg-image-embedding
+│   │   ├── animated-image-tradeoffs
+│   │   ├── format-fallback-strategy
+│   │   └── image-metadata-awareness
+│   ├── image-maps
+│   │   ├── map-and-area
+│   │   ├── name-and-usemap
+│   │   ├── coordinate-shapes
+│   │   ├── area-link-targets
+│   │   ├── area-alternative-text
+│   │   ├── responsive-coordinate-limitations
+│   │   └── equivalent-text-links
+│   ├── failure-and-fallback
+│   │   ├── broken-source
+│   │   ├── unsupported-format
+│   │   ├── image-disabled-browsing
+│   │   ├── slow-image-delivery
+│   │   ├── alt-text-visibility
+│   │   ├── fallback-content-limitations
+│   │   └── layout-stability
+│   └── image-markup-review
+│       ├── current-src-inspection
+│       ├── device-density-tests
+│       ├── viewport-and-slot-tests
+│       ├── media-condition-tests
+│       ├── loading-order-review
+│       ├── oversized-source-detection
+│       └── alternative-text-review
+├── audio-video-and-timed-text
+│   ├── media-elements
+│   │   ├── audio-element
+│   │   ├── video-element
+│   │   ├── source-elements
+│   │   ├── fallback-text
+│   │   ├── controls
+│   │   ├── loop
+│   │   ├── muted
+│   │   ├── autoplay
+│   │   └── playsinline
+│   ├── source-selection
+│   │   ├── src-versus-source-children
+│   │   ├── mime-type-hints
+│   │   ├── codec-parameters
+│   │   ├── ordered-fallbacks
+│   │   ├── media-condition-support
+│   │   ├── unsupported-source-handling
+│   │   └── resource-url-stability
+│   ├── video-presentation
+│   │   ├── width-and-height
+│   │   ├── poster-image
+│   │   ├── aspect-ratio
+│   │   ├── inline-playback
+│   │   ├── native-controls
+│   │   ├── fullscreen-integration-boundary
+│   │   └── playback-ui-fallback
+│   ├── loading-and-playback-policy
+│   │   ├── preload-none
+│   │   ├── preload-metadata
+│   │   ├── preload-auto
+│   │   ├── autoplay-restrictions
+│   │   ├── muted-autoplay
+│   │   ├── user-activation
+│   │   ├── bandwidth-and-data-use
+│   │   └── lazy-loading-support-checks
+│   ├── timed-text
+│   │   ├── track-element
+│   │   │   ├── src
+│   │   │   ├── kind
+│   │   │   ├── srclang
+│   │   │   ├── label
+│   │   │   ├── default-track
+│   │   │   ├── track-order
+│   │   │   └── cross-origin-tracks
+│   │   ├── track-kinds
+│   │   │   ├── subtitles
+│   │   │   ├── captions
+│   │   │   ├── descriptions
+│   │   │   ├── chapters
+│   │   │   └── metadata
+│   │   └── webvtt
+│   │       ├── file-header
+│   │       ├── cue-identifiers
+│   │       ├── cue-timestamps
+│   │       ├── cue-text
+│   │       ├── cue-settings
+│   │       ├── language-and-voice-spans
+│   │       └── validation-and-synchronization
+│   ├── accessible-media
+│   │   ├── captions-versus-subtitles
+│   │   ├── transcripts
+│   │   ├── audio-description
+│   │   ├── player-keyboard-access
+│   │   ├── control-labels
+│   │   ├── language-selection
+│   │   ├── flashing-and-motion-awareness
+│   │   └── live-media-alternatives
+│   ├── media-integration-boundaries
+│   │   ├── playback-events
+│   │   ├── text-track-api
+│   │   ├── custom-controls-responsibilities
+│   │   ├── media-session-api
+│   │   ├── streaming-manifests
+│   │   ├── encrypted-media
+│   │   └── server-range-requests
+│   └── media-quality-assurance
+│       ├── source-fallback-tests
+│       ├── caption-language-tests
+│       ├── cue-timing-tests
+│       ├── autoplay-policy-tests
+│       ├── mobile-playback-tests
+│       ├── disabled-script-tests
+│       ├── transcript-equivalence
+│       └── network-failure-behavior
+├── embedded-content-svg-and-mathml
+│   ├── iframe-foundations
+│   │   ├── nested-browsing-context
+│   │   ├── src
+│   │   ├── srcdoc
+│   │   ├── name-and-target
+│   │   ├── width-and-height
+│   │   ├── frame-title
+│   │   ├── loading
+│   │   └── referrerpolicy
+│   ├── iframe-security-and-permissions
+│   │   ├── sandbox-token-selection
+│   │   ├── allow-permissions-policy
+│   │   ├── script-and-same-origin-combinations
+│   │   ├── form-and-navigation-permissions
+│   │   ├── popup-permissions
+│   │   ├── top-navigation-restrictions
+│   │   ├── opaque-origins
+│   │   └── third-party-isolation
+│   ├── embed-integration
+│   │   ├── video-and-map-embeds
+│   │   ├── document-viewers
+│   │   ├── authentication-in-frames
+│   │   ├── cross-origin-access-boundaries
+│   │   ├── postmessage-contracts
+│   │   ├── responsive-wrapper-boundary
+│   │   ├── third-party-failure-fallback
+│   │   └── embed-consent-ui
+│   ├── object-and-embed
+│   │   ├── object-data-and-type
+│   │   ├── nested-object-fallback
+│   │   ├── embed-src-and-type
+│   │   ├── document-versus-plugin-content
+│   │   ├── accessible-alternatives
+│   │   ├── legacy-plugin-avoidance
+│   │   └── safe-content-selection
+│   ├── svg-in-html
+│   │   ├── inline-svg
+│   │   ├── svg-as-image
+│   │   ├── svg-as-external-document
+│   │   ├── namespaces-and-case
+│   │   ├── viewbox-and-dimensions
+│   │   ├── title-and-desc
+│   │   ├── linked-and-interactive-svg
+│   │   └── external-reference-security
+│   ├── mathml-in-html
+│   │   ├── math-element
+│   │   ├── inline-and-display-math
+│   │   ├── mathematical-structure
+│   │   ├── tokens-and-layout-elements
+│   │   ├── mathml-core-compatibility
+│   │   ├── textual-and-speech-alternatives
+│   │   ├── copy-and-paste-semantics
+│   │   └── typesetting-library-boundaries
+│   ├── canvas-document-contract
+│   │   ├── canvas-element
+│   │   ├── bitmap-versus-css-dimensions
+│   │   ├── fallback-content
+│   │   ├── accessible-equivalent-content
+│   │   ├── interactive-region-alternatives
+│   │   ├── rendering-context-boundary
+│   │   └── high-density-rendering-boundary
+│   ├── foreign-content-parsing
+│   │   ├── namespace-transitions
+│   │   ├── svg-html-integration-points
+│   │   ├── foreignobject
+│   │   ├── mathml-integration-points
+│   │   ├── self-closing-foreign-elements
+│   │   ├── attribute-case-adjustments
+│   │   └── sanitization-of-mixed-namespaces
+│   └── embedded-content-review
+│       ├── frame-naming
+│       ├── keyboard-entry-and-exit
+│       ├── origin-and-permission-audit
+│       ├── fallback-availability
+│       ├── resource-failure-tests
+│       ├── printing-behavior
+│       └── assistive-technology-tests
+├── tables-and-tabular-data
+│   ├── table-foundations
+│   │   ├── tabular-relationships
+│   │   ├── table-versus-layout-grid
+│   │   ├── table-element
+│   │   ├── row-and-cell-model
+│   │   ├── table-content-order
+│   │   ├── simple-data-first
+│   │   └── non-tabular-alternatives
+│   ├── table-elements
+│   │   ├── caption
+│   │   ├── thead
+│   │   ├── tbody
+│   │   ├── tfoot
+│   │   ├── tr
+│   │   ├── th
+│   │   ├── td
+│   │   ├── colgroup
+│   │   └── col
+│   ├── header-association
+│   │   ├── simple-tables
+│   │   │   ├── column-headers
+│   │   │   ├── row-headers
+│   │   │   ├── scope-col
+│   │   │   ├── scope-row
+│   │   │   ├── first-row-and-first-column
+│   │   │   └── caption-context
+│   │   ├── grouped-headers
+│   │   │   ├── scope-colgroup
+│   │   │   ├── scope-rowgroup
+│   │   │   ├── column-groups
+│   │   │   ├── row-groups
+│   │   │   ├── span-boundaries
+│   │   │   └── grouped-header-validation
+│   │   └── complex-tables
+│   │       ├── id-and-headers
+│   │       ├── multi-level-header-chains
+│   │       ├── irregular-header-layouts
+│   │       ├── explicit-cell-associations
+│   │       ├── simplification-alternatives
+│   │       └── assistive-technology-verification
+│   ├── spanning-and-grid-integrity
+│   │   ├── colspan
+│   │   ├── rowspan
+│   │   ├── row-group-spanning
+│   │   ├── empty-and-missing-cells
+│   │   ├── overlapping-cell-errors
+│   │   ├── consistent-column-count
+│   │   └── parser-inserted-sections
+│   ├── captions-and-explanations
+│   │   ├── concise-table-caption
+│   │   ├── adjacent-summary
+│   │   ├── table-purpose
+│   │   ├── units-and-abbreviations
+│   │   ├── caption-versus-aria-label
+│   │   └── complex-structure-instructions
+│   ├── responsive-table-contracts
+│   │   ├── preserved-header-relationships
+│   │   ├── overflow-container-label
+│   │   ├── keyboard-scroll-access
+│   │   ├── visual-reordering-risks
+│   │   ├── stacked-layout-semantics
+│   │   ├── mobile-reading-order
+│   │   └── print-layout-boundaries
+│   ├── interactive-table-boundaries
+│   │   ├── sorting-buttons
+│   │   ├── aria-sort
+│   │   ├── row-selection-controls
+│   │   ├── cell-actions
+│   │   ├── editable-cell-labels
+│   │   ├── table-versus-aria-grid
+│   │   └── keyboard-model-ownership
+│   ├── publishing-and-data-exchange
+│   │   ├── escaped-cell-content
+│   │   ├── localized-values
+│   │   ├── missing-value-representation
+│   │   ├── accessible-download-links
+│   │   ├── csv-alternative
+│   │   ├── long-table-pagination
+│   │   └── server-rendered-tables
+│   └── validation-and-testing
+│       ├── header-cell-audit
+│       ├── duplicate-header-identifiers
+│       ├── invalid-child-elements
+│       ├── screen-reader-cell-navigation
+│       ├── keyboard-controls
+│       ├── zoom-and-reflow
+│       └── large-table-review
+├── forms-and-control-semantics
+│   ├── form-foundations
+│   │   ├── form-element
+│   │   ├── form-owner
+│   │   ├── named-controls
+│   │   ├── control-values
+│   │   ├── default-and-current-state
+│   │   ├── native-submission
+│   │   └── client-and-server-responsibilities
+│   ├── control-categories
+│   │   ├── form-associated-elements
+│   │   ├── listed-elements
+│   │   ├── labelable-elements
+│   │   ├── submittable-elements
+│   │   ├── resettable-elements
+│   │   ├── reassociateable-elements
+│   │   └── form-associated-custom-elements
+│   ├── labels-and-instructions
+│   │   ├── explicit-for-id-labels
+│   │   ├── implicit-labels
+│   │   ├── multiple-labels
+│   │   ├── visible-labels
+│   │   ├── accessible-name
+│   │   ├── help-text-association
+│   │   ├── placeholder-limitations
+│   │   └── required-field-instructions
+│   ├── grouping-controls
+│   │   ├── fieldset
+│   │   ├── legend
+│   │   ├── radio-group-labeling
+│   │   ├── checkbox-group-labeling
+│   │   ├── nested-fieldsets
+│   │   ├── disabled-fieldsets
+│   │   ├── first-legend-exception
+│   │   └── form-sections
+│   ├── buttons
+│   │   ├── submit-buttons
+│   │   ├── reset-buttons
+│   │   ├── plain-buttons
+│   │   ├── default-button-type
+│   │   ├── submitter-name-and-value
+│   │   ├── rich-button-content
+│   │   ├── icon-button-names
+│   │   └── button-versus-link
+│   ├── selection-controls
+│   │   ├── select
+│   │   │   ├── single-selection
+│   │   │   ├── multiple-selection
+│   │   │   ├── size-and-listbox-display
+│   │   │   ├── selected-value
+│   │   │   ├── required-selection
+│   │   │   ├── placeholder-option
+│   │   │   └── keyboard-interaction
+│   │   ├── option-and-optgroup
+│   │   │   ├── option-value
+│   │   │   ├── option-label
+│   │   │   ├── selected-default
+│   │   │   ├── disabled-option
+│   │   │   ├── option-groups
+│   │   │   ├── group-labels
+│   │   │   └── group-disabling
+│   │   └── datalist
+│   │       ├── input-list-association
+│   │       ├── suggested-versus-restricted-values
+│   │       ├── option-labels
+│   │       ├── supported-input-types
+│   │       ├── browser-ui-variation
+│   │       ├── accessibility-limitations
+│   │       └── select-versus-datalist
+│   ├── textareas
+│   │   ├── child-text-default
+│   │   ├── rows-and-cols
+│   │   ├── wrap-behavior
+│   │   ├── maxlength-and-minlength
+│   │   ├── required-and-readonly
+│   │   ├── resizable-ui-boundary
+│   │   └── line-ending-normalization
+│   ├── output-and-indicators
+│   │   ├── output-element
+│   │   ├── output-for-association
+│   │   ├── calculation-result-labels
+│   │   ├── progress-element
+│   │   ├── determinate-and-indeterminate-progress
+│   │   ├── meter-element
+│   │   ├── min-max-low-high-optimum
+│   │   └── meter-versus-progress
+│   ├── state-and-ownership
+│   │   ├── name-versus-id
+│   │   ├── form-attribute-association
+│   │   ├── controls-outside-form
+│   │   ├── disabled-versus-readonly
+│   │   ├── hidden-versus-disabled
+│   │   ├── value-versus-defaultvalue
+│   │   ├── checked-versus-defaultchecked
+│   │   └── reset-behavior
+│   └── form-structure-review
+│       ├── no-nested-forms
+│       ├── unique-control-identifiers
+│       ├── label-activation-targets
+│       ├── group-name-consistency
+│       ├── explicit-button-types
+│       ├── unsupported-attribute-combinations
+│       └── semantic-control-choice
+├── input-types-and-data-entry
+│   ├── textual-inputs
+│   │   ├── text
+│   │   │   ├── single-line-values
+│   │   │   ├── length-constraints
+│   │   │   ├── pattern-constraints
+│   │   │   ├── placeholder
+│   │   │   ├── list-suggestions
+│   │   │   └── whitespace-expectations
+│   │   ├── search
+│   │   │   ├── query-entry
+│   │   │   ├── search-control-label
+│   │   │   ├── clearing-behavior
+│   │   │   ├── native-submit-path
+│   │   │   ├── search-versus-text
+│   │   │   └── platform-ui-differences
+│   │   ├── email
+│   │   │   ├── address-syntax
+│   │   │   ├── multiple-addresses
+│   │   │   ├── validity-versus-deliverability
+│   │   │   ├── autocomplete-email
+│   │   │   ├── international-address-caveats
+│   │   │   └── server-verification-boundary
+│   │   ├── url
+│   │   │   ├── absolute-url-validation
+│   │   │   ├── placeholder-examples
+│   │   │   ├── allowed-scheme-validation-boundary
+│   │   │   ├── autocomplete-url
+│   │   │   ├── user-input-normalization
+│   │   │   └── fallback-as-text
+│   │   ├── tel
+│   │   │   ├── keyboard-hints
+│   │   │   ├── international-number-entry
+│   │   │   ├── formatting-and-extension
+│   │   │   ├── pattern-localization-risks
+│   │   │   ├── autocomplete-telephone
+│   │   │   └── semantic-type-without-universal-validation
+│   │   └── password
+│   │       ├── masked-display
+│   │       ├── current-password
+│   │       ├── new-password
+│   │       ├── password-manager-compatibility
+│   │       ├── show-password-enhancement
+│   │       ├── paste-and-autofill
+│   │       └── secure-transport-boundary
+│   ├── numeric-inputs
+│   │   ├── number
+│   │   │   ├── min-and-max
+│   │   │   ├── step
+│   │   │   ├── step-base
+│   │   │   ├── decimal-and-integer-values
+│   │   │   ├── localization-and-serialization
+│   │   │   ├── numeric-identifiers-versus-quantities
+│   │   │   └── spinbutton-semantics
+│   │   └── range
+│   │       ├── bounded-selection
+│   │       ├── default-value
+│   │       ├── step-granularity
+│   │       ├── endpoint-labels
+│   │       ├── visible-current-value
+│   │       ├── datalist-tick-hints
+│   │       └── range-versus-number
+│   ├── calendar-and-time-inputs
+│   │   ├── date
+│   │   │   ├── date-value-format
+│   │   │   ├── localized-picker
+│   │   │   ├── min-and-max-dates
+│   │   │   ├── step-in-days
+│   │   │   ├── date-only-semantics
+│   │   │   └── browser-fallback
+│   │   ├── time
+│   │   │   ├── time-value-format
+│   │   │   ├── seconds-and-fractions
+│   │   │   ├── min-and-max-times
+│   │   │   ├── step-in-seconds
+│   │   │   ├── periodic-range-behavior
+│   │   │   └── locale-display
+│   │   ├── datetime-local
+│   │   │   ├── local-date-time
+│   │   │   ├── no-time-zone-in-value
+│   │   │   ├── time-zone-selection-boundary
+│   │   │   ├── min-max-and-step
+│   │   │   ├── daylight-saving-ambiguities
+│   │   │   └── server-interpretation
+│   │   └── month-and-week
+│   │       ├── month-values
+│   │       ├── week-values
+│   │       ├── week-numbering
+│   │       ├── constraint-support
+│   │       ├── localized-ui
+│   │       └── fallback-validation
+│   ├── choice-inputs
+│   │   ├── checkbox
+│   │   ├── checked-default
+│   │   ├── checkbox-value
+│   │   ├── indeterminate-script-state
+│   │   ├── unchecked-submission
+│   │   ├── radio
+│   │   ├── radio-name-grouping
+│   │   ├── required-radio-group
+│   │   └── mutually-exclusive-selection
+│   ├── file-inputs
+│   │   ├── file-selection
+│   │   ├── multiple-files
+│   │   ├── accept-hints
+│   │   ├── capture-hints
+│   │   ├── file-name-privacy
+│   │   ├── empty-selection
+│   │   ├── upload-encoding
+│   │   ├── server-size-and-type-validation
+│   │   └── directory-selection-compatibility
+│   ├── specialized-inputs
+│   │   ├── color-picker
+│   │   ├── color-value-support
+│   │   ├── hidden-input
+│   │   ├── hidden-data-trust
+│   │   ├── image-submit-button
+│   │   ├── image-alternative-text
+│   │   ├── submit-coordinates
+│   │   └── submit-reset-and-button-inputs
+│   ├── input-affordances
+│   │   ├── inputmode
+│   │   ├── enterkeyhint
+│   │   ├── autocomplete-tokens
+│   │   ├── autocapitalize
+│   │   ├── spellcheck
+│   │   ├── mobile-keyboards
+│   │   ├── decimal-separators
+│   │   └── touch-and-keyboard-use
+│   ├── autofill-and-identification
+│   │   ├── name-and-honorific-tokens
+│   │   ├── address-tokens
+│   │   ├── shipping-and-billing
+│   │   ├── section-tokens
+│   │   ├── payment-field-tokens
+│   │   ├── one-time-code
+│   │   ├── webauthn-token-integration
+│   │   └── token-order-and-validity
+│   └── input-type-selection
+│       ├── semantic-value-versus-keyboard
+│       ├── identifier-versus-number
+│       ├── calendar-versus-free-text
+│       ├── select-versus-radio
+│       ├── checkbox-versus-switch-enhancement
+│       ├── picker-support-fallback
+│       └── international-entry-testing
+├── form-submission-validation-and-workflows
+│   ├── submission-configuration
+│   │   ├── action
+│   │   ├── method-get
+│   │   ├── method-post
+│   │   ├── method-dialog
+│   │   ├── enctype
+│   │   ├── target
+│   │   ├── accept-charset
+│   │   ├── autocomplete
+│   │   └── novalidate
+│   ├── submitter-overrides
+│   │   ├── formaction
+│   │   ├── formmethod
+│   │   ├── formenctype
+│   │   ├── formtarget
+│   │   ├── formnovalidate
+│   │   ├── chosen-submitter
+│   │   └── external-submit-buttons
+│   ├── entry-list-construction
+│   │   ├── named-enabled-controls
+│   │   ├── unchecked-choice-exclusion
+│   │   ├── selected-option-values
+│   │   ├── repeated-field-names
+│   │   ├── submitter-inclusion
+│   │   ├── file-entries
+│   │   ├── image-coordinate-entries
+│   │   ├── dirname
+│   │   └── charset-entry
+│   ├── encoding-and-transport
+│   │   ├── application-x-www-form-urlencoded
+│   │   ├── multipart-form-data
+│   │   ├── multipart-boundaries
+│   │   ├── text-plain-limitations
+│   │   ├── query-string-construction
+│   │   ├── non-ascii-input
+│   │   ├── line-break-normalization
+│   │   └── request-payload-inspection
+│   ├── native-validation
+│   │   ├── constraints
+│   │   │   ├── required
+│   │   │   ├── minlength
+│   │   │   ├── maxlength
+│   │   │   ├── min
+│   │   │   ├── max
+│   │   │   ├── step
+│   │   │   ├── pattern
+│   │   │   └── type-specific-constraints
+│   │   ├── validity-states
+│   │   │   ├── value-missing
+│   │   │   ├── type-mismatch
+│   │   │   ├── pattern-mismatch
+│   │   │   ├── too-long
+│   │   │   ├── too-short
+│   │   │   ├── range-underflow
+│   │   │   ├── range-overflow
+│   │   │   ├── step-mismatch
+│   │   │   ├── bad-input
+│   │   │   └── custom-error
+│   │   └── validation-lifecycle
+│   │       ├── validation-candidates
+│   │       ├── barred-from-validation
+│   │       ├── invalid-event
+│   │       ├── submission-blocking
+│   │       ├── user-interaction-timing
+│   │       ├── validation-message-localization
+│   │       └── programmatic-value-caveats
+│   ├── validation-enhancement
+│   │   ├── check-validity
+│   │   ├── report-validity
+│   │   ├── set-custom-validity
+│   │   ├── clearing-custom-errors
+│   │   ├── cross-field-rules
+│   │   ├── server-error-mapping
+│   │   ├── accessible-error-summary
+│   │   └── inline-error-association
+│   ├── submission-events-and-apis
+│   │   ├── submit-event
+│   │   ├── formdata-event
+│   │   ├── request-submit
+│   │   ├── submit-method-bypass
+│   │   ├── prevent-default-boundary
+│   │   ├── formdata-construction
+│   │   ├── submitter-access
+│   │   └── progressive-fetch-enhancement
+│   ├── workflow-patterns
+│   │   ├── search-form
+│   │   ├── contact-form
+│   │   ├── registration-form
+│   │   ├── login-form
+│   │   ├── checkout-form
+│   │   ├── upload-form
+│   │   ├── preferences-form
+│   │   └── multi-step-form
+│   ├── reliability-and-recovery
+│   │   ├── pending-state
+│   │   ├── duplicate-submission-prevention
+│   │   ├── server-side-idempotency-boundary
+│   │   ├── field-value-preservation
+│   │   ├── network-error-recovery
+│   │   ├── post-redirect-get
+│   │   ├── confirmation-page
+│   │   └── back-navigation-and-restoration
+│   ├── security-and-data-quality
+│   │   ├── server-side-validation
+│   │   ├── csrf-token-placement
+│   │   ├── sensitive-data-and-get-requests
+│   │   ├── hidden-field-tampering
+│   │   ├── file-upload-verification
+│   │   ├── input-normalization-boundary
+│   │   ├── password-and-secret-handling
+│   │   └── error-message-privacy
+│   └── submission-testing
+│       ├── keyboard-enter-submission
+│       ├── each-submit-button
+│       ├── empty-and-missing-values
+│       ├── repeated-keys
+│       ├── unicode-payloads
+│       ├── large-payloads
+│       ├── disabled-javascript
+│       ├── server-validation-failures
+│       └── browser-autofill
+├── native-interaction-and-disclosure
+│   ├── interaction-foundations
+│   │   ├── native-activation
+│   │   ├── keyboard-and-pointer-input
+│   │   ├── semantic-action-controls
+│   │   ├── state-versus-visibility
+│   │   ├── top-layer-versus-stacking
+│   │   ├── focus-and-dismissal
+│   │   └── no-script-capabilities
+│   ├── native-disclosure
+│   │   ├── details-and-summary
+│   │   │   ├── summary-as-label
+│   │   │   ├── first-summary-child
+│   │   │   ├── open-state
+│   │   │   ├── default-disclosure-marker
+│   │   │   ├── rich-disclosure-content
+│   │   │   ├── keyboard-activation
+│   │   │   └── nested-disclosures
+│   │   ├── grouped-details
+│   │   │   ├── name-based-groups
+│   │   │   ├── exclusive-open-behavior
+│   │   │   ├── initial-open-selection
+│   │   │   ├── non-adjacent-group-members
+│   │   │   ├── accordion-use-cases
+│   │   │   └── compatibility-checks
+│   │   └── disclosure-design
+│   │       ├── meaningful-summary-text
+│   │       ├── discoverable-hidden-content
+│   │       ├── disclosure-versus-tabs
+│   │       ├── disclosure-versus-modal
+│   │       ├── interactive-summary-descendants
+│   │       └── find-in-page-behavior
+│   ├── native-dialog
+│   │   ├── dialog-model
+│   │   │   ├── modal-and-nonmodal
+│   │   │   ├── open-attribute
+│   │   │   ├── show-and-showmodal
+│   │   │   ├── close-and-requestclose
+│   │   │   ├── return-value
+│   │   │   ├── dialog-form-method
+│   │   │   └── cancel-and-close-events
+│   │   ├── dialog-accessibility
+│   │   │   ├── dialog-name
+│   │   │   ├── initial-focus
+│   │   │   ├── focus-return
+│   │   │   ├── background-inertness
+│   │   │   ├── escape-dismissal
+│   │   │   ├── explicit-close-control
+│   │   │   └── long-dialog-content
+│   │   └── dismissal-policy
+│   │       ├── closedby-values
+│   │       ├── light-dismiss
+│   │       ├── platform-dismiss
+│   │       ├── developer-controlled-close
+│   │       ├── unsaved-data-confirmation
+│   │       └── feature-support-review
+│   ├── popover
+│   │   ├── popover-model
+│   │   │   ├── global-popover-attribute
+│   │   │   ├── auto-state
+│   │   │   ├── manual-state
+│   │   │   ├── hint-state-support
+│   │   │   ├── showing-and-hidden-state
+│   │   │   ├── top-layer-placement
+│   │   │   └── light-dismiss
+│   │   ├── declarative-controls
+│   │   │   ├── popovertarget
+│   │   │   ├── popovertargetaction
+│   │   │   ├── target-id-association
+│   │   │   ├── toggle-show-and-hide
+│   │   │   ├── invoker-focus-relationship
+│   │   │   └── button-type-safety
+│   │   └── composition-and-semantics
+│   │       ├── nested-popovers
+│   │       ├── popover-versus-dialog
+│   │       ├── popover-versus-tooltip
+│   │       ├── semantic-container-choice
+│   │       ├── accessible-naming
+│   │       ├── focus-navigation
+│   │       └── dismissal-testing
+│   ├── invoker-commands
+│   │   ├── commandfor
+│   │   ├── command
+│   │   ├── dialog-commands
+│   │   ├── popover-commands
+│   │   ├── custom-command-prefix
+│   │   ├── command-event-boundary
+│   │   ├── declarative-versus-scripted-control
+│   │   └── support-detection
+│   └── interaction-quality
+│       ├── no-keyboard-traps
+│       ├── logical-focus-order
+│       ├── accessible-state-exposure
+│       ├── touch-dismissal
+│       ├── browser-back-expectations
+│       ├── native-state-css-hooks
+│       └── fallback-interaction
+├── accessibility-and-assistive-technology
+│   ├── accessibility-mental-model
+│   │   ├── semantic-dom
+│   │   ├── accessibility-tree
+│   │   ├── roles-names-states-and-values
+│   │   ├── keyboard-interface
+│   │   ├── screen-reader-modes
+│   │   ├── native-behavior
+│   │   └── user-preferences-and-adaptations
+│   ├── native-html-first
+│   │   ├── built-in-control-behavior
+│   │   ├── native-versus-custom-cost
+│   │   ├── semantic-element-selection
+│   │   ├── browser-and-at-interoperability
+│   │   ├── progressive-enhancement
+│   │   └── avoiding-redundant-aria
+│   ├── accessible-names-and-descriptions
+│   │   ├── visible-label-text
+│   │   ├── label-element
+│   │   ├── aria-labelledby
+│   │   ├── aria-label
+│   │   ├── aria-describedby
+│   │   ├── name-computation-precedence
+│   │   ├── description-versus-name
+│   │   ├── label-in-name
+│   │   └── hidden-reference-content
+│   ├── aria-and-html
+│   │   ├── role-mapping
+│   │   │   ├── implicit-roles
+│   │   │   ├── permitted-role-overrides
+│   │   │   ├── role-presentation-and-none
+│   │   │   ├── landmark-roles
+│   │   │   ├── widget-roles
+│   │   │   ├── required-owned-elements
+│   │   │   └── context-sensitive-mappings
+│   │   ├── states-and-properties
+│   │   │   ├── aria-expanded
+│   │   │   ├── aria-controls
+│   │   │   ├── aria-current
+│   │   │   ├── aria-pressed
+│   │   │   ├── aria-selected
+│   │   │   ├── aria-disabled
+│   │   │   ├── aria-invalid
+│   │   │   ├── aria-required
+│   │   │   └── aria-busy
+│   │   └── misuse-prevention
+│   │       ├── aria-does-not-add-behavior
+│   │       ├── unsupported-role-attributes
+│   │       ├── conflicting-native-state
+│   │       ├── broken-idrefs
+│   │       ├── redundant-announcements
+│   │       └── inaccessible-custom-controls
+│   ├── keyboard-and-focus
+│   │   ├── natural-tab-order
+│   │   ├── tabindex-zero
+│   │   ├── tabindex-minus-one
+│   │   ├── positive-tabindex-risks
+│   │   ├── programmatic-focus-boundary
+│   │   ├── visible-focus-css-contract
+│   │   ├── focus-restoration
+│   │   └── keyboard-trap-prevention
+│   ├── content-availability
+│   │   ├── hidden-content
+│   │   ├── aria-hidden
+│   │   ├── inert-subtrees
+│   │   ├── visually-hidden-text
+│   │   ├── focusable-hidden-content-risks
+│   │   ├── collapsed-regions
+│   │   ├── modal-background-content
+│   │   └── find-in-page-access
+│   ├── announcements-and-feedback
+│   │   ├── live-regions
+│   │   ├── status-messages
+│   │   ├── alert-messages
+│   │   ├── polite-versus-assertive
+│   │   ├── atomic-and-relevant-updates
+│   │   ├── loading-announcements
+│   │   ├── error-announcements
+│   │   └── announcement-overload
+│   ├── reading-and-navigation
+│   │   ├── meaningful-sequence
+│   │   ├── heading-navigation
+│   │   ├── landmark-navigation
+│   │   ├── link-lists
+│   │   ├── form-control-navigation
+│   │   ├── table-cell-navigation
+│   │   ├── bypass-repeated-content
+│   │   └── document-title-context
+│   ├── inclusive-content
+│   │   ├── plain-instructions
+│   │   ├── non-sensory-instructions
+│   │   ├── consistent-identification
+│   │   ├── image-equivalents
+│   │   ├── media-equivalents
+│   │   ├── language-of-parts
+│   │   ├── accessible-authentication-boundary
+│   │   └── zoom-and-reflow-contract
+│   └── accessibility-evaluation
+│       ├── keyboard-only-walkthrough
+│       ├── screen-reader-walkthrough
+│       ├── accessibility-tree-inspection
+│       ├── automated-check-limitations
+│       ├── mobile-assistive-technology
+│       ├── speech-control-labels
+│       ├── user-testing
+│       └── issue-severity-and-evidence
+├── internationalization-and-localization
+│   ├── language-declarations
+│   │   ├── html-lang
+│   │   ├── language-of-parts
+│   │   ├── bcp47-language-tags
+│   │   ├── language-and-script-subtags
+│   │   ├── regional-subtags
+│   │   ├── unknown-language-handling
+│   │   └── lang-versus-content-language
+│   ├── unicode-and-encoding
+│   │   ├── utf-8-throughout
+│   │   ├── source-response-consistency
+│   │   ├── combining-characters
+│   │   ├── normalization-boundaries
+│   │   ├── emoji-and-grapheme-awareness
+│   │   ├── character-references
+│   │   └── encoding-round-trip-tests
+│   ├── bidirectional-content
+│   │   ├── dir-ltr
+│   │   ├── dir-rtl
+│   │   ├── dir-auto
+│   │   ├── inherited-direction
+│   │   ├── bdi-isolation
+│   │   ├── bdo-override
+│   │   ├── mixed-language-identifiers
+│   │   └── punctuation-and-number-placement
+│   ├── rtl-document-design
+│   │   ├── logical-source-order
+│   │   ├── navigation-sequence
+│   │   ├── form-label-placement
+│   │   ├── table-direction
+│   │   ├── icon-mirroring-boundary
+│   │   ├── code-and-url-isolation
+│   │   └── css-logical-property-contract
+│   ├── translation-contracts
+│   │   ├── translate-yes-and-no
+│   │   ├── non-translatable-brand-names
+│   │   ├── translatable-attributes
+│   │   ├── complete-sentence-fragments
+│   │   ├── translator-context
+│   │   ├── rich-text-placeholders
+│   │   ├── translated-alt-and-labels
+│   │   └── safe-localized-markup
+│   ├── ruby-and-east-asian-text
+│   │   ├── ruby-element
+│   │   ├── rt-annotations
+│   │   ├── rp-fallback
+│   │   ├── pronunciation-guides
+│   │   ├── simple-and-grouped-ruby
+│   │   ├── language-tagging
+│   │   └── assistive-technology-review
+│   ├── localized-data-entry
+│   │   ├── names-and-addresses
+│   │   ├── telephone-formats
+│   │   ├── date-display-versus-value
+│   │   ├── number-display-versus-value
+│   │   ├── inputmode-localization
+│   │   ├── autofill-language-independence
+│   │   ├── international-postal-data
+│   │   └── time-zone-context
+│   ├── multilingual-navigation
+│   │   ├── language-link-labels
+│   │   ├── hreflang
+│   │   ├── locale-specific-urls
+│   │   ├── language-switcher-current-state
+│   │   ├── translated-fragment-targets
+│   │   ├── cross-language-link-context
+│   │   └── avoiding-forced-language-redirects
+│   └── localization-testing
+│       ├── long-translations
+│       ├── right-to-left-content
+│       ├── mixed-script-content
+│       ├── localized-screen-reader-output
+│       ├── language-specific-input
+│       ├── non-latin-filenames
+│       ├── localization-fallback
+│       └── translation-regression-review
+├── styles-scripts-and-resource-integration
+│   ├── css-integration
+│   │   ├── link-rel-stylesheet
+│   │   ├── style-element
+│   │   ├── inline-style-attribute
+│   │   ├── media-attribute
+│   │   ├── stylesheet-order
+│   │   ├── disabled-and-alternate-stylesheets
+│   │   ├── style-source-security
+│   │   └── presentation-versus-semantics
+│   ├── classic-script-loading
+│   │   ├── inline-scripts
+│   │   ├── external-src
+│   │   ├── parser-blocking
+│   │   ├── defer
+│   │   ├── async
+│   │   ├── script-order
+│   │   ├── crossorigin
+│   │   ├── integrity
+│   │   └── referrerpolicy
+│   ├── module-scripts
+│   │   ├── type-module
+│   │   ├── module-graph-loading
+│   │   ├── default-deferred-execution
+│   │   ├── async-module-scripts
+│   │   ├── strict-mode-boundary
+│   │   ├── cross-origin-module-fetching
+│   │   ├── modulepreload
+│   │   └── nomodule-legacy-fallback
+│   ├── script-data-blocks
+│   │   ├── application-json
+│   │   ├── non-executable-mime-types
+│   │   ├── data-block-reading
+│   │   ├── escaping-end-script-sequences
+│   │   ├── unicode-and-serialization
+│   │   ├── data-versus-executable-code
+│   │   └── embedded-state-size
+│   ├── import-maps
+│   │   ├── type-importmap
+│   │   ├── imports
+│   │   ├── scopes
+│   │   ├── integrity-metadata
+│   │   ├── bare-specifier-mapping
+│   │   ├── url-prefix-mapping
+│   │   ├── map-merging-and-resolution-order
+│   │   └── runtime-support-checks
+│   ├── resource-link-attributes
+│   │   ├── rel-token-list
+│   │   ├── href
+│   │   ├── as
+│   │   ├── type
+│   │   ├── media
+│   │   ├── crossorigin
+│   │   ├── integrity
+│   │   ├── imagesrcset-and-imagesizes
+│   │   └── fetchpriority-support
+│   ├── resource-hint-syntax
+│   │   ├── preload
+│   │   ├── modulepreload
+│   │   ├── preconnect
+│   │   ├── dns-prefetch
+│   │   ├── prefetch
+│   │   ├── hint-versus-guarantee
+│   │   └── matching-request-attributes
+│   ├── no-script-and-failure-behavior
+│   │   ├── noscript-in-head
+│   │   ├── noscript-in-body
+│   │   ├── scripting-enabled-parsing
+│   │   ├── script-download-failures
+│   │   ├── delayed-script-initialization
+│   │   ├── native-content-baseline
+│   │   └── fallback-links-and-forms
+│   ├── css-and-js-contracts
+│   │   ├── semantic-selectors
+│   │   ├── class-and-data-hooks
+│   │   ├── stable-dom-ownership
+│   │   ├── event-handler-attribute-risks
+│   │   ├── state-attribute-synchronization
+│   │   ├── stylesheet-and-script-csp
+│   │   └── source-map-reference-boundary
+│   └── integration-debugging
+│       ├── network-waterfalls
+│       ├── execution-order-inspection
+│       ├── mime-type-failures
+│       ├── cors-failures
+│       ├── integrity-failures
+│       ├── duplicate-resource-requests
+│       ├── missing-asset-paths
+│       └── script-disabled-comparison
+├── templates-web-components-and-shadow-dom
+│   ├── template-elements
+│   │   ├── inert-template-content
+│   │   ├── template-content-fragment
+│   │   ├── clone-and-insert-boundary
+│   │   ├── template-inside-tables
+│   │   ├── nested-templates
+│   │   ├── repeated-content-patterns
+│   │   └── escaping-template-data
+│   ├── custom-element-markup
+│   │   ├── valid-custom-element-names
+│   │   ├── autonomous-custom-elements
+│   │   ├── customized-built-ins-and-is
+│   │   ├── definition-and-upgrade-timing
+│   │   ├── undefined-element-fallback
+│   │   ├── attributes-versus-properties
+│   │   └── semantic-content-contracts
+│   ├── component-content-models
+│   │   ├── host-element
+│   │   ├── light-dom-content
+│   │   ├── shadow-dom-content
+│   │   ├── fallback-content
+│   │   ├── slotted-content
+│   │   ├── nested-components
+│   │   └── document-semantics-across-boundaries
+│   ├── slots
+│   │   ├── slot-element
+│   │   ├── default-slot
+│   │   ├── named-slots
+│   │   ├── slot-attribute
+│   │   ├── fallback-slot-content
+│   │   ├── assigned-node-order
+│   │   ├── slotchange-integration
+│   │   └── slot-naming-contracts
+│   ├── declarative-shadow-dom
+│   │   ├── template-shadowrootmode
+│   │   ├── open-and-closed-roots
+│   │   ├── server-rendered-shadow-content
+│   │   ├── parser-created-shadow-roots
+│   │   ├── shadowrootdelegatesfocus
+│   │   ├── hydration-coordination
+│   │   └── unsupported-browser-fallback
+│   ├── style-and-theme-boundaries
+│   │   ├── shadow-style-scope
+│   │   ├── inherited-properties
+│   │   ├── custom-property-contracts
+│   │   ├── part
+│   │   ├── exportparts
+│   │   ├── host-styling-boundary
+│   │   └── slotted-styling-boundary
+│   ├── form-associated-components
+│   │   ├── form-associated-custom-element-contract
+│   │   ├── elementinternals-boundary
+│   │   ├── labels-and-form-owner
+│   │   ├── form-value-submission
+│   │   ├── validity-and-error-state
+│   │   ├── reset-and-restore-callback-boundaries
+│   │   ├── disabled-state
+│   │   └── native-control-fallback
+│   ├── component-accessibility
+│   │   ├── host-role-and-name
+│   │   ├── internal-native-controls
+│   │   ├── focus-delegation
+│   │   ├── slot-reading-order
+│   │   ├── id-reference-boundaries
+│   │   ├── label-association-boundaries
+│   │   ├── keyboard-navigation
+│   │   └── accessibility-tree-tests
+│   ├── component-delivery
+│   │   ├── declarative-versus-client-rendered
+│   │   ├── server-template-integration
+│   │   ├── progressive-upgrade
+│   │   ├── framework-interop
+│   │   ├── hydration-mismatch-tests
+│   │   ├── no-script-tests
+│   │   └── duplicate-registration-handling
+│   └── advanced-shadow-features
+│       ├── clonable-shadow-roots
+│       ├── serializable-shadow-roots
+│       ├── shadow-aware-serialization
+│       ├── scoped-registry-integration
+│       ├── feature-level-support-tests
+│       └── security-not-guaranteed-by-encapsulation
+├── structured-data-and-content-discovery
+│   ├── semantic-discovery
+│   │   ├── meaningful-document-titles
+│   │   ├── descriptive-headings
+│   │   ├── crawlable-anchor-links
+│   │   ├── text-content-availability
+│   │   ├── image-alternatives
+│   │   ├── media-context
+│   │   └── semantic-versus-ranking-claims
+│   ├── microdata
+│   │   ├── itemscope
+│   │   ├── itemtype
+│   │   ├── itemprop
+│   │   ├── itemid
+│   │   ├── itemref
+│   │   ├── nested-items
+│   │   ├── value-extraction
+│   │   └── visible-content-consistency
+│   ├── rdfa-integration
+│   │   ├── vocabulary-and-prefixes
+│   │   ├── typeof
+│   │   ├── property
+│   │   ├── resource
+│   │   ├── about
+│   │   ├── content-values
+│   │   ├── html-rdfa-boundaries
+│   │   └── parser-and-consumer-support
+│   ├── json-ld-in-html
+│   │   ├── application-ld-json
+│   │   ├── context-and-type
+│   │   ├── entity-identifiers
+│   │   ├── nested-entities
+│   │   ├── script-data-escaping
+│   │   ├── document-and-entity-relationships
+│   │   ├── duplicate-markup
+│   │   └── visible-data-alignment
+│   ├── schema-and-vocabulary-boundaries
+│   │   ├── syntax-versus-vocabulary
+│   │   ├── organization-and-person
+│   │   ├── article-and-publication
+│   │   ├── product-and-offer
+│   │   ├── breadcrumb-list
+│   │   ├── event-and-recipe
+│   │   └── schema-validity-versus-consumer-eligibility
+│   ├── social-preview-metadata
+│   │   ├── open-graph-properties
+│   │   ├── social-card-metadata
+│   │   ├── title-and-description
+│   │   ├── canonical-share-url
+│   │   ├── preview-image-and-alternative-text
+│   │   ├── image-dimensions
+│   │   ├── locale-metadata
+│   │   └── crawler-access
+│   ├── alternate-representations
+│   │   ├── rss-and-atom-discovery
+│   │   ├── print-alternates
+│   │   ├── language-alternates
+│   │   ├── canonical-documents
+│   │   ├── downloadable-representations
+│   │   ├── license-and-author-links
+│   │   └── metadata-consumer-differences
+│   ├── search-directive-boundaries
+│   │   ├── meta-robots
+│   │   ├── snippet-preview-controls
+│   │   ├── canonical-hints
+│   │   ├── language-alternate-hints
+│   │   ├── html-versus-http-directives
+│   │   ├── robots-txt-versus-page-markup
+│   │   └── noindex-versus-access-control
+│   └── validation-and-maintenance
+│       ├── vocabulary-validation
+│       ├── consumer-specific-testing
+│       ├── source-versus-rendered-metadata
+│       ├── stale-entity-data
+│       ├── localized-metadata
+│       ├── template-duplication
+│       └── publication-regression-checks
+├── progressive-enhancement-and-rendering
+│   ├── html-first-design
+│   │   ├── core-content-in-markup
+│   │   ├── native-links-and-forms
+│   │   ├── semantic-interaction-baseline
+│   │   ├── optional-style-layer
+│   │   ├── optional-script-layer
+│   │   ├── resilient-error-paths
+│   │   └── capability-based-enhancement
+│   ├── rendering-models
+│   │   ├── static-html
+│   │   ├── server-rendered-html
+│   │   ├── build-time-generated-html
+│   │   ├── client-rendered-html
+│   │   ├── hybrid-documents
+│   │   ├── streaming-html
+│   │   ├── partial-document-updates
+│   │   └── rendering-model-tradeoffs
+│   ├── server-template-contracts
+│   │   ├── layouts-and-partials
+│   │   ├── escaped-interpolation
+│   │   ├── attribute-context-output
+│   │   ├── conditional-attributes
+│   │   ├── loop-generated-identifiers
+│   │   ├── slot-and-block-composition
+│   │   ├── template-data-shapes
+│   │   └── trusted-rich-content-boundaries
+│   ├── static-site-generation
+│   │   ├── content-to-html-pipeline
+│   │   ├── markdown-to-semantic-html
+│   │   ├── heading-and-anchor-generation
+│   │   ├── navigation-generation
+│   │   ├── metadata-generation
+│   │   ├── asset-url-rewriting
+│   │   ├── output-validation
+│   │   └── localized-site-generation
+│   ├── hydration-and-client-enhancement
+│   │   ├── server-client-markup-agreement
+│   │   ├── browser-parser-repair
+│   │   ├── stable-identifiers
+│   │   ├── preserved-input-state
+│   │   ├── event-handler-attachment
+│   │   ├── hydration-boundaries
+│   │   ├── mismatch-diagnostics
+│   │   └── enhancement-failure-fallback
+│   ├── fragment-updates
+│   │   ├── valid-fragment-context
+│   │   ├── partial-response-contract
+│   │   ├── document-title-updates
+│   │   ├── focus-after-replacement
+│   │   ├── live-region-feedback
+│   │   ├── form-error-fragments
+│   │   ├── history-and-url-consistency
+│   │   └── safe-fragment-insertion
+│   ├── streamed-document-delivery
+│   │   ├── early-document-shell
+│   │   ├── head-resource-discovery
+│   │   ├── chunk-boundaries
+│   │   ├── incomplete-element-handling
+│   │   ├── late-content-insertion
+│   │   ├── fallback-content
+│   │   ├── streaming-error-documents
+│   │   └── progressive-readability
+│   ├── framework-markup-boundaries
+│   │   ├── html-versus-jsx-attributes
+│   │   ├── escaped-text-output
+│   │   ├── raw-html-escape-hatches
+│   │   ├── void-element-serialization
+│   │   ├── controlled-and-uncontrolled-inputs
+│   │   ├── head-management
+│   │   ├── framework-wrappers
+│   │   └── generated-dom-inspection
+│   └── resilience-testing
+│       ├── javascript-disabled
+│       ├── script-delayed-or-failed
+│       ├── styles-disabled
+│       ├── slow-network
+│       ├── partial-resource-failure
+│       ├── browser-extension-interference
+│       ├── autofilled-form-state
+│       └── restored-pages
+├── performance-and-resource-delivery
+│   ├── loading-mental-model
+│   │   ├── response-to-first-content
+│   │   ├── parser-resource-discovery
+│   │   ├── preload-scanner
+│   │   ├── render-blocking-resources
+│   │   ├── fetch-priority-hints
+│   │   ├── critical-resource-chain
+│   │   └── browser-scheduling-discretion
+│   ├── html-payload
+│   │   ├── document-size
+│   │   ├── repeated-markup
+│   │   ├── excess-wrapper-depth
+│   │   ├── inline-data-size
+│   │   ├── compression-boundary
+│   │   ├── minification-safety
+│   │   ├── streaming-response
+│   │   └── cacheability-boundary
+│   ├── critical-content
+│   │   ├── early-main-content
+│   │   ├── early-lcp-resource-discovery
+│   │   ├── meaningful-server-html
+│   │   ├── loading-placeholders
+│   │   ├── reserved-media-dimensions
+│   │   ├── font-resource-coordination
+│   │   └── above-the-fold-resource-priority
+│   ├── image-delivery
+│   │   ├── responsive-candidate-sizing
+│   │   ├── lazy-versus-eager-loading
+│   │   ├── high-priority-image-selection
+│   │   ├── decoding-hints
+│   │   ├── image-preload-matching
+│   │   ├── width-and-height-accuracy
+│   │   ├── repeated-image-requests
+│   │   └── image-cdn-url-contracts
+│   ├── script-delivery
+│   │   ├── defer-versus-async
+│   │   ├── modulepreload-selection
+│   │   ├── duplicate-script-avoidance
+│   │   ├── third-party-script-budget
+│   │   ├── late-enhancement
+│   │   ├── non-critical-code-deferral
+│   │   ├── script-error-fallback
+│   │   └── hydration-payload-budget
+│   ├── connection-and-resource-hints
+│   │   ├── targeted-preconnect
+│   │   ├── dns-prefetch-use-cases
+│   │   ├── preload-as-matching
+│   │   ├── crossorigin-consistency
+│   │   ├── media-conditional-preload
+│   │   ├── responsive-image-preload
+│   │   ├── hint-overuse
+│   │   └── unused-preload-review
+│   ├── speculative-navigation
+│   │   ├── speculationrules-data-block
+│   │   ├── prefetch-versus-prerender
+│   │   ├── list-and-document-rules
+│   │   ├── eagerness
+│   │   ├── safe-destination-selection
+│   │   ├── authentication-and-side-effect-risks
+│   │   ├── data-and-power-preferences
+│   │   └── support-and-fallback
+│   ├── embedded-media-budget
+│   │   ├── lazy-iframe-loading
+│   │   ├── click-to-load-embeds
+│   │   ├── media-preload-policy
+│   │   ├── poster-resource-priority
+│   │   ├── third-party-request-inventory
+│   │   ├── fallback-link-first
+│   │   └── consent-gated-resource-loading
+│   └── measurement-and-diagnostics
+│       ├── network-waterfall
+│       ├── resource-timing-boundary
+│       ├── layout-shift-from-markup
+│       ├── largest-contentful-paint-context
+│       ├── initial-interaction-readiness
+│       ├── field-versus-lab-results
+│       ├── mobile-network-tests
+│       └── before-after-evidence
+├── security-and-trust-boundaries
+│   ├── html-threat-model
+│   │   ├── trusted-template-versus-untrusted-data
+│   │   ├── html-as-active-content
+│   │   ├── browser-origin-boundary
+│   │   ├── third-party-content
+│   │   ├── generated-document-risks
+│   │   ├── markup-versus-server-security
+│   │   └── defense-in-depth
+│   ├── context-aware-output
+│   │   ├── html-text-encoding
+│   │   ├── quoted-attribute-encoding
+│   │   ├── url-validation-and-encoding
+│   │   ├── script-data-escaping
+│   │   ├── style-context-boundary
+│   │   ├── context-switching-risks
+│   │   ├── double-encoding
+│   │   └── safe-template-defaults
+│   ├── untrusted-rich-content
+│   │   ├── allowlist-sanitization
+│   │   ├── parser-based-sanitization
+│   │   ├── safe-element-policy
+│   │   ├── safe-attribute-policy
+│   │   ├── url-scheme-policy
+│   │   ├── svg-and-mathml-policy
+│   │   ├── post-sanitization-mutation
+│   │   └── sanitizer-maintenance
+│   ├── injection-and-clobbering-prevention
+│   │   ├── unsafe-innerhtml-boundary
+│   │   ├── event-handler-attributes
+│   │   ├── javascript-url-rejection
+│   │   ├── base-element-injection
+│   │   ├── named-property-clobbering
+│   │   ├── form-name-collisions
+│   │   ├── prototype-independent-data-handling
+│   │   └── trusted-types-integration
+│   ├── resource-integrity-and-policy
+│   │   ├── content-security-policy
+│   │   ├── nonce-and-hash-contracts
+│   │   ├── subresource-integrity
+│   │   ├── crossorigin-with-integrity
+│   │   ├── meta-csp-limitations
+│   │   ├── header-only-directives
+│   │   ├── mixed-content-prevention
+│   │   └── external-resource-trust
+│   ├── embedding-and-navigation-security
+│   │   ├── iframe-sandbox
+│   │   ├── least-privilege-allow-tokens
+│   │   ├── srcdoc-untrusted-markup
+│   │   ├── frame-ancestors-header
+│   │   ├── clickjacking-defense-boundary
+│   │   ├── opener-isolation
+│   │   ├── referrer-controls
+│   │   └── safe-download-links
+│   ├── form-and-data-exposure
+│   │   ├── hidden-fields-are-not-secrets
+│   │   ├── disabled-fields-are-not-authorization
+│   │   ├── client-validation-is-not-security
+│   │   ├── csrf-token-integration
+│   │   ├── credential-autofill
+│   │   ├── query-string-sensitive-data
+│   │   ├── file-upload-hints-versus-validation
+│   │   └── error-output-escaping
+│   ├── privacy-aware-markup
+│   │   ├── third-party-images
+│   │   ├── tracking-pixels
+│   │   ├── link-auditing
+│   │   ├── embedded-identifiers
+│   │   ├── personal-data-in-source
+│   │   ├── prefetch-information-leakage
+│   │   ├── permission-request-context
+│   │   └── consent-without-script-dependency
+│   └── security-verification
+│       ├── template-context-review
+│       ├── sanitizer-regression-fixtures
+│       ├── blocked-resource-tests
+│       ├── csp-report-inspection
+│       ├── sandbox-permission-tests
+│       ├── untrusted-url-tests
+│       ├── source-secret-scans
+│       └── dependency-and-policy-review
+├── authoring-tooling-and-content-pipelines
+│   ├── editor-workflow
+│   │   ├── syntax-highlighting
+│   │   ├── element-and-attribute-completion
+│   │   ├── emmet-abbreviations
+│   │   ├── snippets-and-skeletons
+│   │   ├── linked-tag-editing
+│   │   ├── formatting-on-save
+│   │   └── validation-feedback
+│   ├── source-conventions
+│   │   ├── indentation
+│   │   ├── attribute-ordering
+│   │   ├── quotation-style
+│   │   ├── optional-tag-policy
+│   │   ├── filename-and-url-conventions
+│   │   ├── comment-policy
+│   │   ├── semantic-review-checklist
+│   │   └── readable-diffs
+│   ├── template-engine-integration
+│   │   ├── layout-inheritance
+│   │   ├── partials-and-includes
+│   │   ├── autoescaping-defaults
+│   │   ├── conditional-attribute-output
+│   │   ├── repeated-component-ids
+│   │   ├── data-shape-validation
+│   │   ├── safe-html-escape-hatches
+│   │   └── output-fixtures
+│   ├── cms-and-rich-text
+│   │   ├── semantic-editor-output
+│   │   ├── allowed-content-schema
+│   │   ├── heading-level-constraints
+│   │   ├── image-alt-workflow
+│   │   ├── media-caption-workflow
+│   │   ├── pasted-content-cleanup
+│   │   ├── link-validation
+│   │   └── editorial-preview
+│   ├── markdown-and-document-conversion
+│   │   ├── markdown-to-html
+│   │   ├── raw-html-policy
+│   │   ├── heading-anchor-generation
+│   │   ├── code-block-escaping
+│   │   ├── table-conversion
+│   │   ├── front-matter-to-head
+│   │   ├── math-and-diagram-extensions
+│   │   └── sanitized-publishing-output
+│   ├── build-pipeline
+│   │   ├── html-entrypoints
+│   │   ├── template-compilation
+│   │   ├── asset-path-rewriting
+│   │   ├── hashed-resource-references
+│   │   ├── manifest-integration
+│   │   ├── localization-builds
+│   │   ├── minification
+│   │   └── compressed-delivery-boundary
+│   ├── formatter-and-linter-tools
+│   │   ├── prettier-html-formatting
+│   │   ├── html-validate
+│   │   ├── htmlhint
+│   │   ├── nu-html-checker
+│   │   ├── template-aware-linting
+│   │   ├── rule-severity
+│   │   ├── scoped-exceptions
+│   │   └── tool-version-pinning
+│   ├── component-documentation
+│   │   ├── semantic-contracts
+│   │   ├── allowed-content
+│   │   ├── required-labels
+│   │   ├── heading-and-landmark-context
+│   │   ├── native-states
+│   │   ├── keyboard-behavior-contract
+│   │   ├── no-script-examples
+│   │   └── generated-markup-previews
+│   └── repository-and-ci-workflow
+│       ├── html-fixture-layout
+│       ├── pre-commit-checks
+│       ├── changed-page-validation
+│       ├── full-site-build-checks
+│       ├── asset-and-link-checks
+│       ├── accessibility-smoke-checks
+│       ├── reproducible-output
+│       └── release-artifact-review
+├── testing-debugging-and-validation
+│   ├── validation-strategy
+│   │   ├── syntax-validation
+│   │   ├── content-model-validation
+│   │   ├── semantic-review
+│   │   ├── accessibility-review
+│   │   ├── behavior-tests
+│   │   ├── cross-browser-tests
+│   │   ├── performance-checks
+│   │   └── security-checks
+│   ├── html-conformance-checks
+│   │   ├── doctype-and-encoding
+│   │   ├── invalid-nesting
+│   │   ├── unknown-or-obsolete-elements
+│   │   ├── duplicate-attributes
+│   │   ├── duplicate-identifiers
+│   │   ├── invalid-attribute-values
+│   │   ├── required-attributes
+│   │   └── prohibited-descendants
+│   ├── relationship-checks
+│   │   ├── label-for-targets
+│   │   ├── aria-id-references
+│   │   ├── fragment-links
+│   │   ├── form-owner-targets
+│   │   ├── datalist-targets
+│   │   ├── table-header-targets
+│   │   ├── popover-and-command-targets
+│   │   └── slot-name-contracts
+│   ├── devtools-diagnostics
+│   │   ├── original-response
+│   │   ├── live-dom-inspection
+│   │   ├── parser-repair-differences
+│   │   ├── accessibility-tree
+│   │   ├── computed-role-and-name
+│   │   ├── form-control-state
+│   │   ├── failed-resource-requests
+│   │   └── document-mode
+│   ├── browser-automation
+│   │   ├── playwright
+│   │   ├── webdriver
+│   │   ├── semantic-role-locators
+│   │   ├── label-based-locators
+│   │   ├── native-keyboard-actions
+│   │   ├── file-input-fixtures
+│   │   ├── form-request-assertions
+│   │   └── html-output-snapshots
+│   ├── accessibility-tests
+│   │   ├── axe-core
+│   │   ├── automated-page-scans
+│   │   ├── keyboard-tab-sequence
+│   │   ├── screen-reader-reading-order
+│   │   ├── landmark-and-heading-audit
+│   │   ├── accessible-name-assertions
+│   │   ├── focus-restoration
+│   │   └── manual-test-evidence
+│   ├── form-test-matrix
+│   │   ├── required-and-optional
+│   │   ├── invalid-and-valid-values
+│   │   ├── unicode-and-localized-values
+│   │   ├── autofill
+│   │   ├── multiple-submitters
+│   │   ├── repeated-fields
+│   │   ├── file-selection
+│   │   ├── server-error-return
+│   │   └── reset-and-restore
+│   ├── native-ui-test-matrix
+│   │   ├── details-open-and-close
+│   │   ├── grouped-disclosure
+│   │   ├── modal-and-nonmodal-dialog
+│   │   ├── popover-dismissal
+│   │   ├── escape-key-behavior
+│   │   ├── pointer-outside-behavior
+│   │   ├── initial-and-return-focus
+│   │   └── unsupported-feature-fallback
+│   ├── content-and-resource-tests
+│   │   ├── broken-links
+│   │   ├── missing-images
+│   │   ├── alternative-text-context
+│   │   ├── media-track-loading
+│   │   ├── iframe-fallback
+│   │   ├── metadata-uniqueness
+│   │   ├── schema-data-consistency
+│   │   └── print-preview
+│   └── regression-and-reporting
+│       ├── minimal-failing-document
+│       ├── expected-source-and-dom
+│       ├── environment-and-version-record
+│       ├── screenshots-as-supporting-evidence
+│       ├── non-brittle-assertions
+│       ├── issue-reproduction
+│       ├── risk-based-prioritization
+│       └── acceptance-criteria
+├── publishing-email-and-print
+│   ├── static-web-publishing
+│   │   ├── index-document-resolution
+│   │   ├── nested-route-files
+│   │   ├── trailing-slash-links
+│   │   ├── case-sensitive-hosts
+│   │   ├── base-path-deployments
+│   │   ├── custom-error-pages
+│   │   ├── content-type-headers
+│   │   └── encoding-headers
+│   ├── publication-integrity
+│   │   ├── built-html-versus-source-template
+│   │   ├── asset-existence
+│   │   ├── canonical-host-consistency
+│   │   ├── relative-url-tests
+│   │   ├── redirects-and-status-boundary
+│   │   ├── preview-versus-production-metadata
+│   │   ├── staging-access-control
+│   │   └── post-deploy-smoke-tests
+│   ├── html-email-foundations
+│   │   ├── email-client-rendering
+│   │   ├── multipart-alternative
+│   │   ├── html-and-plain-text-parity
+│   │   ├── email-document-skeleton
+│   │   ├── constrained-css-support
+│   │   ├── remote-image-blocking
+│   │   ├── script-and-form-restrictions
+│   │   └── client-test-matrix
+│   ├── email-markup-patterns
+│   │   ├── presentation-tables
+│   │   ├── role-presentation
+│   │   ├── nested-layout-tables
+│   │   ├── semantic-headings
+│   │   ├── descriptive-links
+│   │   ├── image-alt-and-dimensions
+│   │   ├── fallback-text
+│   │   └── inline-style-boundary
+│   ├── email-compatibility
+│   │   ├── desktop-and-webmail
+│   │   ├── mobile-clients
+│   │   ├── outlook-specific-markup
+│   │   ├── conditional-comment-boundaries
+│   │   ├── client-sanitization
+│   │   ├── unsupported-element-fallback
+│   │   ├── dark-mode-asset-review
+│   │   └── forwarded-message-behavior
+│   ├── email-quality
+│   │   ├── reading-order
+│   │   ├── keyboard-link-order
+│   │   ├── meaningful-plain-text-version
+│   │   ├── visible-action-text
+│   │   ├── image-blocked-preview
+│   │   ├── long-content-clipping
+│   │   ├── personalized-content-escaping
+│   │   └── unsubscribe-link-presence
+│   ├── print-document-semantics
+│   │   ├── print-readable-source-order
+│   │   ├── section-and-heading-structure
+│   │   ├── printable-link-destinations
+│   │   ├── table-header-structure
+│   │   ├── figure-captions
+│   │   ├── expanded-detail-content
+│   │   ├── form-value-representation
+│   │   └── print-css-boundary
+│   ├── long-form-publishing
+│   │   ├── book-and-report-structure
+│   │   ├── chapter-navigation
+│   │   ├── footnotes-and-backlinks
+│   │   ├── bibliographies
+│   │   ├── glossaries
+│   │   ├── indexes
+│   │   ├── accessible-download-alternatives
+│   │   └── export-semantic-verification
+│   └── specialized-document-contexts
+│       ├── offline-document-bundles
+│       ├── kiosk-and-embedded-webviews
+│       ├── documentation-portals
+│       ├── embedded-help-pages
+│       ├── content-security-restrictions
+│       ├── file-url-limitations
+│       └── context-specific-capability-tests
+├── compatibility-and-platform-evolution
+│   ├── compatibility-mental-model
+│   │   ├── standards-status
+│   │   ├── implementation-status
+│   │   ├── interoperability
+│   │   ├── baseline-availability
+│   │   ├── feature-granularity
+│   │   ├── browser-version-policy
+│   │   └── webview-and-embedded-browser-support
+│   ├── feature-detection-and-fallback
+│   │   ├── capability-detection
+│   │   ├── attribute-reflection-limitations
+│   │   ├── behavior-based-tests
+│   │   ├── css-supports-boundary
+│   │   ├── progressive-enhancement
+│   │   ├── polyfill-evaluation
+│   │   ├── fallback-accessibility
+│   │   └── no-user-agent-sniffing-by-default
+│   ├── modern-feature-evaluation
+│   │   ├── customizable-select
+│   │   │   ├── selectedcontent
+│   │   │   ├── select-child-button
+│   │   │   ├── rich-option-content
+│   │   │   ├── optgroup-legend
+│   │   │   ├── native-value-semantics
+│   │   │   ├── base-select-css-boundary
+│   │   │   ├── traditional-select-fallback
+│   │   │   └── hydration-compatibility
+│   │   ├── interest-invokers
+│   │   │   ├── interestfor
+│   │   │   ├── hover-and-focus-interest
+│   │   │   ├── popover-relationship
+│   │   │   ├── touch-interaction-alternatives
+│   │   │   ├── tooltip-semantics
+│   │   │   └── feature-support-checks
+│   │   ├── declarative-content-updates
+│   │   │   ├── template-targeting
+│   │   │   ├── marker-and-range-contracts
+│   │   │   ├── parser-integration
+│   │   │   ├── streaming-use-cases
+│   │   │   ├── implementation-status-review
+│   │   │   └── baseline-rendering-fallback
+│   │   ├── advanced-shadow-markup
+│   │   │   ├── clonable-and-serializable-roots
+│   │   │   ├── scoped-registry-declarations
+│   │   │   ├── manual-slot-assignment
+│   │   │   ├── serialization-and-hydration
+│   │   │   ├── support-matrix
+│   │   │   └── privacy-and-encapsulation-limits
+│   │   └── evolving-control-attributes
+│   │       ├── dialog-closedby
+│   │       ├── popover-hint
+│   │       ├── input-color-capabilities
+│   │       ├── media-lazy-loading
+│   │       ├── behavior-level-tests
+│   │       └── unsupported-value-fallback
+│   ├── obsolete-markup-recognition
+│   │   ├── font-and-center
+│   │   ├── frames-and-framesets
+│   │   ├── marquee-and-blink
+│   │   ├── acronym-to-abbr
+│   │   ├── legacy-presentational-attributes
+│   │   ├── obsolete-table-summary
+│   │   ├── legacy-longdesc
+│   │   └── obsolete-plugin-elements
+│   ├── migration-workflows
+│   │   ├── inventory-and-classification
+│   │   ├── semantic-replacement
+│   │   ├── css-presentation-extraction
+│   │   ├── native-control-restoration
+│   │   ├── accessible-name-preservation
+│   │   ├── url-and-id-preservation
+│   │   ├── regression-baseline
+│   │   └── staged-rollout
+│   ├── html-and-xml-interop
+│   │   ├── xml-namespaces
+│   │   ├── case-sensitive-names
+│   │   ├── self-closing-rules
+│   │   ├── entity-availability
+│   │   ├── mime-type-driven-parsing
+│   │   ├── xml-error-handling
+│   │   └── xhtml-migration-tests
+│   ├── standards-tracking
+│   │   ├── living-standard-changes
+│   │   ├── mdn-compatibility-updates
+│   │   ├── web-platform-tests
+│   │   ├── browser-release-notes
+│   │   ├── implementation-bug-reports
+│   │   ├── proposal-versus-shipped-feature
+│   │   ├── evidence-review
+│   │   └── deprecation-monitoring
+│   └── common-misconceptions
+│       ├── html5-as-a-frozen-version
+│       ├── html-as-only-visual-layout
+│       ├── self-closing-any-element
+│       ├── boolean-false-string
+│       ├── sectioning-auto-heading-levels
+│       ├── placeholder-as-label
+│       ├── aria-providing-keyboard-behavior
+│       └── valid-markup-guaranteeing-accessibility
+└── practice-projects
+    ├── semantic-personal-site
+    │   ├── content-inventory
+    │   ├── document-skeleton
+    │   ├── headings-and-landmarks
+    │   ├── biography-and-contact
+    │   ├── navigation-and-skip-links
+    │   ├── image-alternatives
+    │   ├── no-css-review
+    │   └── conformance-and-keyboard-tests
+    ├── technical-documentation-site
+    │   ├── page-taxonomy
+    │   ├── nested-navigation
+    │   ├── heading-and-anchor-contract
+    │   ├── code-samples-and-escaping
+    │   ├── glossary-and-citations
+    │   ├── alternate-format-links
+    │   ├── search-form
+    │   └── build-output-validation
+    ├── responsive-image-gallery
+    │   ├── asset-inventory
+    │   ├── informative-and-decorative-images
+    │   ├── srcset-and-sizes
+    │   ├── picture-art-direction
+    │   ├── figure-captions
+    │   ├── dimension-reservation
+    │   ├── loading-strategy
+    │   └── device-and-network-tests
+    ├── accessible-media-library
+    │   ├── audio-and-video-sources
+    │   ├── poster-and-control-markup
+    │   ├── multilingual-tracks
+    │   ├── webvtt-cues
+    │   ├── transcripts-and-descriptions
+    │   ├── playback-fallbacks
+    │   ├── keyboard-review
+    │   └── caption-and-source-tests
+    ├── tabular-report
+    │   ├── data-model
+    │   ├── captions-and-summaries
+    │   ├── simple-header-association
+    │   ├── grouped-header-association
+    │   ├── complex-header-reduction
+    │   ├── mobile-overflow-contract
+    │   ├── printable-structure
+    │   └── screen-reader-cell-tests
+    ├── native-form-catalog
+    │   ├── labeled-input-types
+    │   ├── fieldsets-and-legends
+    │   ├── select-and-datalist
+    │   ├── validation-constraints
+    │   ├── output-progress-and-meter
+    │   ├── autofill-and-mobile-hints
+    │   ├── default-state-and-reset
+    │   └── cross-browser-control-matrix
+    ├── server-submitted-contact-form
+    │   ├── no-script-baseline
+    │   ├── get-and-post-comparison
+    │   ├── payload-inspection
+    │   ├── server-validation-contract
+    │   ├── inline-error-rendering
+    │   ├── value-preservation
+    │   ├── post-redirect-get
+    │   └── keyboard-and-failure-tests
+    ├── multilingual-document
+    │   ├── language-tagging
+    │   ├── translated-head-metadata
+    │   ├── language-switch-links
+    │   ├── mixed-direction-text
+    │   ├── ruby-annotations
+    │   ├── localized-form-controls
+    │   ├── translated-image-alternatives
+    │   └── rtl-and-screen-reader-review
+    ├── native-disclosure-guide
+    │   ├── details-and-summary
+    │   ├── nested-disclosure
+    │   ├── named-disclosure-groups
+    │   ├── meaningful-summary-content
+    │   ├── linkable-hidden-content
+    │   ├── keyboard-behavior
+    │   ├── print-expansion-contract
+    │   └── fallback-tests
+    ├── dialog-and-popover-workbench
+    │   ├── modal-and-nonmodal-cases
+    │   ├── popover-types
+    │   ├── declarative-invokers
+    │   ├── accessible-names
+    │   ├── initial-and-return-focus
+    │   ├── dismissal-policies
+    │   ├── no-script-capabilities
+    │   └── support-and-regression-matrix
+    ├── secure-embed-gallery
+    │   ├── iframe-titles
+    │   ├── sandbox-policy
+    │   ├── permission-policy
+    │   ├── srcdoc-trust-boundary
+    │   ├── consent-and-click-to-load
+    │   ├── third-party-fallback-links
+    │   ├── keyboard-entry-and-exit
+    │   └── policy-and-origin-tests
+    ├── native-template-catalog
+    │   ├── inert-template-markup
+    │   ├── fragment-cloning
+    │   ├── unique-id-generation
+    │   ├── slot-like-content-contract
+    │   ├── safe-data-insertion
+    │   ├── valid-table-fragments
+    │   ├── accessible-repeated-content
+    │   └── source-and-dom-assertions
+    ├── declarative-shadow-component
+    │   ├── host-content-contract
+    │   ├── server-rendered-shadow-root
+    │   ├── named-and-default-slots
+    │   ├── fallback-content
+    │   ├── part-and-theme-hooks
+    │   ├── focus-and-label-review
+    │   ├── progressive-client-upgrade
+    │   └── unsupported-browser-tests
+    ├── metadata-and-structured-data-site
+    │   ├── unique-page-heads
+    │   ├── canonical-and-language-links
+    │   ├── social-preview-metadata
+    │   ├── json-ld-entities
+    │   ├── microdata-comparison
+    │   ├── source-escaping
+    │   ├── content-data-consistency
+    │   └── validation-pipeline
+    ├── html-first-product-catalog
+    │   ├── semantic-product-pages
+    │   ├── category-navigation
+    │   ├── image-and-specification-markup
+    │   ├── native-filter-forms
+    │   ├── pagination-links
+    │   ├── related-product-links
+    │   ├── optional-client-enhancement
+    │   └── no-script-purchase-path-contract
+    ├── streaming-and-parser-lab
+    │   ├── valid-document-chunks
+    │   ├── parser-repair-experiments
+    │   ├── script-order-cases
+    │   ├── early-resource-discovery
+    │   ├── late-content-placement
+    │   ├── hydration-mismatch-reproduction
+    │   ├── slow-network-observation
+    │   └── findings-and-regression-fixtures
+    ├── transactional-email-templates
+    │   ├── message-content-model
+    │   ├── semantic-text-version
+    │   ├── presentation-table-layout
+    │   ├── meaningful-action-links
+    │   ├── image-blocked-fallback
+    │   ├── safely-escaped-personalization
+    │   ├── client-rendering-matrix
+    │   └── accessibility-review
+    ├── legacy-html-remediation
+    │   ├── obsolete-markup-inventory
+    │   ├── content-model-repair
+    │   ├── semantic-element-replacement
+    │   ├── form-label-restoration
+    │   ├── heading-and-landmark-repair
+    │   ├── safe-external-links
+    │   ├── preserved-urls-and-identifiers
+    │   └── before-after-evidence
+    ├── html-quality-pipeline
+    │   ├── fixture-site
+    │   ├── conformance-validation
+    │   ├── semantic-contract-checks
+    │   ├── broken-link-checks
+    │   ├── accessibility-scans
+    │   ├── browser-behavior-tests
+    │   ├── security-policy-checks
+    │   └── reproducible-ci-report
+    └── end-to-end-html-capstone
+        ├── requirements-and-content-model
+        ├── semantic-page-templates
+        ├── accessible-navigation
+        ├── responsive-media
+        ├── native-forms-and-submission
+        ├── native-dialog-and-disclosure
+        ├── multilingual-content
+        ├── metadata-and-structured-data
+        ├── secure-resource-integration
+        ├── progressive-enhancement
+        ├── build-and-publication
+        ├── cross-browser-and-assistive-tests
+        ├── performance-and-resilience-review
+        └── documentation-and-retrospective

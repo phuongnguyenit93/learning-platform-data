@@ -1,0 +1,732 @@
+﻿game-developer-module
+├── foundations
+│   ├── game-development-overview
+│   │   ├── what-game-development-involves
+│   │   ├── game-genres-and-platforms
+│   │   ├── game-development-disciplines
+│   │   ├── game-production-lifecycle
+│   │   ├── indie-and-studio-development
+│   │   ├── game-developer-career-paths
+│   │   └── game-development-learning-path
+│   ├── game-design-and-player-experience
+│   │   ├── game-design-pillars
+│   │   ├── player-motivation-and-engagement
+│   │   ├── core-loops-and-meta-loops
+│   │   ├── rules-mechanics-and-systems
+│   │   ├── challenge-and-progression
+│   │   ├── feedback-and-game-feel
+│   │   ├── accessibility-and-inclusion
+│   │   └── design-documentation
+│   ├── development-environment
+│   │   ├── operating-system-and-hardware
+│   │   ├── code-editor-and-ide
+│   │   ├── game-engine-installation
+│   │   ├── sdk-and-platform-toolchains
+│   │   ├── asset-creation-tools
+│   │   ├── command-line-workflows
+│   │   ├── project-layout
+│   │   └── reproducible-development-environment
+│   ├── programming-prerequisites
+│   │   ├── programming-fundamentals
+│   │   ├── object-oriented-programming
+│   │   ├── data-structures-and-algorithms
+│   │   ├── memory-and-resource-management
+│   │   ├── debugging-and-problem-solving
+│   │   ├── version-control
+│   │   └── software-engineering-practices
+│   └── game-project-workflow
+│       ├── idea-to-prototype
+│       ├── vertical-slice
+│       ├── iterative-development
+│       ├── playtesting-and-feedback
+│       ├── milestone-planning
+│       ├── build-and-release-workflow
+│       └── post-release-maintenance
+├── mathematics-and-physics
+│   ├── game-mathematics
+│   │   ├── scalars-vectors-and-coordinates
+│   │   ├── vector-operations
+│   │   ├── dot-and-cross-products
+│   │   ├── matrices-and-transformations
+│   │   ├── trigonometry-and-angles
+│   │   ├── interpolation-and-easing
+│   │   ├── curves-and-splines
+│   │   └── numerical-precision
+│   ├── geometry-and-spatial-reasoning
+│   │   ├── points-lines-and-planes
+│   │   ├── coordinate-spaces
+│   │   ├── local-world-and-screen-space
+│   │   ├── bounding-volumes
+│   │   ├── ray-and-shape-intersections
+│   │   ├── barycentric-coordinates
+│   │   └── spatial-partitioning
+│   ├── game-physics
+│   │   ├── position-velocity-and-acceleration
+│   │   ├── forces-and-newtons-laws
+│   │   ├── gravity-and-jumping
+│   │   ├── rigid-body-dynamics
+│   │   ├── collision-detection
+│   │   ├── collision-response
+│   │   ├── friction-and-restitution
+│   │   ├── constraints-and-joints
+│   │   ├── raycasts-and-sweeps
+│   │   ├── fixed-timestep-simulation
+│   │   └── physics-stability
+│   └── simulation-and-procedural-mathematics
+│       ├── deterministic-randomness
+│       ├── noise-functions
+│       ├── cellular-automata
+│       ├── flocking-and-steering
+│       ├── particle-simulation
+│       ├── numerical-integration
+│       └── simulation-debugging
+├── programming-for-games
+│   ├── game-programming-fundamentals
+│   │   ├── game-loop
+│   │   ├── frame-time-and-delta-time
+│   │   ├── update-and-render-phases
+│   │   ├── input-processing
+│   │   ├── game-state-and-transitions
+│   │   ├── event-driven-programming
+│   │   ├── component-based-design
+│   │   └── scripting-and-native-code
+│   ├── programming-languages
+│   │   ├── csharp-for-game-development
+│   │   ├── cpp-for-game-development
+│   │   ├── visual-scripting
+│   │   ├── scripting-language-tradeoffs
+│   │   ├── interop-and-native-plugins
+│   │   └── language-tooling-and-debuggers
+│   ├── software-architecture
+│   │   ├── entity-component-system
+│   │   ├── object-composition
+│   │   ├── state-machines
+│   │   ├── observer-and-event-bus
+│   │   ├── command-and-strategy-patterns
+│   │   ├── dependency-management
+│   │   ├── data-oriented-design
+│   │   └── modular-gameplay-systems
+│   ├── gameplay-programming
+│   │   ├── character-controller
+│   │   ├── camera-controller
+│   │   ├── interaction-systems
+│   │   ├── combat-systems
+│   │   ├── health-and-damage
+│   │   ├── inventory-and-equipment
+│   │   ├── quests-and-objectives
+│   │   ├── dialogue-systems
+│   │   ├── abilities-and-status-effects
+│   │   ├── save-and-load
+│   │   └── gameplay-events
+│   ├── artificial-intelligence
+│   │   ├── finite-state-machines
+│   │   ├── behavior-trees
+│   │   ├── utility-ai
+│   │   ├── goal-oriented-action-planning
+│   │   ├── navigation-meshes
+│   │   ├── pathfinding-a-star
+│   │   ├── steering-behaviors
+│   │   ├── perception-and-sensory-systems
+│   │   ├── squad-and-group-ai
+│   │   └── ai-debugging-and-visualization
+│   ├── tools-and-editor-programming
+│   │   ├── custom-inspector-and-properties
+│   │   ├── editor-windows-and-panels
+│   │   ├── asset-import-pipelines
+│   │   ├── batch-processing-tools
+│   │   ├── level-design-tools
+│   │   ├── procedural-content-tools
+│   │   └── automation-and-build-tools
+│   └── code-quality-and-performance
+│       ├── profiling-and-bottleneck-analysis
+│       ├── cpu-and-memory-profiling
+│       ├── allocation-and-garbage-collection
+│       ├── object-pooling
+│       ├── cache-locality
+│       ├── multithreading-and-jobs
+│       ├── asynchronous-loading
+│       ├── code-review-and-refactoring
+│       └── runtime-diagnostics
+├── game-engines-and-frameworks
+│   ├── engine-architecture
+│   │   ├── engine-runtime-and-editor
+│   │   ├── scene-and-object-model
+│   │   ├── resource-and-asset-management
+│   │   ├── serialization-and-reflection
+│   │   ├── scripting-runtime
+│   │   ├── rendering-pipeline-overview
+│   │   ├── physics-and-audio-subsystems
+│   │   └── engine-extension-points
+│   ├── unity
+│   │   ├── unity-editor-and-project-structure
+│   │   ├── gameobjects-and-components
+│   │   ├── transforms-and-scenes
+│   │   ├── prefabs-and-variants
+│   │   ├── monobehaviour-and-lifecycle
+│   │   ├── input-system
+│   │   ├── physics-and-colliders
+│   │   ├── uGUI-and-ui-toolkit
+│   │   ├── scriptable-objects
+│   │   ├── addressables-and-asset-bundles
+│   │   ├── animation-and-timeline
+│   │   ├── shader-graph-and-render-pipelines
+│   │   ├── editor-scripting
+│   │   ├── profiling-and-optimization
+│   │   └── build-and-platform-deployment
+│   ├── unreal-engine
+│   │   ├── unreal-editor-and-project-structure
+│   │   ├── actors-components-and-levels
+│   │   ├── blueprints-visual-scripting
+│   │   ├── cplusplus-gameplay-programming
+│   │   ├── gameplay-framework
+│   │   ├── enhanced-input
+│   │   ├── collision-and-physics
+│   │   ├── materials-and-material-instances
+│   │   ├── niagara-effects
+│   │   ├── animation-blueprints-and-control-rig
+│   │   ├── world-partition-and-streaming
+│   │   ├── gameplay-ability-system
+│   │   ├── editor-extensions
+│   │   ├── profiling-and-optimization
+│   │   └── packaging-and-cooking
+│   ├── godot
+│   │   ├── godot-editor-and-project-structure
+│   │   ├── nodes-and-scenes
+│   │   ├── gdscript-fundamentals
+│   │   ├── signals-and-groups
+│   │   ├── resources-and-serialization
+│   │   ├── input-and-physics
+│   │   ├── animation-and-tweening
+│   │   ├── control-nodes-and-ui
+│   │   ├── shaders-and-rendering
+│   │   ├── navigation-and-ai
+│   │   ├── editor-plugins
+│   │   └── export-and-deployment
+│   ├── other-engines-and-frameworks
+│   │   ├── gamemaker
+│   │   ├── defold
+│   │   ├── libgdx
+│   │   ├── monogame
+│   │   ├── bevy-and-rust
+│   │   ├── cocos-creator
+│   │   ├── custom-engine-development
+│   │   └── engine-selection-criteria
+│   └── engine-independent-architecture
+│       ├── platform-abstraction
+│       ├── gameplay-and-engine-boundaries
+│       ├── asset-pipeline-abstraction
+│       ├── reusable-gameplay-libraries
+│       └── migration-and-version-compatibility
+├── graphics-and-rendering
+│   ├── rendering-fundamentals
+│   │   ├── graphics-pipeline
+│   │   ├── draw-calls-and-state-changes
+│   │   ├── vertex-and-index-buffers
+│   │   ├── shaders-and-programs
+│   │   ├── textures-and-samplers
+│   │   ├── render-targets
+│   │   ├── color-spaces-and-gamma
+│   │   └── frame-buffering-and-vsync
+│   ├── 2d-graphics
+│   │   ├── sprites-and-sprite-sheets
+│   │   ├── sprite-atlases
+│   │   ├── tilemaps-and-tilesets
+│   │   ├── parallax-and-camera-scrolling
+│   │   ├── 2d-lighting-and-shadows
+│   │   ├── particle-effects
+│   │   ├── pixel-art-rendering
+│   │   └── 2d-render-ordering
+│   ├── 3d-graphics
+│   │   ├── meshes-and-topology
+│   │   ├── materials-and-texturing
+│   │   ├── lighting-models
+│   │   ├── shadow-mapping
+│   │   ├── reflections-and-probes
+│   │   ├── post-processing
+│   │   ├── sky-and-atmosphere
+│   │   ├── terrain-rendering
+│   │   └── level-of-detail
+│   ├── shader-development
+│   │   ├── shader-stages
+│   │   ├── vertex-and-fragment-shaders
+│   │   ├── shader-graphs
+│   │   ├── physically-based-rendering
+│   │   ├── procedural-materials
+│   │   ├── compute-shaders
+│   │   ├── shader-variants
+│   │   └── shader-debugging
+│   ├── advanced-rendering
+│   │   ├── deferred-and-forward-rendering
+│   │   ├── clustered-and-forward-plus-rendering
+│   │   ├── global-illumination
+│   │   ├── ambient-occlusion
+│   │   ├── volumetric-effects
+│   │   ├── temporal-antialiasing
+│   │   ├── occlusion-culling
+│   │   ├── gpu-driven-rendering
+│   │   └── ray-tracing-overview
+│   └── graphics-apis
+│       ├── gpu-and-rendering-hardware
+│       ├── directx-and-direct3d
+│       ├── vulkan
+│       ├── opengl
+│       ├── metal
+│       ├── webgpu
+│       └── graphics-debugging-tools
+├── art-animation-and-assets
+│   ├── art-fundamentals
+│   │   ├── visual-language-and-style
+│   │   ├── composition-and-visual-hierarchy
+│   │   ├── color-theory
+│   │   ├── lighting-and-value
+│   │   ├── shape-language
+│   │   └── readability-and-silhouette
+│   ├── 2d-art-production
+│   │   ├── concept-art-and-reference
+│   │   ├── pixel-art
+│   │   ├── vector-art
+│   │   ├── sprite-animation
+│   │   ├── user-interface-art
+│   │   └── 2d-asset-export
+│   ├── 3d-art-production
+│   │   ├── modeling-and-sculpting
+│   │   ├── topology-and-retopology
+│   │   ├── uv-unwrapping
+│   │   ├── texturing-and-material-authoring
+│   │   ├── baking-and-texel-density
+│   │   ├── rigging-and-skinning
+│   │   ├── environment-and-prop-art
+│   │   └── asset-optimization
+│   ├── animation
+│   │   ├── keyframe-animation
+│   │   ├── skeletal-animation
+│   │   ├── blend-trees-and-state-machines
+│   │   ├── inverse-kinematics
+│   │   ├── motion-capture
+│   │   ├── procedural-animation
+│   │   ├── facial-animation
+│   │   └── animation-retargeting
+│   ├── technical-art
+│   │   ├── art-and-engine-integration
+│   │   ├── shader-authoring-for-artists
+│   │   ├── rigging-tools-and-scripts
+│   │   ├── procedural-content-generation
+│   │   ├── import-settings-and-validation
+│   │   ├── performance-budgets
+│   │   └── artist-workflow-automation
+│   └── asset-pipeline
+│       ├── source-and-runtime-assets
+│       ├── naming-and-folder-conventions
+│       ├── import-and-reimport
+│       ├── compression-and-formats
+│       ├── asset-dependencies
+│       ├── versioning-and-review
+│       └── licensing-and-provenance
+├── audio-and-game-feel
+│   ├── audio-fundamentals
+│   │   ├── digital-audio-basics
+│   │   ├── sample-rates-and-bit-depth
+│   │   ├── mono-stereo-and-spatial-audio
+│   │   ├── audio-formats-and-compression
+│   │   └── loudness-and-dynamic-range
+│   ├── sound-design
+│   │   ├── sound-effects
+│   │   ├── foley-and-field-recording
+│   │   ├── synthesis-and-sampling
+│   │   ├── layering-and-mixing
+│   │   ├── adaptive-audio
+│   │   └── audio-feedback-for-gameplay
+│   ├── music-and-implementation
+│   │   ├── interactive-music
+│   │   ├── music-states-and-transitions
+│   │   ├── audio-middleware
+│   │   ├── audio-mixing-and-buses
+│   │   ├── spatialization-and-attenuation
+│   │   └── audio-performance
+│   └── game-feel-and-feedback
+│       ├── input-responsiveness
+│       ├── hit-stop-and-screenshake
+│       ├── particles-and-impact-effects
+│       ├── animation-timing
+│       ├── camera-feedback
+│       ├── anticipation-and-follow-through
+│       └── feedback-consistency
+├── level-design-and-world-building
+│   ├── level-design-fundamentals
+│   │   ├── player-flow-and-pacing
+│   │   ├── navigation-and-wayfinding
+│   │   ├── landmarks-and-signposting
+│   │   ├── encounter-design
+│   │   ├── difficulty-curves
+│   │   ├── tutorials-and-onboarding
+│   │   └── playtest-driven-iteration
+│   ├── world-building
+│   │   ├── setting-and-world-rules
+│   │   ├── environmental-storytelling
+│   │   ├── narrative-spaces
+│   │   ├── world-consistency
+│   │   └── lore-and-discovery
+│   ├── procedural-content
+│   │   ├── procedural-level-generation
+│   │   ├── dungeon-generation
+│   │   ├── grammar-based-generation
+│   │   ├── random-seed-and-reproducibility
+│   │   ├── constraints-and-validation
+│   │   └── human-guided-procedural-design
+│   └── level-production
+│       ├── blockout-and-greyboxing
+│       ├── modular-environment-kits
+│       ├── lighting-and-atmosphere
+│       ├── navigation-and-collision-validation
+│       ├── streaming-and-world-partitioning
+│       └── level-optimization
+├── user-interface-and-accessibility
+│   ├── interface-design
+│   │   ├── hud-and-in-game-ui
+│   │   ├── menus-and-navigation
+│   │   ├── inventory-and-equipment-ui
+│   │   ├── dialogue-and-subtitles
+│   │   ├── responsive-layouts
+│   │   └── controller-and-keyboard-navigation
+│   ├── ui-engineering
+│   │   ├── ui-state-and-data-binding
+│   │   ├── widget-and-component-systems
+│   │   ├── localization-ready-ui
+│   │   ├── ui-animation-and-transitions
+│   │   ├── input-focus-and-navigation
+│   │   └── ui-performance
+│   ├── accessibility
+│   │   ├── remappable-controls
+│   │   ├── captions-and-audio-cues
+│   │   ├── color-and-contrast
+│   │   ├── text-size-and-readability
+│   │   ├── difficulty-and-assistance-options
+│   │   ├── motor-and-cognitive-accessibility
+│   │   └── accessibility-playtesting
+│   └── localization
+│       ├── text-extraction-and-localization
+│       ├── font-and-script-support
+│       ├── pluralization-and-formatting
+│       ├── right-to-left-layout
+│       ├── voice-over-localization
+│       └── localization-quality-assurance
+├── multiplayer-and-online-systems
+│   ├── networking-fundamentals
+│   │   ├── client-server-and-peer-to-peer
+│   │   ├── transport-protocols
+│   │   ├── latency-and-jitter
+│   │   ├── bandwidth-and-packet-loss
+│   │   ├── serialization-and-replication
+│   │   └── network-debugging
+│   ├── multiplayer-architecture
+│   │   ├── authoritative-server
+│   │   ├── client-prediction
+│   │   ├── server-reconciliation
+│   │   ├── lag-compensation
+│   │   ├── interpolation-and-extrapolation
+│   │   ├── rollback-networking
+│   │   ├── state-synchronization
+│   │   └── deterministic-simulation
+│   ├── online-services
+│   │   ├── matchmaking-and-lobbies
+│   │   ├── sessions-and-presence
+│   │   ├── friends-and-parties
+│   │   ├── leaderboards-and-rankings
+│   │   ├── achievements-and-entitlements
+│   │   ├── cloud-saves
+│   │   └── cross-play-and-cross-progression
+│   ├── backend-services
+│   │   ├── game-server-hosting
+│   │   ├── player-accounts-and-profiles
+│   │   ├── inventory-and-economy-services
+│   │   ├── persistence-and-databases
+│   │   ├── real-time-messaging
+│   │   ├── service-observability
+│   │   └── deployment-and-scaling
+│   └── online-safety-and-security
+│       ├── authentication-and-authorization
+│       ├── server-side-validation
+│       ├── cheating-and-exploit-mitigation
+│       ├── rate-limiting-and-abuse-controls
+│       ├── privacy-and-data-protection
+│       └── moderation-and-reporting
+├── platform-and-device-development
+│   ├── desktop-and-console
+│   │   ├── windows-and-linux-builds
+│   │   ├── macos-builds
+│   │   ├── console-development-overview
+│   │   ├── controller-support
+│   │   ├── platform-services-and-achievements
+│   │   └── certification-requirements
+│   ├── mobile-game-development
+│   │   ├── android-and-ios-builds
+│   │   ├── touch-input-and-gestures
+│   │   ├── device-fragmentation
+│   │   ├── battery-and-thermal-budgets
+│   │   ├── mobile-performance
+│   │   ├── app-store-integration
+│   │   └── offline-and-connectivity-states
+│   ├── web-and-browser-games
+│   │   ├── html5-and-webassembly
+│   │   ├── webgpu-and-webgl
+│   │   ├── browser-input-and-audio
+│   │   ├── loading-and-caching
+│   │   └── browser-compatibility
+│   ├── vr-and-ar-development
+│   │   ├── xr-fundamentals
+│   │   ├── vr-interaction-and-locomotion
+│   │   ├── ar-tracking-and-anchors
+│   │   ├── spatial-ui
+│   │   ├── comfort-and-motion-sickness
+│   │   └── xr-performance-and-testing
+│   └── platform-integration
+│       ├── input-device-abstraction
+│       ├── platform-specific-apis
+│       ├── save-data-and-user-storage
+│       ├── store-and-commerce-apis
+│       ├── crash-reporting
+│       └── build-matrix-and-compatibility
+├── testing-quality-and-optimization
+│   ├── game-testing
+│   │   ├── gameplay-test-cases
+│   │   ├── unit-and-integration-tests
+│   │   ├── automated-playtests
+│   │   ├── end-to-end-gameplay-tests
+│   │   ├── regression-testing
+│   │   ├── compatibility-testing
+│   │   └── exploratory-testing
+│   ├── quality-assurance
+│   │   ├── bug-reporting-and-triage
+│   │   ├── severity-and-priority
+│   │   ├── reproduction-and-isolation
+│   │   ├── test-plans-and-checklists
+│   │   ├── localization-and-accessibility-qa
+│   │   └── release-candidate-validation
+│   ├── performance-engineering
+│   │   ├── frame-time-budget
+│   │   ├── cpu-and-gpu-bottlenecks
+│   │   ├── memory-and-vram-budgets
+│   │   ├── loading-and-streaming-performance
+│   │   ├── draw-call-and-batching-optimization
+│   │   ├── thermal-and-power-profiling
+│   │   └── performance-regression-tracking
+│   ├── reliability-and-crash-diagnostics
+│   │   ├── crash-dumps-and-symbols
+│   │   ├── logging-and-telemetry
+│   │   ├── watchdogs-and-hang-detection
+│   │   ├── recovery-and-fallback
+│   │   └── soak-and-stress-testing
+│   └── user-research-and-playtesting
+│       ├── playtest-study-design
+│       ├── usability-observation
+│       ├── player-feedback-analysis
+│       ├── gameplay-metrics
+│       ├── difficulty-and-retention-analysis
+│       └── design-iteration
+├── production-and-team-workflows
+│   ├── project-management
+│   │   ├── scope-and-milestone-planning
+│   │   ├── agile-and-kanban-workflows
+│   │   ├── task-estimation
+│   │   ├── risk-and-dependency-management
+│   │   ├── change-control
+│   │   └── production-reviews
+│   ├── collaboration-and-version-control
+│   │   ├── git-for-game-projects
+│   │   ├── large-file-storage
+│   │   ├── branching-and-merging
+│   │   ├── binary-asset-conflicts
+│   │   ├── code-and-art-reviews
+│   │   └── team-conventions
+│   ├── build-and-release-engineering
+│   │   ├── automated-build-pipelines
+│   │   ├── continuous-integration
+│   │   ├── build-configurations
+│   │   ├── asset-validation-in-ci
+│   │   ├── signing-and-packaging
+│   │   ├── release-branches-and-versioning
+│   │   └── rollback-and-hotfixes
+│   ├── distribution-and-live-operations
+│   │   ├── store-page-and-launch-assets
+│   │   ├── platform-submission
+│   │   ├── patches-and-content-updates
+│   │   ├── live-events-and-seasons
+│   │   ├── player-support-and-community
+│   │   ├── service-monitoring
+│   │   └── end-of-service-planning
+│   └── business-and-legal
+│       ├── budgets-and-scheduling
+│       ├── publishing-and-funding
+│       ├── intellectual-property
+│       ├── asset-and-software-licenses
+│       ├── privacy-and-consumer-protection
+│       ├── age-ratings-and-content-guidelines
+│       └── monetization-models-and-disclosure
+├── advanced-and-specialized-topics
+│   ├── procedural-generation
+│   │   ├── procedural-worlds-and-biomes
+│   │   ├── terrain-and-vegetation-generation
+│   │   ├── dungeon-and-map-generation
+│   │   ├── procedural-animation
+│   │   ├── constraint-based-generation
+│   │   └── generation-quality-evaluation
+│   ├── simulation-and-sandbox-systems
+│   │   ├── economy-and-resource-simulation
+│   │   ├── agent-based-simulation
+│   │   ├── traffic-and-crowd-simulation
+│   │   ├── emergent-gameplay-systems
+│   │   └── simulation-determinism
+│   ├── game-tools-and-engine-development
+│   │   ├── custom-engine-foundations
+│   │   ├── renderer-and-resource-system
+│   │   ├── scene-editor-architecture
+│   │   ├── scripting-and-plugin-hosting
+│   │   ├── asset-cooking-and-packaging
+│   │   └── engine-testing-and-maintenance
+│   ├── machine-learning-in-games
+│   │   ├── learning-based-npc-behavior
+│   │   ├── player-modeling
+│   │   ├── procedural-content-assistance
+│   │   ├── animation-and-motion-learning
+│   │   ├── inference-performance
+│   │   └── responsible-use-of-player-data
+│   └── emerging-platforms
+│       ├── cloud-gaming
+│       ├── streaming-and-remote-rendering
+│       ├── generative-tools-for-game-production
+│       ├── mixed-reality
+│       └── accessibility-technology
+├── professional-practice-and-career
+│   ├── problem-solving-and-engineering-practice
+│   │   ├── breaking-down-gameplay-problems
+│   │   ├── minimal-reproductions
+│   │   ├── debugging-from-player-symptoms
+│   │   ├── technical-design-documents
+│   │   ├── tradeoff-analysis
+│   │   └── maintainable-implementation
+│   ├── code-and-content-review
+│   │   ├── correctness-and-edge-cases
+│   │   ├── performance-and-memory
+│   │   ├── gameplay-and-design-intent
+│   │   ├── asset-quality-and-consistency
+│   │   ├── accessibility-and-localization
+│   │   └── regression-risk
+│   ├── specializations-and-career-paths
+│   │   ├── gameplay-programmer
+│   │   ├── engine-programmer
+│   │   ├── graphics-programmer
+│   │   ├── ai-programmer
+│   │   ├── network-programmer
+│   │   ├── tools-programmer
+│   │   ├── technical-artist
+│   │   ├── game-designer-and-level-designer
+│   │   └── technical-lead-and-architect
+│   ├── portfolio-and-interviews
+│   │   ├── playable-prototype
+│   │   ├── polished-small-game
+│   │   ├── engine-and-tools-demonstrations
+│   │   ├── technical-breakdowns
+│   │   ├── source-control-and-project-presentation
+│   │   └── interview-and-code-exercises
+│   └── continuous-learning
+│       ├── engine-release-notes
+│       ├── graphics-and-platform-documentation
+│       ├── game-postmortems
+│       ├── technical-talks-and-research
+│       └── community-and-open-source
+└── practice-projects
+    ├── 2d-arcade-game
+    │   ├── player-movement-and-input
+    │   ├── collision-and-scoring
+    │   ├── enemy-spawning
+    │   ├── game-states-and-ui
+    │   ├── audio-and-effects
+    │   ├── difficulty-progression
+    │   └── playable-build
+    ├── 2d-platformer
+    │   ├── character-controller
+    │   ├── jump-and-movement-feel
+    │   ├── camera-and-follow
+    │   ├── tilemap-and-level-design
+    │   ├── enemies-and-hazards
+    │   ├── checkpoints-and-save-data
+    │   └── playtesting-and-polish
+    ├── 3d-third-person-adventure
+    │   ├── character-and-camera-controller
+    │   ├── interaction-and-pickups
+    │   ├── combat-and-health
+    │   ├── animation-state-machine
+    │   ├── level-blockout-and-lighting
+    │   ├── inventory-and-quests
+    │   └── save-and-load
+    ├── puzzle-and-physics-game
+    │   ├── physics-driven-mechanics
+    │   ├── puzzle-state-model
+    │   ├── interaction-feedback
+    │   ├── level-progression
+    │   ├── hint-and-accessibility-options
+    │   └── automated-puzzle-validation
+    ├── procedural-dungeon-explorer
+    │   ├── room-and-corridor-generation
+    │   ├── connectivity-validation
+    │   ├── seeded-randomness
+    │   ├── enemy-and-item-placement
+    │   ├── difficulty-and-reward-balance
+    │   └── generation-visualization
+    ├── multiplayer-cooperative-game
+    │   ├── session-and-lobby-flow
+    │   ├── player-state-replication
+    │   ├── authoritative-game-rules
+    │   ├── latency-and-disconnection-handling
+    │   ├── synchronized-interactions
+    │   ├── abuse-and-security-tests
+    │   └── dedicated-server-build
+    ├── mobile-casual-game
+    │   ├── touch-first-interaction
+    │   ├── adaptive-ui-layout
+    │   ├── save-and-resume
+    │   ├── performance-and-battery-budget
+    │   ├── analytics-and-privacy
+    │   └── store-ready-release
+    ├── vr-interaction-experience
+    │   ├── xr-project-setup
+    │   ├── locomotion-and-comfort
+    │   ├── hand-and-controller-interaction
+    │   ├── spatial-ui-and-feedback
+    │   ├── performance-validation
+    │   └── device-playtest
+    ├── reusable-gameplay-framework
+    │   ├── entity-and-component-model
+    │   ├── event-and-state-management
+    │   ├── input-abstraction
+    │   ├── save-system
+    │   ├── configuration-and-data-assets
+    │   ├── automated-tests
+    │   └── package-and-documentation
+    ├── custom-editor-toolkit
+    │   ├── editor-workflow-design
+    │   ├── custom-inspectors
+    │   ├── batch-asset-processing
+    │   ├── level-validation
+    │   ├── undo-and-redo
+    │   └── usability-and-maintenance
+    └── end-to-end-game-production
+        ├── concept-and-design
+        │   ├── target-player-and-platform
+        │   ├── core-loop-and-gameplay-pillars
+        │   ├── scope-and-production-plan
+        │   └── prototype-acceptance-criteria
+        ├── implementation-and-content
+        │   ├── gameplay-and-engine-architecture
+        │   ├── art-audio-and-level-pipeline
+        │   ├── ui-and-accessibility
+        │   ├── save-and-platform-integration
+        │   └── performance-and-telemetry
+        └── validation-and-release
+            ├── functional-and-regression-testing
+            ├── playtest-and-design-iteration
+            ├── performance-and-compatibility
+            ├── localization-and-accessibility-review
+            ├── build-and-store-submission
+            ├── launch-monitoring-and-hotfixes
+            └── postmortem-and-maintenance

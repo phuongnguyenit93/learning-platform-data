@@ -1,0 +1,729 @@
+﻿data-structures-and-algorithms-module
+├── foundations
+│   ├── data-structures-and-algorithms-overview
+│   │   ├── what-data-structures-and-algorithms-are
+│   │   ├── relationship-between-data-and-computation
+│   │   ├── abstract-data-types-and-implementations
+│   │   ├── algorithm-design-and-problem-solving
+│   │   ├── correctness-and-efficiency
+│   │   ├── algorithmic-thinking-and-decomposition
+│   │   └── learning-path-and-prerequisites
+│   ├── programming-and-computational-foundations
+│   │   ├── variables-types-and-memory
+│   │   ├── references-and-pointers
+│   │   ├── recursion-and-call-stack
+│   │   ├── iteration-and-loop-invariants
+│   │   ├── functions-and-modularity
+│   │   ├── input-output-and-parsing
+│   │   └── debugging-and-testing-fundamentals
+│   ├── mathematical-foundations
+│   │   ├── logarithms-and-exponentials
+│   │   ├── summations-and-series
+│   │   ├── sets-relations-and-functions
+│   │   ├── proof-by-induction
+│   │   ├── proof-by-contradiction
+│   │   ├── invariants-and-loop-correctness
+│   │   ├── combinatorics-and-counting
+│   │   └── probability-fundamentals
+│   └── problem-solving-workflow
+│       ├── understand-and-clarify-the-problem
+│       ├── identify-inputs-and-constraints
+│       ├── work-through-examples
+│       ├── design-a-brute-force-solution
+│       ├── identify-bottlenecks
+│       ├── select-data-structures
+│       ├── refine-and-prove-the-solution
+│       └── analyze-and-validate-complexity
+├── complexity-analysis
+│   ├── asymptotic-analysis
+│   │   ├── time-complexity
+│   │   ├── space-complexity
+│   │   ├── big-o-notation
+│   │   ├── big-omega-notation
+│   │   ├── big-theta-notation
+│   │   ├── little-o-and-little-omega
+│   │   ├── asymptotic-equivalence
+│   │   └── common-growth-rates
+│   ├── complexity-cases
+│   │   ├── best-case-analysis
+│   │   ├── average-case-analysis
+│   │   ├── worst-case-analysis
+│   │   ├── amortized-analysis
+│   │   ├── expected-time-analysis
+│   │   └── input-sensitive-complexity
+│   ├── recurrence-relations
+│   │   ├── recurrence-formulation
+│   │   ├── substitution-method
+│   │   ├── recursion-tree-method
+│   │   ├── master-theorem
+│   │   ├── iteration-and-expansion
+│   │   └── divide-and-conquer-recurrences
+│   ├── amortized-analysis-techniques
+│   │   ├── aggregate-method
+│   │   ├── accounting-method
+│   │   ├── potential-method
+│   │   ├── dynamic-array-analysis
+│   │   └── amortized-data-structure-operations
+│   └── practical-performance-analysis
+│       ├── operation-counting
+│       ├── benchmarking-and-measurement
+│       ├── constant-factors-and-cache-effects
+│       ├── time-space-tradeoffs
+│       ├── scalability-and-input-size
+│       └── complexity-analysis-pitfalls
+├── fundamental-data-structures
+│   ├── arrays-and-dynamic-arrays
+│   │   ├── static-arrays-and-indexing
+│   │   ├── contiguous-memory-layout
+│   │   ├── traversal-and-search
+│   │   ├── insertion-and-deletion-costs
+│   │   ├── dynamic-array-resizing
+│   │   ├── multidimensional-arrays
+│   │   ├── jagged-arrays
+│   │   └── array-based-problem-patterns
+│   ├── strings-and-text-representation
+│   │   ├── character-encoding-and-unicode
+│   │   ├── immutable-and-mutable-strings
+│   │   ├── string-buffer-and-builder
+│   │   ├── substring-and-concatenation-costs
+│   │   ├── character-frequency-and-counting
+│   │   ├── string-normalization
+│   │   └── string-processing-patterns
+│   ├── linked-lists
+│   │   ├── singly-linked-lists
+│   │   ├── doubly-linked-lists
+│   │   ├── circular-linked-lists
+│   │   ├── insertion-and-deletion
+│   │   ├── traversal-and-search
+│   │   ├── reversal-and-pointer-manipulation
+│   │   ├── sentinel-and-dummy-nodes
+│   │   └── linked-list-use-cases
+│   ├── stacks
+│   │   ├── stack-abstract-data-type
+│   │   ├── array-based-stack
+│   │   ├── linked-stack
+│   │   ├── push-pop-and-peek
+│   │   ├── call-stack-and-recursion
+│   │   ├── expression-evaluation
+│   │   ├── balanced-symbols
+│   │   └── monotonic-stack-patterns
+│   ├── queues-and-deques
+│   │   ├── queue-abstract-data-type
+│   │   ├── array-based-queue
+│   │   ├── circular-buffer-queue
+│   │   ├── linked-queue
+│   │   ├── deque-operations
+│   │   ├── priority-queue-overview
+│   │   ├── monotonic-queue-patterns
+│   │   └── queue-based-workflows
+│   ├── hash-tables-and-hash-sets
+│   │   ├── hash-functions-and-hash-codes
+│   │   ├── buckets-and-indexing
+│   │   ├── collision-resolution
+│   │   ├── separate-chaining
+│   │   ├── open-addressing
+│   │   ├── linear-and-quadratic-probing
+│   │   ├── resizing-and-load-factor
+│   │   ├── hash-map-and-hash-set-operations
+│   │   └── hash-collision-and-security-considerations
+│   └── disjoint-set-union
+│       ├── disjoint-set-abstract-data-type
+│       ├── parent-and-rank-representation
+│       ├── find-and-union-operations
+│       ├── path-compression
+│       ├── union-by-rank-and-size
+│       └── disjoint-set-applications
+├── trees-and-hierarchical-structures
+│   ├── tree-fundamentals
+│   │   ├── tree-terminology-and-properties
+│   │   ├── rooted-and-unrooted-trees
+│   │   ├── parent-child-and-sibling-relations
+│   │   ├── depth-height-and-subtrees
+│   │   ├── tree-representation
+│   │   └── recursive-tree-properties
+│   ├── binary-trees
+│   │   ├── binary-tree-representation
+│   │   ├── full-complete-and-perfect-binary-trees
+│   │   ├── balanced-and-skewed-trees
+│   │   ├── preorder-inorder-and-postorder
+│   │   ├── level-order-traversal
+│   │   ├── recursive-and-iterative-traversal
+│   │   └── binary-tree-problem-patterns
+│   ├── binary-search-trees
+│   │   ├── bst-ordering-property
+│   │   ├── search-and-insertion
+│   │   ├── deletion-cases
+│   │   ├── minimum-maximum-and-successor
+│   │   ├── predecessor-and-range-query
+│   │   ├── validation-and-invariants
+│   │   └── bst-complexity-and-limitations
+│   ├── balanced-search-trees
+│   │   ├── avl-trees
+│   │   ├── red-black-trees
+│   │   ├── rotations-and-rebalancing
+│   │   ├── balance-invariants
+│   │   ├── insertion-and-deletion-rebalancing
+│   │   └── ordered-map-and-set-implementations
+│   ├── heap-and-priority-queue
+│   │   ├── min-heap-and-max-heap
+│   │   ├── array-representation
+│   │   ├── heapify-and-build-heap
+│   │   ├── insertion-and-extraction
+│   │   ├── decrease-key-and-update-priority
+│   │   ├── heapsort
+│   │   └── top-k-and-scheduling-applications
+│   ├── trie-and-prefix-trees
+│   │   ├── trie-node-and-edge-representation
+│   │   ├── insertion-search-and-deletion
+│   │   ├── prefix-search
+│   │   ├── compressed-trie-and-radix-tree
+│   │   ├── autocomplete-and-dictionary-lookup
+│   │   └── memory-and-space-optimization
+│   ├── range-query-trees
+│   │   ├── segment-trees
+│   │   ├── lazy-propagation
+│   │   ├── fenwick-and-binary-indexed-trees
+│   │   ├── range-minimum-and-sum-queries
+│   │   ├── point-and-range-updates
+│   │   └── persistent-segment-trees
+│   └── specialized-trees
+│       ├── b-trees-and-b-plus-trees
+│       ├── interval-trees
+│       ├── order-statistic-trees
+│       ├── suffix-trees
+│       ├── merkle-trees
+│       └── tree-applications-in-storage-and-indexing
+├── graphs-and-network-structures
+│   ├── graph-fundamentals
+│   │   ├── vertices-and-edges
+│   │   ├── directed-and-undirected-graphs
+│   │   ├── weighted-and-unweighted-graphs
+│   │   ├── simple-and-multigraphs
+│   │   ├── degree-and-connectivity
+│   │   ├── paths-cycles-and-components
+│   │   └── graph-properties-and-terminology
+│   ├── graph-representations
+│   │   ├── adjacency-matrix
+│   │   ├── adjacency-list
+│   │   ├── edge-list
+│   │   ├── implicit-graph-representation
+│   │   ├── representation-space-cost
+│   │   └── representation-selection
+│   ├── graph-traversal
+│   │   ├── breadth-first-search
+│   │   ├── depth-first-search
+│   │   ├── iterative-and-recursive-dfs
+│   │   ├── visited-state-and-parent-tracking
+│   │   ├── connected-components
+│   │   ├── cycle-detection
+│   │   └── traversal-applications
+│   ├── shortest-path-algorithms
+│   │   ├── breadth-first-shortest-path
+│   │   ├── dijkstras-algorithm
+│   │   ├── bellman-ford-algorithm
+│   │   ├── floyd-warshall-algorithm
+│   │   ├── dag-shortest-path
+│   │   ├── a-star-search
+│   │   └── shortest-path-algorithm-selection
+│   ├── spanning-trees-and-connectivity
+│   │   ├── minimum-spanning-tree
+│   │   ├── kruskals-algorithm
+│   │   ├── prims-algorithm
+│   │   ├── disjoint-set-for-connectivity
+│   │   ├── bridges-and-articulation-points
+│   │   ├── strongly-connected-components
+│   │   └── connectivity-applications
+│   ├── directed-acyclic-graphs
+│   │   ├── dag-properties
+│   │   ├── topological-sorting
+│   │   ├── kahns-algorithm
+│   │   ├── dfs-based-topological-order
+│   │   ├── dependency-resolution
+│   │   └── critical-path-in-dags
+│   └── advanced-graph-algorithms
+│       ├── network-flow-and-max-flow
+│       ├── ford-fulkerson-and-edmonds-karp
+│       ├── bipartite-matching
+│       ├── graph-coloring
+│       ├── eulerian-and-hamiltonian-paths
+│       ├── strongly-connected-component-algorithms
+│       └── graph-algorithmic-modeling
+├── searching-and-sorting
+│   ├── searching-algorithms
+│   │   ├── linear-search
+│   │   ├── binary-search
+│   │   ├── lower-bound-and-upper-bound
+│   │   ├── binary-search-on-answer
+│   │   ├── ternary-search
+│   │   ├── interpolation-search
+│   │   ├── exponential-and-jump-search
+│   │   └── search-in-rotated-and-partially-ordered-data
+│   ├── comparison-based-sorting
+│   │   ├── bubble-sort
+│   │   ├── selection-sort
+│   │   ├── insertion-sort
+│   │   ├── merge-sort
+│   │   ├── quicksort
+│   │   ├── heapsort
+│   │   ├── shell-sort
+│   │   └── comparison-sorting-lower-bound
+│   ├── non-comparison-sorting
+│   │   ├── counting-sort
+│   │   ├── radix-sort
+│   │   ├── bucket-sort
+│   │   └── domain-specific-sorting
+│   ├── sorting-properties-and-implementation
+│   │   ├── stable-and-unstable-sorting
+│   │   ├── in-place-and-out-of-place-sorting
+│   │   ├── adaptive-sorting
+│   │   ├── comparator-and-custom-ordering
+│   │   ├── external-sorting
+│   │   ├── hybrid-sorting-algorithms
+│   │   └── sorting-algorithm-selection
+│   └── selection-and-order-statistics
+│       ├── minimum-and-maximum
+│       ├── kth-smallest-and-kth-largest
+│       ├── quickselect
+│       ├── median-of-medians
+│       ├── top-k-elements
+│       └── streaming-order-statistics
+├── algorithm-design-techniques
+│   ├── brute-force-and-exhaustive-search
+│   │   ├── generate-and-test
+│   │   ├── permutation-and-combination-enumeration
+│   │   ├── exhaustive-state-search
+│   │   ├── pruning-obvious-invalid-candidates
+│   │   └── brute-force-as-a-correctness-baseline
+│   ├── divide-and-conquer
+│   │   ├── divide-solve-and-combine
+│   │   ├── merge-sort-design
+│   │   ├── quicksort-partitioning
+│   │   ├── binary-search-design
+│   │   ├── closest-pair-of-points
+│   │   ├── recurrence-analysis
+│   │   └── divide-and-conquer-applications
+│   ├── greedy-algorithms
+│   │   ├── greedy-choice-property
+│   │   ├── optimal-substructure
+│   │   ├── exchange-argument
+│   │   ├── interval-scheduling
+│   │   ├── activity-selection
+│   │   ├── Huffman-coding
+│   │   ├── fractional-knapsack
+│   │   └── greedy-correctness-proofs
+│   ├── dynamic-programming
+│   │   ├── overlapping-subproblems
+│   │   ├── optimal-substructure
+│   │   ├── memoization-and-top-down
+│   │   ├── tabulation-and-bottom-up
+│   │   ├── state-definition-and-transition
+│   │   ├── base-cases-and-evaluation-order
+│   │   ├── space-optimization
+│   │   ├── one-dimensional-dp
+│   │   ├── two-dimensional-dp
+│   │   ├── knapsack-and-subset-sum
+│   │   ├── longest-common-subsequence
+│   │   ├── longest-increasing-subsequence
+│   │   ├── interval-and-range-dp
+│   │   ├── tree-and-graph-dp
+│   │   └── bitmask-and-digit-dp
+│   ├── backtracking
+│   │   ├── state-space-tree
+│   │   ├── choose-explore-and-unchoose
+│   │   ├── constraint-checking-and-pruning
+│   │   ├── permutations-and-combinations
+│   │   ├── subsets-and-partitions
+│   │   ├── n-queens-and-sudoku
+│   │   └── backtracking-complexity
+│   ├── branch-and-bound
+│   │   ├── bounding-functions
+│   │   ├── search-order-and-pruning
+│   │   ├── best-first-branch-and-bound
+│   │   ├── traveling-salesperson-problem
+│   │   └── optimization-applications
+│   └── randomized-algorithms
+│       ├── randomized-pivot-selection
+│       ├── monte-carlo-and-las-vegas-algorithms
+│       ├── randomized-hashing
+│       ├── reservoir-sampling
+│       ├── randomized-selection
+│       └── expected-complexity-analysis
+├── common-problem-solving-patterns
+│   ├── two-pointers
+│   │   ├── opposite-direction-pointers
+│   │   ├── same-direction-pointers
+│   │   ├── fast-and-slow-pointers
+│   │   ├── in-place-array-transformation
+│   │   └── two-pointer-correctness-and-complexity
+│   ├── sliding-window
+│   │   ├── fixed-size-window
+│   │   ├── variable-size-window
+│   │   ├── frequency-and-counting-windows
+│   │   ├── monotonic-window
+│   │   └── window-invariant-and-boundaries
+│   ├── prefix-sums-and-difference-arrays
+│   │   ├── one-dimensional-prefix-sums
+│   │   ├── two-dimensional-prefix-sums
+│   │   ├── range-sum-queries
+│   │   ├── difference-arrays
+│   │   ├── prefix-xor
+│   │   └── prefix-sum-with-hash-map
+│   ├── hashing-and-frequency-patterns
+│   │   ├── frequency-maps
+│   │   ├── membership-and-complement-lookup
+│   │   ├── grouping-by-signature
+│   │   ├── rolling-hash
+│   │   └── duplicate-and-intersection-detection
+│   ├── monotonic-data-structures
+│   │   ├── monotonic-stack
+│   │   ├── monotonic-queue
+│   │   ├── next-greater-and-smaller-elements
+│   │   ├── histogram-and-boundary-problems
+│   │   └── sliding-window-maximum
+│   ├── interval-and-sweep-line-patterns
+│   │   ├── interval-merging
+│   │   ├── interval-intersection
+│   │   ├── meeting-room-and-scheduling
+│   │   ├── line-sweep
+│   │   ├── event-point-ordering
+│   │   └── coordinate-compression
+│   └── binary-search-patterns
+│       ├── exact-value-search
+│       ├── first-true-and-last-true
+│       ├── minimum-feasible-answer
+│       ├── maximum-feasible-answer
+│       ├── search-on-monotonic-predicate
+│       └── boundary-and-overflow-handling
+├── string-algorithms
+│   ├── string-matching
+│   │   ├── naive-pattern-matching
+│   │   ├── knuth-morris-pratt
+│   │   ├── z-algorithm
+│   │   ├── rabin-karp
+│   │   ├── boyer-moore
+│   │   ├── aho-corasick
+│   │   └── multi-pattern-search
+│   ├── string-processing
+│   │   ├── palindrome-detection
+│   │   ├── longest-palindromic-substring
+│   │   ├── manacher-algorithm
+│   │   ├── edit-distance
+│   │   ├── longest-common-substring
+│   │   ├── string-compression
+│   │   └── parsing-and-tokenization
+│   ├── suffix-based-structures
+│   │   ├── suffix-arrays
+│   │   ├── longest-common-prefix-array
+│   │   ├── suffix-automaton
+│   │   ├── suffix-tree-applications
+│   │   └── substring-query-processing
+│   └── text-algorithm-applications
+│       ├── autocomplete-and-search
+│       ├── plagiarism-and-similarity-detection
+│       ├── spell-checking
+│       ├── text-indexing
+│       ├── compression-and-encoding
+│       └── bioinformatics-string-problems
+├── mathematical-and-number-theoretic-algorithms
+│   ├── number-theory-fundamentals
+│   │   ├── divisibility-and-prime-numbers
+│   │   ├── gcd-and-lcm
+│   │   ├── euclidean-algorithm
+│   │   ├── extended-euclidean-algorithm
+│   │   ├── modular-arithmetic
+│   │   ├── modular-inverse
+│   │   ├── fast-modular-exponentiation
+│   │   └── chinese-remainder-theorem
+│   ├── prime-and-factorization-algorithms
+│   │   ├── trial-division
+│   │   ├── sieve-of-eratosthenes
+│   │   ├── segmented-sieve
+│   │   ├── prime-factorization
+│   │   ├── smallest-prime-factor
+│   │   └── primality-testing-overview
+│   ├── combinatorial-algorithms
+│   │   ├── permutations-and-combinations
+│   │   ├── binomial-coefficients
+│   │   ├── pascals-triangle
+│   │   ├── catalan-numbers
+│   │   ├── inclusion-exclusion-principle
+│   │   ├── pigeonhole-principle
+│   │   └── combinatorial-generation
+│   ├── bit-manipulation
+│   │   ├── binary-representation
+│   │   ├── bitwise-operators
+│   │   ├── bit-masks-and-subsets
+│   │   ├── counting-set-bits
+│   │   ├── bit-tricks-and-identities
+│   │   ├── bitwise-trie
+│   │   └── bitmask-dynamic-programming
+│   └── numerical-algorithms
+│       ├── integer-overflow-and-underflow
+│       ├── floating-point-precision
+│       ├── fast-exponentiation
+│       ├── matrix-exponentiation
+│       ├── binary-search-for-roots
+│       └── numerical-stability
+├── computational-geometry
+│   ├── geometric-primitives
+│   │   ├── points-vectors-and-orientation
+│   │   ├── dot-product-and-cross-product
+│   │   ├── point-line-and-segment-distance
+│   │   ├── line-and-segment-intersection
+│   │   ├── point-in-polygon
+│   │   └── polygon-area-and-perimeter
+│   ├── convex-hulls
+│   │   ├── convexity-and-orientation
+│   │   ├── graham-scan
+│   │   ├── monotonic-chain
+│   │   ├── rotating-calipers
+│   │   └── diameter-and-width-of-convex-polygons
+│   ├── spatial-data-structures
+│   │   ├── kd-trees
+│   │   ├── quadtrees-and-octrees
+│   │   ├── r-trees
+│   │   ├── spatial-hashing
+│   │   └── range-and-nearest-neighbor-search
+│   └── geometry-algorithm-applications
+│       ├── collision-and-intersection-detection
+│       ├── map-and-geospatial-processing
+│       ├── computational-geometry-optimization
+│       └── numerical-tolerance-and-degeneracy
+├── advanced-algorithms-and-theory
+│   ├── advanced-graph-theory
+│   │   ├── low-link-and-tarjan-algorithms
+│   │   ├── articulation-points-and-bridges
+│   │   ├── strongly-connected-components
+│   │   ├── dominator-trees-overview
+│   │   ├── tree-decomposition-overview
+│   │   └── advanced-network-flow
+│   ├── advanced-dynamic-programming
+│   │   ├── digit-dp
+│   │   ├── bitmask-dp
+│   │   ├── dp-optimization-with-convex-hull-trick
+│   │   ├── divide-and-conquer-dp-optimization
+│   │   ├── knuth-optimization
+│   │   ├── rerooting-dp
+│   │   └── dp-on-trees-and-graphs
+│   ├── advanced-data-structures
+│   │   ├── persistent-data-structures
+│   │   ├── immutable-and-functional-structures
+│   │   ├── link-cut-trees-overview
+│   │   ├── heavy-light-decomposition
+│   │   ├── sqrt-decomposition
+│   │   ├── sparse-table
+│   │   └── wavelet-tree-and-matrix
+│   ├── online-and-streaming-algorithms
+│   │   ├── online-versus-offline-algorithms
+│   │   ├── reservoir-sampling
+│   │   ├── streaming-frequency-estimation
+│   │   ├── bloom-filters
+│   │   ├── count-min-sketch
+│   │   ├── hyperloglog
+│   │   └── approximate-query-processing
+│   ├── approximation-and-heuristics
+│   │   ├── approximation-ratios
+│   │   ├── greedy-approximation
+│   │   ├── local-search
+│   │   ├── simulated-annealing
+│   │   ├── genetic-algorithms-overview
+│   │   └── heuristic-quality-and-evaluation
+│   └── computational-complexity-theory
+│       ├── decision-and-optimization-problems
+│       ├── p-and-np
+│       ├── np-hard-and-np-complete
+│       ├── polynomial-time-reductions
+│       ├── tractability-and-intractability
+│       └── complexity-theory-limitations
+├── correctness-testing-and-optimization
+│   ├── algorithm-correctness
+│   │   ├── preconditions-and-postconditions
+│   │   ├── loop-invariants
+│   │   ├── induction-and-recursive-correctness
+│   │   ├── termination-proofs
+│   │   ├── greedy-choice-proofs
+│   │   ├── dynamic-programming-correctness
+│   │   └── graph-algorithm-correctness
+│   ├── testing-and-validation
+│   │   ├── example-based-tests
+│   │   ├── boundary-and-edge-cases
+│   │   ├── randomized-testing
+│   │   ├── property-based-testing
+│   │   ├── differential-testing
+│   │   ├── fuzz-testing
+│   │   ├── adversarial-test-cases
+│   │   └── regression-test-suites
+│   ├── debugging-and-diagnostics
+│   │   ├── tracing-and-visualization
+│   │   ├── invariant-checking
+│   │   ├── recursion-and-stack-debugging
+│   │   ├── pointer-and-index-errors
+│   │   ├── integer-overflow-detection
+│   │   └── time-limit-and-memory-limit-diagnosis
+│   ├── optimization-practice
+│   │   ├── establish-a-correct-baseline
+│   │   ├── profile-before-optimizing
+│   │   ├── reduce-asymptotic-complexity
+│   │   ├── reduce-constant-factors
+│   │   ├── memory-and-allocation-optimization
+│   │   ├── cache-friendly-data-layout
+│   │   └── readability-and-performance-tradeoffs
+│   └── implementation-quality
+│       ├── clean-and-reusable-implementations
+│       ├── generic-and-composable-algorithms
+│       ├── integer-and-index-safety
+│       ├── iterative-versus-recursive-tradeoffs
+│       ├── library-data-structure-usage
+│       └── documentation-and-complexity-contracts
+├── programming-languages-and-algorithm-libraries
+│   ├── language-implementation-practice
+│   │   ├── c-and-cpp-implementations
+│   │   ├── java-implementations
+│   │   ├── python-implementations
+│   │   ├── csharp-implementations
+│   │   ├── javascript-and-typescript-implementations
+│   │   └── language-specific-performance
+│   ├── standard-library-data-structures
+│   │   ├── arrays-and-dynamic-lists
+│   │   ├── linked-lists-and-deques
+│   │   ├── stacks-and-queues
+│   │   ├── hash-maps-and-hash-sets
+│   │   ├── ordered-maps-and-sets
+│   │   ├── heaps-and-priority-queues
+│   │   └── sorting-and-searching-utilities
+│   ├── algorithm-library-design
+│   │   ├── iterator-and-range-abstractions
+│   │   ├── comparators-and-custom-ordering
+│   │   ├── generic-data-structure-interfaces
+│   │   ├── reusable-graph-and-tree-libraries
+│   │   ├── testing-library-contracts
+│   │   └── package-and-module-organization
+│   └── runtime-and-memory-models
+│       ├── stack-and-heap-memory
+│       ├── value-and-reference-semantics
+│       ├── garbage-collection-and-allocation
+│       ├── pointer-arithmetic-and-ownership
+│       ├── cache-locality-and-memory-layout
+│       └── runtime-specific-complexity
+├── competitive-programming-and-interview-preparation
+│   ├── competitive-programming-fundamentals
+│   │   ├── problem-platforms-and-judging
+│   │   ├── input-output-optimization
+│   │   ├── constraints-and-complexity-selection
+│   │   ├── contest-strategy-and-time-management
+│   │   ├── editorial-analysis-and-upsolving
+│   │   └── rating-and-skill-development
+│   ├── interview-problem-solving
+│   │   ├── clarify-and-restate-the-problem
+│   │   ├── explain-brute-force-and-optimization
+│   │   ├── communicate-invariants-and-tradeoffs
+│   │   ├── code-incrementally
+│   │   ├── test-with-edge-cases
+│   │   └── explain-time-and-space-complexity
+│   ├── common-interview-topics
+│   │   ├── arrays-strings-and-hashing
+│   │   ├── linked-lists-and-pointers
+│   │   ├── stacks-queues-and-heaps
+│   │   ├── trees-and-binary-search-trees
+│   │   ├── graphs-and-traversals
+│   │   ├── recursion-and-backtracking
+│   │   ├── greedy-and-dynamic-programming
+│   │   └── sorting-searching-and-intervals
+│   └── study-and-practice-strategy
+│       ├── topic-based-learning
+│       ├── spaced-repetition-and-review
+│       ├── pattern-recognition
+│       ├── timed-practice-and-mock-interviews
+│       ├── solution-comparison-and-refactoring
+│       └── progress-tracking-and-weakness-analysis
+└── practice-projects
+    ├── fundamental-data-structure-library
+    │   ├── dynamic-array-implementation
+    │   ├── singly-and-doubly-linked-lists
+    │   ├── stack-queue-and-deque
+    │   ├── hash-map-and-hash-set
+    │   ├── heap-and-priority-queue
+    │   ├── disjoint-set-union
+    │   └── complexity-and-correctness-tests
+    ├── tree-and-indexing-toolkit
+    │   ├── binary-search-tree
+    │   ├── avl-or-red-black-tree
+    │   ├── trie-and-autocomplete
+    │   ├── segment-tree-and-fenwick-tree
+    │   ├── range-query-interface
+    │   └── randomized-and-adversarial-tests
+    ├── graph-algorithm-workbench
+    │   ├── graph-representation-library
+    │   ├── bfs-and-dfs-visualization
+    │   ├── shortest-path-algorithms
+    │   ├── minimum-spanning-tree
+    │   ├── topological-sort-and-dependency-analysis
+    │   ├── strongly-connected-components
+    │   └── benchmark-and-comparison-report
+    ├── sorting-and-searching-benchmark
+    │   ├── comparison-sorting-implementations
+    │   ├── non-comparison-sorting-implementations
+    │   ├── searching-and-selection-algorithms
+    │   ├── generated-input-distributions
+    │   ├── correctness-and-stability-checks
+    │   └── time-and-memory-measurements
+    ├── text-search-and-analysis-engine
+    │   ├── text-normalization-and-tokenization
+    │   ├── substring-search-algorithms
+    │   ├── trie-based-prefix-search
+    │   ├── multi-pattern-search
+    │   ├── document-indexing
+    │   └── search-performance-evaluation
+    ├── route-planning-and-network-analyzer
+    │   ├── map-and-network-data-model
+    │   ├── graph-traversal-and-connectivity
+    │   ├── shortest-path-and-a-star
+    │   ├── route-cost-and-heuristic-design
+    │   ├── dynamic-network-updates
+    │   └── route-correctness-and-performance-tests
+    ├── task-scheduler-and-dependency-resolver
+    │   ├── task-and-dependency-model
+    │   ├── directed-acyclic-graph-validation
+    │   ├── topological-ordering
+    │   ├── priority-queue-scheduling
+    │   ├── cycle-detection-and-error-reporting
+    │   └── scheduling-performance-analysis
+    ├── algorithm-visualization-platform
+    │   ├── step-by-step-algorithm-execution
+    │   ├── array-and-sorting-visualizations
+    │   ├── tree-and-heap-visualizations
+    │   ├── graph-traversal-and-pathfinding
+    │   ├── recursion-and-dynamic-programming-tables
+    │   └── complexity-and-operation-counts
+    ├── cache-and-frequency-analysis-toolkit
+    │   ├── lru-and-lfu-cache
+    │   ├── frequency-counter
+    │   ├── bloom-filter
+    │   ├── count-min-sketch
+    │   ├── workload-generator
+    │   └── accuracy-memory-and-throughput-analysis
+    ├── algorithm-problem-solving-portfolio
+    │   ├── array-and-string-problem-set
+    │   ├── linked-list-and-tree-problem-set
+    │   ├── graph-and-search-problem-set
+    │   ├── greedy-and-dynamic-programming-problem-set
+    │   ├── mathematical-and-bit-manipulation-problem-set
+    │   └── documented-solutions-and-complexity-analysis
+    └── end-to-end-algorithm-engineering-capstone
+        ├── problem-definition-and-design
+        │   ├── real-world-problem-and-input-model
+        │   ├── constraints-and-performance-targets
+        │   ├── candidate-data-structures-and-algorithms
+        │   └── correctness-arguments-and-complexity-estimates
+        ├── implementation-and-validation
+        │   ├── modular-data-structure-library
+        │   ├── algorithm-implementation-and-integration
+        │   ├── unit-and-property-based-tests
+        │   ├── randomized-and-adversarial-validation
+        │   └── profiling-and-optimization
+        └── delivery-and-evaluation
+            ├── benchmark-datasets-and-reproducibility
+            ├── time-and-space-performance-report
+            ├── correctness-and-limitations-documentation
+            ├── reusable-api-and-examples
+            └── retrospective-and-future-improvements

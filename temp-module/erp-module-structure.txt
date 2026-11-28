@@ -1,0 +1,3737 @@
+module
+├── foundation
+│   ├── erp-overview
+│   │   ├── enterprise-resource-planning
+│   │   ├── integrated-business-management
+│   │   ├── shared-business-data
+│   │   ├── process-standardization
+│   │   ├── operational-control
+│   │   ├── decision-support
+│   │   └── benefits-and-tradeoffs
+│   ├── enterprise-system-boundaries
+│   │   ├── erp-and-accounting-software
+│   │   ├── erp-and-crm
+│   │   ├── erp-and-hcm
+│   │   ├── erp-and-scm
+│   │   ├── erp-and-wms
+│   │   ├── erp-and-mes
+│   │   ├── erp-and-epm
+│   │   └── erp-and-business-intelligence
+│   ├── business-mental-model
+│   │   ├── organizations-and-resources
+│   │   ├── demand-and-supply
+│   │   ├── goods-services-and-money
+│   │   ├── documents-and-economic-events
+│   │   ├── commitments-and-actuals
+│   │   ├── operational-and-financial-impact
+│   │   ├── system-of-record
+│   │   └── ownership-and-accountability
+│   ├── operating-contexts
+│   │   ├── small-and-medium-enterprises
+│   │   ├── multi-site-enterprises
+│   │   ├── multinational-groups
+│   │   ├── manufacturing-businesses
+│   │   ├── trading-and-distribution
+│   │   ├── service-organizations
+│   │   └── public-and-nonprofit-organizations
+│   ├── participant-roles
+│   │   ├── business-user
+│   │   ├── key-user
+│   │   ├── process-owner
+│   │   ├── business-analyst
+│   │   ├── functional-consultant
+│   │   ├── technical-consultant
+│   │   ├── solution-architect
+│   │   ├── administrator
+│   │   └── implementation-partner
+│   ├── system-access-and-navigation
+│   │   ├── authorized-training-access
+│   │   ├── company-and-role-context
+│   │   ├── menus-and-workspaces
+│   │   ├── search-and-filters
+│   │   ├── lists-and-detail-pages
+│   │   ├── document-drilldown
+│   │   ├── exports-and-printouts
+│   │   └── personal-settings
+│   ├── learning-workflow
+│   │   ├── business-scenario
+│   │   ├── prerequisites-and-master-data
+│   │   ├── transaction-execution
+│   │   ├── document-flow-review
+│   │   ├── ledger-and-stock-verification
+│   │   ├── exception-investigation
+│   │   ├── evidence-capture
+│   │   └── retrospective
+│   ├── safe-practice
+│   │   ├── sandbox-isolation
+│   │   ├── synthetic-business-data
+│   │   ├── least-privilege-accounts
+│   │   ├── no-live-payments
+│   │   ├── no-production-posting
+│   │   ├── snapshot-and-reset
+│   │   ├── credential-handling
+│   │   └── audit-trail-preservation
+│   └── cross-platform-orientation
+│       ├── concepts-before-screen-names
+│       ├── terminology-mapping
+│       ├── edition-and-license-boundaries
+│       ├── version-specific-behavior
+│       ├── standard-and-optional-capabilities
+│       ├── official-documentation
+│       ├── process-equivalence
+│       └── feature-gap-verification
+├── enterprise-operating-model-and-process-design
+│   ├── business-models
+│   │   ├── business-capabilities
+│   │   ├── value-proposition
+│   │   ├── revenue-models
+│   │   ├── operating-costs
+│   │   ├── customer-segments
+│   │   ├── distribution-channels
+│   │   ├── resource-constraints
+│   │   └── service-level-expectations
+│   ├── operating-model
+│   │   ├── centralized-operations
+│   │   ├── decentralized-operations
+│   │   ├── shared-services
+│   │   ├── outsourcing
+│   │   ├── global-template
+│   │   ├── local-variations
+│   │   ├── decision-rights
+│   │   └── accountability-model
+│   ├── process-discovery
+│   │   ├── stakeholder-interviews
+│   │   ├── shop-floor-observation
+│   │   ├── document-sampling
+│   │   ├── transaction-walkthroughs
+│   │   ├── exception-inventory
+│   │   ├── shadow-spreadsheets
+│   │   ├── pain-point-validation
+│   │   └── evidence-register
+│   ├── process-modeling
+│   │   ├── process-hierarchy
+│   │   ├── sipoc
+│   │   ├── value-stream-mapping
+│   │   ├── bpmn
+│   │   ├── swimlanes
+│   │   ├── events-and-gateways
+│   │   ├── handoff-contracts
+│   │   └── exception-paths
+│   ├── as-is-and-to-be-design
+│   │   ├── current-state-baseline
+│   │   ├── root-cause-analysis
+│   │   ├── future-state-design
+│   │   ├── eliminate-before-automate
+│   │   ├── standard-process-adoption
+│   │   ├── control-preservation
+│   │   ├── feasibility-review
+│   │   └── decision-log
+│   ├── process-controls
+│   │   ├── preventive-controls
+│   │   ├── detective-controls
+│   │   ├── approval-boundaries
+│   │   ├── reconciliation-points
+│   │   ├── compensating-controls
+│   │   ├── evidence-retention
+│   │   ├── control-ownership
+│   │   └── control-frequency
+│   ├── performance-and-measures
+│   │   ├── cycle-time
+│   │   ├── lead-time
+│   │   ├── throughput
+│   │   ├── first-pass-yield
+│   │   ├── rework-rate
+│   │   ├── on-time-completion
+│   │   ├── working-capital-impact
+│   │   └── metric-definitions
+│   ├── process-mining-and-improvement
+│   │   ├── event-log-readiness
+│   │   ├── case-identity
+│   │   ├── activity-sequences
+│   │   ├── conformance-checking
+│   │   ├── bottleneck-analysis
+│   │   ├── privacy-boundaries
+│   │   ├── improvement-backlog
+│   │   └── outcome-validation
+│   └── process-governance
+│       ├── process-owners
+│       ├── raci-matrix
+│       ├── policy-and-procedure
+│       ├── process-versioning
+│       ├── exception-approval
+│       ├── change-impact-review
+│       ├── cross-functional-signoff
+│       └── continuous-improvement-cadence
+├── organization-and-enterprise-structure
+│   ├── legal-and-management-structure
+│   │   ├── legal-entities
+│   │   ├── company-groups
+│   │   ├── business-units
+│   │   ├── branches
+│   │   ├── departments
+│   │   ├── shared-service-centers
+│   │   ├── ownership-hierarchies
+│   │   └── reporting-responsibility
+│   ├── financial-structure
+│   │   ├── chart-of-accounts
+│   │   ├── ledgers
+│   │   ├── fiscal-calendars
+│   │   ├── accounting-periods
+│   │   ├── functional-currency
+│   │   ├── reporting-currency
+│   │   ├── financial-dimensions
+│   │   └── balancing-segments
+│   ├── procurement-structure
+│   │   ├── purchasing-organizations
+│   │   ├── purchasing-groups
+│   │   ├── procurement-business-units
+│   │   ├── buying-centers
+│   │   ├── supplier-assignment
+│   │   ├── purchasing-responsibility
+│   │   ├── central-and-local-buying
+│   │   └── approval-organizations
+│   ├── sales-structure
+│   │   ├── sales-organizations
+│   │   ├── sales-territories
+│   │   ├── channels
+│   │   ├── divisions
+│   │   ├── sales-teams
+│   │   ├── customer-assignment
+│   │   ├── pricing-organizations
+│   │   └── fulfillment-responsibility
+│   ├── operations-structure
+│   │   ├── sites
+│   │   ├── plants
+│   │   ├── warehouses
+│   │   ├── storage-zones
+│   │   ├── bins
+│   │   ├── work-centers
+│   │   ├── production-lines
+│   │   └── maintenance-locations
+│   ├── people-and-project-structure
+│   │   ├── jobs
+│   │   ├── positions
+│   │   ├── reporting-lines
+│   │   ├── cost-centers
+│   │   ├── project-organizations
+│   │   ├── resource-pools
+│   │   ├── employment-entities
+│   │   └── responsibility-assignment
+│   ├── structural-relationships
+│   │   ├── cross-entity-assignments
+│   │   ├── shared-master-data
+│   │   ├── local-master-data
+│   │   ├── operating-unit-to-ledger
+│   │   ├── warehouse-to-company
+│   │   ├── plant-to-procurement
+│   │   ├── sales-to-fulfillment
+│   │   └── organization-validity-dates
+│   ├── design-decisions
+│   │   ├── single-and-multiple-company-model
+│   │   ├── global-and-local-numbering
+│   │   ├── business-dimensions-versus-entities
+│   │   ├── data-access-boundaries
+│   │   ├── future-expansion
+│   │   ├── reorganization-readiness
+│   │   ├── cross-company-reconciliation
+│   │   └── reporting-consequences
+│   └── structure-validation
+│       ├── sample-document-postings
+│       ├── organization-defaults
+│       ├── cross-unit-scenarios
+│       ├── access-scope-tests
+│       ├── reporting-rollups
+│       ├── invalid-assignment-tests
+│       ├── organizational-change-tests
+│       └── design-signoff
+├── master-data-and-data-governance
+│   ├── master-data-foundations
+│   │   ├── master-reference-and-transaction-data
+│   │   ├── data-ownership
+│   │   ├── authoritative-sources
+│   │   ├── business-keys
+│   │   ├── technical-identifiers
+│   │   ├── effective-dates
+│   │   ├── shared-and-local-attributes
+│   │   └── lifecycle-status
+│   ├── party-master-data
+│   │   ├── customers
+│   │   ├── suppliers
+│   │   ├── business-partners
+│   │   ├── employees
+│   │   ├── contacts
+│   │   ├── addresses
+│   │   ├── bank-details
+│   │   └── duplicate-party-resolution
+│   ├── product-and-service-master
+│   │   ├── stock-items
+│   │   ├── non-stock-items
+│   │   ├── services
+│   │   ├── product-variants
+│   │   ├── item-categories
+│   │   ├── units-of-measure
+│   │   ├── unit-conversions
+│   │   ├── tax-and-accounting-attributes
+│   │   └── lifecycle-and-blocking
+│   ├── operational-master-data
+│   │   ├── warehouses-and-bins
+│   │   ├── bills-of-materials
+│   │   ├── routings
+│   │   ├── work-centers
+│   │   ├── equipment
+│   │   ├── maintenance-plans
+│   │   ├── inspection-plans
+│   │   └── planning-parameters
+│   ├── commercial-and-financial-masters
+│   │   ├── price-lists
+│   │   ├── payment-terms
+│   │   ├── delivery-terms
+│   │   ├── credit-profiles
+│   │   ├── account-mappings
+│   │   ├── cost-objects
+│   │   ├── exchange-rate-types
+│   │   └── calendars-and-holidays
+│   ├── master-data-lifecycle
+│   │   ├── request-and-creation
+│   │   ├── validation-and-enrichment
+│   │   ├── approval-and-publication
+│   │   ├── change-and-versioning
+│   │   ├── blocking-and-unblocking
+│   │   ├── merge-and-deduplication
+│   │   ├── retirement-and-archiving
+│   │   └── downstream-distribution
+│   ├── data-quality
+│   │   ├── completeness
+│   │   ├── validity
+│   │   ├── consistency
+│   │   ├── uniqueness
+│   │   ├── referential-integrity
+│   │   ├── timeliness
+│   │   ├── profiling-and-scoring
+│   │   └── quality-issue-remediation
+│   ├── governance-and-stewardship
+│   │   ├── data-owners
+│   │   ├── data-stewards
+│   │   ├── data-dictionary
+│   │   ├── naming-standards
+│   │   ├── critical-data-elements
+│   │   ├── service-levels
+│   │   ├── ownership-escalation
+│   │   └── quality-scorecards
+│   └── synchronization-and-control
+│       ├── source-of-truth-matrix
+│       ├── mapping-tables
+│       ├── replication-latency
+│       ├── conflict-resolution
+│       ├── audit-history
+│       ├── sensitive-field-approvals
+│       ├── reconciliation-reports
+│       └── change-impact-testing
+├── transactions-documents-and-posting-control
+│   ├── document-model
+│   │   ├── headers-and-lines
+│   │   ├── partner-and-organization-context
+│   │   ├── document-types
+│   │   ├── numbering-series
+│   │   ├── document-dates
+│   │   ├── posting-dates
+│   │   ├── quantities-and-amounts
+│   │   └── source-references
+│   ├── transaction-lifecycle
+│   │   ├── draft
+│   │   ├── submitted
+│   │   ├── approved
+│   │   ├── released
+│   │   ├── partially-processed
+│   │   ├── completed
+│   │   ├── cancelled
+│   │   ├── reversed
+│   │   └── archived
+│   ├── reference-and-document-flow
+│   │   ├── source-to-target-copying
+│   │   ├── document-linkage
+│   │   ├── partial-quantities
+│   │   ├── split-documents
+│   │   ├── merged-documents
+│   │   ├── remaining-balances
+│   │   ├── document-status-propagation
+│   │   └── traceability
+│   ├── posting-model
+│   │   ├── operational-updates
+│   │   ├── inventory-ledger-updates
+│   │   ├── subledger-updates
+│   │   ├── general-ledger-updates
+│   │   ├── account-determination
+│   │   ├── financial-dimensions
+│   │   ├── posting-preconditions
+│   │   └── atomicity-boundaries
+│   ├── quantity-and-value-controls
+│   │   ├── unit-conversion
+│   │   ├── decimal-precision
+│   │   ├── currency-rounding
+│   │   ├── price-conditions
+│   │   ├── discount-calculation
+│   │   ├── tax-calculation-basis
+│   │   ├── tolerance-limits
+│   │   └── control-totals
+│   ├── concurrency-and-integrity
+│   │   ├── record-locking
+│   │   ├── optimistic-concurrency
+│   │   ├── duplicate-submission-prevention
+│   │   ├── idempotent-posting
+│   │   ├── reservation-consistency
+│   │   ├── transaction-isolation
+│   │   ├── referential-integrity
+│   │   └── stale-data-detection
+│   ├── corrections-and-reversals
+│   │   ├── draft-correction
+│   │   ├── posted-document-restrictions
+│   │   ├── reversal-and-reposting
+│   │   ├── credit-and-debit-adjustments
+│   │   ├── returns-versus-cancellations
+│   │   ├── closed-period-corrections
+│   │   ├── dependent-document-sequencing
+│   │   └── approval-evidence
+│   ├── exceptions-and-blocks
+│   │   ├── missing-master-data
+│   │   ├── invalid-organizational-assignment
+│   │   ├── insufficient-stock
+│   │   ├── credit-block
+│   │   ├── invoice-matching-block
+│   │   ├── closed-period
+│   │   ├── failed-posting
+│   │   └── background-job-failure
+│   └── transaction-evidence
+│       ├── document-history
+│       ├── change-logs
+│       ├── approval-history
+│       ├── posting-preview
+│       ├── ledger-drilldown
+│       ├── stock-movement-trace
+│       ├── attachment-links
+│       └── reconciliation-and-signoff
+├── end-to-end-business-processes
+│   ├── source-to-pay
+│   │   ├── demand-identification
+│   │   ├── sourcing-and-contracting
+│   │   ├── purchase-requisition
+│   │   ├── purchase-order
+│   │   ├── receipt-or-service-acceptance
+│   │   ├── invoice-matching
+│   │   ├── supplier-payment
+│   │   └── procurement-to-ledger-reconciliation
+│   ├── order-to-cash
+│   │   ├── quotation
+│   │   ├── customer-order
+│   │   ├── credit-and-availability-check
+│   │   ├── fulfillment
+│   │   ├── customer-invoice
+│   │   ├── receipt-and-application
+│   │   ├── dispute-and-return
+│   │   └── sales-to-ledger-reconciliation
+│   ├── forecast-to-fulfill
+│   │   ├── demand-forecast
+│   │   ├── supply-plan
+│   │   ├── material-requirements
+│   │   ├── procurement-and-production
+│   │   ├── inventory-availability
+│   │   ├── order-allocation
+│   │   ├── shipment
+│   │   └── service-level-review
+│   ├── design-to-operate
+│   │   ├── product-concept
+│   │   ├── engineering-release
+│   │   ├── sourcing-readiness
+│   │   ├── production-readiness
+│   │   ├── manufacturing
+│   │   ├── quality-release
+│   │   ├── asset-operation
+│   │   └── lifecycle-feedback
+│   ├── record-to-report
+│   │   ├── subledger-completion
+│   │   ├── journal-processing
+│   │   ├── accruals-and-adjustments
+│   │   ├── reconciliations
+│   │   ├── period-close
+│   │   ├── consolidation
+│   │   ├── financial-reporting
+│   │   └── audit-evidence
+│   ├── acquire-to-dispose
+│   │   ├── investment-request
+│   │   ├── asset-procurement
+│   │   ├── asset-capitalization
+│   │   ├── depreciation
+│   │   ├── maintenance
+│   │   ├── asset-transfer
+│   │   ├── impairment-review
+│   │   └── retirement-and-disposal
+│   ├── project-to-profit
+│   │   ├── opportunity-and-contract
+│   │   ├── project-structure
+│   │   ├── resource-planning
+│   │   ├── time-and-expense
+│   │   ├── cost-collection
+│   │   ├── milestone-or-time-billing
+│   │   ├── revenue-and-margin-review
+│   │   └── project-closure
+│   ├── service-to-cash
+│   │   ├── service-request
+│   │   ├── entitlement-check
+│   │   ├── scheduling
+│   │   ├── service-execution
+│   │   ├── parts-and-time-consumption
+│   │   ├── customer-acceptance
+│   │   ├── service-billing
+│   │   └── settlement-and-feedback
+│   ├── hire-to-retire
+│   │   ├── workforce-request
+│   │   ├── recruitment
+│   │   ├── onboarding
+│   │   ├── time-and-attendance
+│   │   ├── payroll-input
+│   │   ├── benefits-and-expenses
+│   │   ├── workforce-changes
+│   │   └── exit-and-access-revocation
+│   ├── plan-to-perform
+│   │   ├── strategic-objectives
+│   │   ├── budget-planning
+│   │   ├── operational-plans
+│   │   ├── execution-and-actuals
+│   │   ├── variance-analysis
+│   │   ├── reforecast
+│   │   ├── corrective-actions
+│   │   └── performance-review
+│   └── cross-process-integration
+│       ├── shared-master-dependencies
+│       ├── document-to-ledger-mapping
+│       ├── quantity-and-value-reconciliation
+│       ├── process-ownership-handoffs
+│       ├── exception-escalation
+│       ├── intercompany-process-chains
+│       ├── end-to-end-test-data
+│       └── business-outcome-validation
+├── financial-accounting-and-period-close
+│   ├── accounting-foundations
+│   │   ├── accounting-equation
+│   │   ├── debit-and-credit
+│   │   ├── double-entry-bookkeeping
+│   │   ├── accrual-and-cash-basis
+│   │   ├── assets-liabilities-and-equity
+│   │   ├── income-and-expenses
+│   │   ├── journals-and-ledgers
+│   │   └── trial-balance
+│   ├── financial-configuration
+│   │   ├── chart-of-accounts-design
+│   │   ├── fiscal-year-and-periods
+│   │   ├── ledger-and-dimension-design
+│   │   ├── accounting-policies
+│   │   ├── posting-rules
+│   │   ├── document-numbering
+│   │   ├── approval-tolerances
+│   │   └── period-access-controls
+│   ├── general-ledger
+│   │   ├── manual-journals
+│   │   ├── recurring-journals
+│   │   ├── reversing-journals
+│   │   ├── accruals-and-prepayments
+│   │   ├── allocations
+│   │   ├── balance-carryforward
+│   │   ├── suspense-accounts
+│   │   └── journal-audit-trail
+│   ├── accounts-payable
+│   │   ├── supplier-invoices
+│   │   ├── invoice-validation
+│   │   ├── purchase-order-matching
+│   │   ├── non-po-invoices
+│   │   ├── supplier-credits
+│   │   ├── advances-and-settlements
+│   │   ├── due-date-calculation
+│   │   └── payables-aging
+│   ├── accounts-receivable
+│   │   ├── customer-invoices
+│   │   ├── credit-notes
+│   │   ├── debit-adjustments
+│   │   ├── receipt-allocation
+│   │   ├── unapplied-cash
+│   │   ├── overdue-balances
+│   │   ├── collections-and-disputes
+│   │   └── receivables-aging
+│   ├── asset-accounting
+│   │   ├── asset-classes
+│   │   ├── acquisition-and-capitalization
+│   │   ├── assets-under-construction
+│   │   ├── depreciation-books
+│   │   ├── useful-life-and-residual-value
+│   │   ├── transfers-and-splits
+│   │   ├── impairment-workflow
+│   │   └── disposal-and-retirement
+│   ├── revenue-and-expense-timing
+│   │   ├── billing-versus-revenue
+│   │   ├── deferred-revenue
+│   │   ├── deferred-expenses
+│   │   ├── recognition-schedules
+│   │   ├── contract-milestones
+│   │   ├── period-cutoff
+│   │   ├── accrued-income-and-costs
+│   │   └── policy-approval
+│   ├── transaction-tax-configuration
+│   │   ├── tax-codes-and-categories
+│   │   ├── tax-base-determination
+│   │   ├── inclusive-and-exclusive-prices
+│   │   ├── recoverable-and-nonrecoverable-tax
+│   │   ├── withholding-workflows
+│   │   ├── tax-posting-accounts
+│   │   ├── rounding-and-adjustments
+│   │   └── localization-validation
+│   ├── financial-close
+│   │   ├── close-calendar
+│   │   ├── subledger-close
+│   │   ├── bank-reconciliation
+│   │   ├── inventory-to-ledger-reconciliation
+│   │   ├── accrual-review
+│   │   ├── foreign-currency-revaluation
+│   │   ├── balance-sheet-reconciliation
+│   │   ├── close-approval
+│   │   └── period-locking
+│   ├── financial-reporting
+│   │   ├── trial-balance-review
+│   │   ├── balance-sheet
+│   │   ├── income-statement
+│   │   ├── cash-flow-statement
+│   │   ├── notes-and-supporting-schedules
+│   │   ├── comparative-reporting
+│   │   ├── drilldown-to-source
+│   │   └── reporting-signoff
+│   └── financial-exceptions
+│       ├── unbalanced-journal
+│       ├── incorrect-account-determination
+│       ├── duplicate-invoice
+│       ├── aged-clearing-balances
+│       ├── unmatched-subledger-posting
+│       ├── backdated-transaction
+│       ├── closed-period-error
+│       └── corrective-posting-evidence
+├── management-accounting-budgeting-and-profitability
+│   ├── cost-accounting-foundations
+│   │   ├── financial-and-management-accounting
+│   │   ├── direct-and-indirect-costs
+│   │   ├── fixed-and-variable-costs
+│   │   ├── cost-centers
+│   │   ├── profit-centers
+│   │   ├── cost-drivers
+│   │   ├── cost-objects
+│   │   └── contribution-margin
+│   ├── cost-center-management
+│   │   ├── responsibility-assignment
+│   │   ├── cost-center-hierarchies
+│   │   ├── primary-cost-posting
+│   │   ├── internal-activity-rates
+│   │   ├── allocation-cycles
+│   │   ├── shared-service-charges
+│   │   ├── plan-versus-actual
+│   │   └── cost-center-reporting
+│   ├── product-and-service-costing
+│   │   ├── cost-estimates
+│   │   ├── material-cost
+│   │   ├── labor-cost
+│   │   ├── machine-cost
+│   │   ├── overhead-absorption
+│   │   ├── subcontracting-cost
+│   │   ├── standard-cost-release
+│   │   └── cost-rollup
+│   ├── actual-cost-and-variance-analysis
+│   │   ├── purchase-price-variance
+│   │   ├── material-usage-variance
+│   │   ├── labor-efficiency-variance
+│   │   ├── capacity-variance
+│   │   ├── overhead-variance
+│   │   ├── scrap-and-rework-cost
+│   │   ├── actual-versus-standard
+│   │   └── root-cause-review
+│   ├── budgeting
+│   │   ├── budget-versions
+│   │   ├── top-down-planning
+│   │   ├── bottom-up-planning
+│   │   ├── driver-based-budgets
+│   │   ├── departmental-budgets
+│   │   ├── capital-budgets
+│   │   ├── approval-workflows
+│   │   └── budget-freeze
+│   ├── budgetary-control
+│   │   ├── commitments-and-actuals
+│   │   ├── pre-commitments
+│   │   ├── budget-availability-checks
+│   │   ├── warnings-and-hard-stops
+│   │   ├── tolerance-settings
+│   │   ├── budget-transfers
+│   │   ├── budget-revisions
+│   │   └── exception-approval
+│   ├── forecasting-and-scenarios
+│   │   ├── rolling-forecasts
+│   │   ├── demand-and-cost-drivers
+│   │   ├── scenario-assumptions
+│   │   ├── sensitivity-analysis
+│   │   ├── forecast-versioning
+│   │   ├── actuals-integration
+│   │   ├── forecast-bias
+│   │   └── review-cadence
+│   ├── profitability-analysis
+│   │   ├── customer-profitability
+│   │   ├── product-profitability
+│   │   ├── channel-profitability
+│   │   ├── project-profitability
+│   │   ├── landed-margin
+│   │   ├── cost-to-serve
+│   │   ├── allocation-effects
+│   │   └── margin-reconciliation
+│   └── management-reporting
+│       ├── responsibility-reports
+│       ├── budget-variance-bridges
+│       ├── volume-price-mix-analysis
+│       ├── profitability-drilldown
+│       ├── operational-driver-linkage
+│       ├── reporting-grain
+│       ├── metric-ownership
+│       └── management-actions
+├── cash-treasury-and-working-capital
+│   ├── cash-management-foundations
+│   │   ├── cash-versus-profit
+│   │   ├── bank-account-structure
+│   │   ├── cash-position
+│   │   ├── value-dates
+│   │   ├── clearing-accounts
+│   │   ├── cash-equivalents
+│   │   ├── liquidity-responsibility
+│   │   └── banking-authorizations
+│   ├── incoming-payments
+│   │   ├── receipt-entry
+│   │   ├── bank-transfer
+│   │   ├── card-settlement
+│   │   ├── direct-debit
+│   │   ├── payment-reference-matching
+│   │   ├── partial-and-overpayments
+│   │   ├── payment-differences
+│   │   └── chargebacks-and-refunds
+│   ├── outgoing-payments
+│   │   ├── payment-proposals
+│   │   ├── due-item-selection
+│   │   ├── payment-methods
+│   │   ├── payment-batches
+│   │   ├── payment-approval
+│   │   ├── bank-file-generation
+│   │   ├── rejected-payments
+│   │   └── remittance-advice
+│   ├── bank-reconciliation
+│   │   ├── statement-import
+│   │   ├── transaction-codes
+│   │   ├── matching-rules
+│   │   ├── unmatched-items
+│   │   ├── bank-fees
+│   │   ├── interest-postings
+│   │   ├── reconciliation-approval
+│   │   └── bank-to-ledger-evidence
+│   ├── liquidity-planning
+│   │   ├── short-term-cash-forecast
+│   │   ├── expected-customer-receipts
+│   │   ├── supplier-payment-plans
+│   │   ├── payroll-and-tax-outflows
+│   │   ├── investment-cash-flows
+│   │   ├── forecast-versus-actual
+│   │   ├── scenario-adjustments
+│   │   └── liquidity-alerts
+│   ├── working-capital
+│   │   ├── days-sales-outstanding
+│   │   ├── days-payables-outstanding
+│   │   ├── days-inventory-outstanding
+│   │   ├── cash-conversion-cycle
+│   │   ├── overdue-receivables
+│   │   ├── supplier-term-analysis
+│   │   ├── inventory-capital
+│   │   └── supplier-finance-boundaries
+│   ├── treasury-operations
+│   │   ├── borrowing-and-repayment
+│   │   ├── investment-register
+│   │   ├── interest-schedules
+│   │   ├── foreign-currency-exposure
+│   │   ├── hedging-workflow-boundaries
+│   │   ├── cash-pooling
+│   │   ├── intercompany-funding
+│   │   └── treasury-subledger-integration
+│   ├── payment-security
+│   │   ├── beneficiary-verification
+│   │   ├── bank-detail-change-approval
+│   │   ├── dual-authorization
+│   │   ├── payment-limit-controls
+│   │   ├── file-integrity-checks
+│   │   ├── duplicate-payment-prevention
+│   │   ├── fraud-alert-escalation
+│   │   └── payment-audit-evidence
+│   └── cash-exceptions
+│       ├── unallocated-receipts
+│       ├── duplicate-bank-lines
+│       ├── returned-payments
+│       ├── stale-checks
+│       ├── timing-differences
+│       ├── currency-differences
+│       ├── unexplained-clearing-balances
+│       └── bank-feed-interruption
+├── sourcing-procurement-and-supplier-management
+│   ├── procurement-foundations
+│   │   ├── direct-and-indirect-procurement
+│   │   ├── goods-and-services
+│   │   ├── strategic-sourcing
+│   │   ├── operational-purchasing
+│   │   ├── centralized-and-decentralized-buying
+│   │   ├── procurement-policy
+│   │   ├── spend-categories
+│   │   └── procurement-segregation-of-duties
+│   ├── supplier-lifecycle
+│   │   ├── supplier-discovery
+│   │   ├── qualification-and-onboarding
+│   │   ├── due-diligence-data
+│   │   ├── supplier-master-approval
+│   │   ├── contract-enablement
+│   │   ├── performance-review
+│   │   ├── risk-and-blocking
+│   │   └── offboarding
+│   ├── sourcing-and-contracting
+│   │   ├── request-for-information
+│   │   ├── request-for-quotation
+│   │   ├── supplier-quotations
+│   │   ├── bid-comparison
+│   │   ├── negotiation-records
+│   │   ├── sourcing-award
+│   │   ├── framework-agreements
+│   │   └── contract-validity-and-renewal
+│   ├── purchase-requisitions
+│   │   ├── demand-capture
+│   │   ├── catalog-selection
+│   │   ├── account-assignment
+│   │   ├── budget-check
+│   │   ├── requisition-approval
+│   │   ├── requisition-consolidation
+│   │   ├── source-selection
+│   │   └── conversion-to-order
+│   ├── purchase-orders
+│   │   ├── document-types
+│   │   ├── price-and-delivery-terms
+│   │   ├── schedule-lines
+│   │   ├── purchase-order-approval
+│   │   ├── order-confirmation
+│   │   ├── change-orders
+│   │   ├── open-order-monitoring
+│   │   └── order-closeout
+│   ├── receipts-and-service-acceptance
+│   │   ├── inbound-delivery-reference
+│   │   ├── goods-receipt
+│   │   ├── partial-receipt
+│   │   ├── over-and-under-delivery
+│   │   ├── inspection-and-rejection
+│   │   ├── service-entry
+│   │   ├── acceptance-approval
+│   │   └── receipt-reversal
+│   ├── invoice-verification
+│   │   ├── two-way-matching
+│   │   ├── three-way-matching
+│   │   ├── quantity-tolerance
+│   │   ├── price-tolerance
+│   │   ├── tax-and-charge-review
+│   │   ├── invoice-blocking
+│   │   ├── duplicate-detection
+│   │   └── matching-exception-release
+│   ├── special-procurement
+│   │   ├── subcontracting
+│   │   ├── consignment
+│   │   ├── drop-shipment
+│   │   ├── stock-transfer-procurement
+│   │   ├── blanket-orders
+│   │   ├── milestone-services
+│   │   ├── emergency-procurement
+│   │   └── supplier-managed-replenishment
+│   ├── supplier-performance
+│   │   ├── on-time-delivery
+│   │   ├── delivered-quality
+│   │   ├── price-variance
+│   │   ├── lead-time-reliability
+│   │   ├── contract-compliance
+│   │   ├── spend-analysis
+│   │   ├── corrective-actions
+│   │   └── supplier-scorecards
+│   └── procurement-exceptions
+│       ├── unapproved-spend
+│       ├── missing-receipt
+│       ├── invoice-before-receipt
+│       ├── goods-received-not-invoiced
+│       ├── supplier-short-shipment
+│       ├── purchase-return
+│       ├── contract-expiry
+│       └── blocked-supplier
+├── inventory-management-and-valuation
+│   ├── inventory-fundamentals
+│   │   ├── physical-stock
+│   │   ├── available-stock
+│   │   ├── reserved-stock
+│   │   ├── in-transit-stock
+│   │   ├── blocked-stock
+│   │   ├── quality-inspection-stock
+│   │   ├── customer-owned-stock
+│   │   └── supplier-owned-stock
+│   ├── inventory-dimensions
+│   │   ├── item-and-variant
+│   │   ├── site-and-warehouse
+│   │   ├── location-and-bin
+│   │   ├── batch-and-lot
+│   │   ├── serial-number
+│   │   ├── owner-and-custodian
+│   │   ├── stock-status
+│   │   └── unit-of-measure
+│   ├── inventory-transactions
+│   │   ├── receipts
+│   │   ├── issues
+│   │   ├── transfers
+│   │   ├── adjustments
+│   │   ├── production-consumption
+│   │   ├── production-receipts
+│   │   ├── returns
+│   │   └── scrapping
+│   ├── reservation-and-allocation
+│   │   ├── soft-and-hard-reservations
+│   │   ├── demand-priorities
+│   │   ├── reservation-release
+│   │   ├── allocation-rules
+│   │   ├── partial-allocation
+│   │   ├── available-to-promise
+│   │   ├── synchronization-with-warehouse
+│   │   └── overselling-prevention
+│   ├── lot-and-serial-control
+│   │   ├── lot-creation
+│   │   ├── serial-assignment
+│   │   ├── expiry-dates
+│   │   ├── shelf-life-checks
+│   │   ├── first-expiry-first-out
+│   │   ├── genealogy
+│   │   ├── recall-selection
+│   │   └── quarantine-and-release
+│   ├── inventory-costing
+│   │   ├── standard-cost
+│   │   ├── moving-average-cost
+│   │   ├── weighted-average-cost
+│   │   ├── fifo-costing
+│   │   ├── specific-identification
+│   │   ├── costing-method-eligibility
+│   │   ├── cost-layers
+│   │   └── negative-stock-costing-risks
+│   ├── valuation-and-ledger-integration
+│   │   ├── perpetual-and-periodic-inventory
+│   │   ├── valuation-accounts
+│   │   ├── receipt-accruals
+│   │   ├── landed-cost-allocation
+│   │   ├── cost-of-goods-sold
+│   │   ├── revaluation
+│   │   ├── inventory-write-down
+│   │   └── stock-to-ledger-reconciliation
+│   ├── counting-and-reconciliation
+│   │   ├── annual-physical-count
+│   │   ├── cycle-counting
+│   │   ├── count-scope
+│   │   ├── count-freeze
+│   │   ├── blind-count
+│   │   ├── recount-and-approval
+│   │   ├── variance-posting
+│   │   └── audit-evidence
+│   ├── inventory-optimization
+│   │   ├── abc-analysis
+│   │   ├── xyz-analysis
+│   │   ├── safety-stock
+│   │   ├── reorder-points
+│   │   ├── min-max-policies
+│   │   ├── slow-moving-stock
+│   │   ├── obsolete-stock
+│   │   └── excess-and-shortage-review
+│   └── inventory-exceptions
+│       ├── negative-quantity
+│       ├── duplicate-movement
+│       ├── wrong-unit-conversion
+│       ├── incorrect-lot
+│       ├── wrong-valuation
+│       ├── backdated-posting
+│       ├── in-transit-difference
+│       └── reserved-stock-mismatch
+├── warehouse-and-logistics-execution
+│   ├── warehouse-design
+│   │   ├── warehouse-layout
+│   │   ├── storage-zones
+│   │   ├── storage-bins
+│   │   ├── handling-units
+│   │   ├── capacity-constraints
+│   │   ├── hazardous-and-special-storage
+│   │   ├── dock-doors
+│   │   └── staging-areas
+│   ├── inbound-execution
+│   │   ├── advance-shipping-notice
+│   │   ├── appointment-and-yard-check
+│   │   ├── receiving-unloading
+│   │   ├── quantity-and-condition-check
+│   │   ├── labeling-and-barcodes
+│   │   ├── putaway-strategies
+│   │   ├── cross-docking
+│   │   └── inbound-discrepancies
+│   ├── internal-warehouse-work
+│   │   ├── bin-to-bin-movement
+│   │   ├── replenishment
+│   │   ├── consolidation
+│   │   ├── repacking
+│   │   ├── stock-status-changes
+│   │   ├── cycle-count-tasks
+│   │   ├── value-added-services
+│   │   └── task-prioritization
+│   ├── outbound-execution
+│   │   ├── order-release
+│   │   ├── wave-planning
+│   │   ├── pick-strategies
+│   │   ├── picking-tasks
+│   │   ├── pick-confirmation
+│   │   ├── packing-and-verification
+│   │   ├── loading
+│   │   └── shipment-confirmation
+│   ├── warehouse-technology
+│   │   ├── barcode-standards
+│   │   ├── label-design
+│   │   ├── scanners-and-mobile-devices
+│   │   ├── offline-work-queues
+│   │   ├── printer-integration
+│   │   ├── scales-and-dimensioners
+│   │   ├── automation-interface
+│   │   └── manual-fallback
+│   ├── transportation-planning
+│   │   ├── shipment-consolidation
+│   │   ├── route-planning
+│   │   ├── carrier-selection
+│   │   ├── freight-rates
+│   │   ├── capacity-booking
+│   │   ├── delivery-windows
+│   │   ├── load-building
+│   │   └── shipment-documents
+│   ├── delivery-and-freight
+│   │   ├── dispatch
+│   │   ├── tracking-events
+│   │   ├── proof-of-delivery
+│   │   ├── failed-delivery
+│   │   ├── freight-accrual
+│   │   ├── freight-invoice-audit
+│   │   ├── claims-and-damage
+│   │   └── carrier-performance
+│   ├── third-party-logistics
+│   │   ├── inventory-ownership-boundaries
+│   │   ├── warehouse-outsourcing-contracts
+│   │   ├── inbound-and-outbound-interfaces
+│   │   ├── status-and-event-mapping
+│   │   ├── 3pl-stock-reconciliation
+│   │   ├── service-charge-validation
+│   │   ├── exception-ownership
+│   │   └── partner-outage-procedures
+│   ├── warehouse-controls-and-kpis
+│   │   ├── inventory-accuracy
+│   │   ├── pick-accuracy
+│   │   ├── dock-to-stock-time
+│   │   ├── order-cycle-time
+│   │   ├── space-utilization
+│   │   ├── labor-productivity
+│   │   ├── shipping-cutoff-compliance
+│   │   └── exception-backlog
+│   └── logistics-exceptions
+│       ├── short-pick
+│       ├── wrong-location
+│       ├── damaged-goods
+│       ├── missing-serial
+│       ├── label-mismatch
+│       ├── carrier-no-show
+│       ├── shipment-without-confirmation
+│       └── lost-interface-message
+├── sales-order-management-and-distribution
+│   ├── sales-foundations
+│   │   ├── sales-channels
+│   │   ├── customer-roles
+│   │   ├── product-and-service-sales
+│   │   ├── order-types
+│   │   ├── sales-policies
+│   │   ├── delivery-commitments
+│   │   ├── revenue-and-cash-boundaries
+│   │   └── sales-ownership
+│   ├── quotation-and-contracts
+│   │   ├── quotation-entry
+│   │   ├── product-configuration
+│   │   ├── price-simulation
+│   │   ├── approval-for-discounts
+│   │   ├── quotation-validity
+│   │   ├── contract-terms
+│   │   ├── blanket-sales-agreements
+│   │   └── quotation-to-order
+│   ├── sales-order-processing
+│   │   ├── customer-and-item-validation
+│   │   ├── order-lines
+│   │   ├── pricing-and-discounts
+│   │   ├── tax-and-charge-calculation
+│   │   ├── requested-and-promised-dates
+│   │   ├── order-approval
+│   │   ├── order-changes
+│   │   └── order-status-management
+│   ├── availability-and-credit
+│   │   ├── available-to-promise
+│   │   ├── capable-to-promise
+│   │   ├── allocation-rules
+│   │   ├── substitutions
+│   │   ├── backorder-management
+│   │   ├── credit-limits
+│   │   ├── credit-exposure
+│   │   └── order-block-release
+│   ├── fulfillment
+│   │   ├── delivery-scheduling
+│   │   ├── warehouse-release
+│   │   ├── partial-deliveries
+│   │   ├── split-shipments
+│   │   ├── drop-shipment
+│   │   ├── third-party-fulfillment
+│   │   ├── proof-of-delivery
+│   │   └── delivery-completion
+│   ├── billing-and-collections
+│   │   ├── delivery-based-billing
+│   │   ├── order-based-billing
+│   │   ├── milestone-billing
+│   │   ├── consolidated-invoicing
+│   │   ├── invoice-output
+│   │   ├── customer-credits
+│   │   ├── receivables-handoff
+│   │   └── invoice-to-cash-reconciliation
+│   ├── pricing-and-commercial-conditions
+│   │   ├── price-lists
+│   │   ├── customer-specific-pricing
+│   │   ├── quantity-breaks
+│   │   ├── promotions
+│   │   ├── contract-prices
+│   │   ├── rebates-and-accruals
+│   │   ├── freight-charges
+│   │   └── condition-validity
+│   ├── returns-and-refunds
+│   │   ├── return-authorization
+│   │   ├── return-receipt
+│   │   ├── inspection-and-disposition
+│   │   ├── exchange-and-replacement
+│   │   ├── credit-note
+│   │   ├── restocking-charges
+│   │   ├── refund-approval
+│   │   └── return-root-cause
+│   ├── special-sales-scenarios
+│   │   ├── intercompany-sales
+│   │   ├── consignment-sales
+│   │   ├── export-sales
+│   │   ├── kits-and-bundles
+│   │   ├── recurring-orders
+│   │   ├── subscription-handoffs
+│   │   ├── prepayments
+│   │   └── make-to-order-linkage
+│   └── sales-exceptions
+│       ├── pricing-dispute
+│       ├── duplicate-order
+│       ├── blocked-delivery
+│       ├── stock-shortage
+│       ├── shipment-not-invoiced
+│       ├── invoice-rejection
+│       ├── overpayment
+│       └── cancellation-after-shipment
+├── customer-relationship-and-commercial-operations
+│   ├── crm-and-erp-boundaries
+│   │   ├── lead-and-customer-identity
+│   │   ├── opportunity-versus-order
+│   │   ├── account-ownership
+│   │   ├── shared-contact-data
+│   │   ├── crm-to-erp-handoff
+│   │   ├── quote-to-cash-contract
+│   │   ├── source-of-truth-conflicts
+│   │   └── synchronization-status
+│   ├── lead-and-opportunity-management
+│   │   ├── lead-capture
+│   │   ├── qualification
+│   │   ├── pipeline-stages
+│   │   ├── activity-history
+│   │   ├── opportunity-products
+│   │   ├── forecast-categories
+│   │   ├── win-loss-analysis
+│   │   └── handoff-readiness
+│   ├── customer-account-management
+│   │   ├── account-hierarchies
+│   │   ├── customer-segmentation
+│   │   ├── contact-roles
+│   │   ├── account-plans
+│   │   ├── service-preferences
+│   │   ├── credit-information
+│   │   ├── communication-history
+│   │   └── account-blocking
+│   ├── configure-price-quote
+│   │   ├── product-options
+│   │   ├── configuration-rules
+│   │   ├── pricing-constraints
+│   │   ├── discount-approvals
+│   │   ├── quotation-versioning
+│   │   ├── contract-generation
+│   │   ├── erp-order-conversion
+│   │   └── configuration-consistency
+│   ├── contract-and-subscription-operations
+│   │   ├── contract-lifecycle
+│   │   ├── entitlements
+│   │   ├── subscription-activation
+│   │   ├── recurring-billing
+│   │   ├── renewal-management
+│   │   ├── amendments-and-proration
+│   │   ├── suspension-and-termination
+│   │   └── billing-reconciliation
+│   ├── omnichannel-order-capture
+│   │   ├── webstore-orders
+│   │   ├── marketplace-orders
+│   │   ├── point-of-sale
+│   │   ├── b2b-portals
+│   │   ├── sales-agent-orders
+│   │   ├── channel-specific-prices
+│   │   ├── shared-stock-availability
+│   │   └── customer-identity-matching
+│   ├── commercial-performance
+│   │   ├── pipeline-coverage
+│   │   ├── conversion-rate
+│   │   ├── sales-forecast-accuracy
+│   │   ├── customer-retention
+│   │   ├── order-margin
+│   │   ├── customer-lifetime-value-assumptions
+│   │   ├── rebate-liability
+│   │   └── channel-profitability
+│   └── commercial-data-controls
+│       ├── consent-and-contact-preferences
+│       ├── duplicate-customer-prevention
+│       ├── customer-master-approval
+│       ├── marketing-versus-transactional-data
+│       ├── sensitive-data-access
+│       ├── integration-consistency
+│       ├── inaccurate-forecast-review
+│       └── customer-data-retention
+├── demand-supply-and-material-planning
+│   ├── planning-foundations
+│   │   ├── planning-horizons
+│   │   ├── planning-buckets
+│   │   ├── planning-calendars
+│   │   ├── demand-types
+│   │   ├── supply-types
+│   │   ├── planning-policies
+│   │   ├── planning-time-fences
+│   │   └── planning-ownership
+│   ├── demand-planning
+│   │   ├── sales-history-cleansing
+│   │   ├── statistical-forecast-input
+│   │   ├── promotion-effects
+│   │   ├── seasonal-patterns
+│   │   ├── new-product-demand
+│   │   ├── consensus-demand-plan
+│   │   ├── forecast-consumption
+│   │   └── forecast-error-and-bias
+│   ├── sales-and-operations-planning
+│   │   ├── demand-review
+│   │   ├── supply-review
+│   │   ├── capacity-review
+│   │   ├── financial-reconciliation
+│   │   ├── scenario-comparison
+│   │   ├── executive-review
+│   │   ├── approved-operating-plan
+│   │   └── plan-change-governance
+│   ├── master-production-scheduling
+│   │   ├── finished-goods-plan
+│   │   ├── master-schedule-items
+│   │   ├── demand-and-supply-balancing
+│   │   ├── planned-production
+│   │   ├── quantities-and-due-dates
+│   │   ├── freeze-periods
+│   │   ├── schedule-approval
+│   │   └── exception-review
+│   ├── material-requirements-planning
+│   │   ├── bill-of-material-explosion
+│   │   ├── gross-requirements
+│   │   ├── netting-available-stock
+│   │   ├── lead-time-offsetting
+│   │   ├── lot-sizing
+│   │   ├── safety-stock
+│   │   ├── planned-orders
+│   │   └── rescheduling-messages
+│   ├── capacity-and-resource-planning
+│   │   ├── resource-calendars
+│   │   ├── finite-and-infinite-capacity
+│   │   ├── rough-cut-capacity
+│   │   ├── bottleneck-resources
+│   │   ├── setup-times
+│   │   ├── shift-patterns
+│   │   ├── subcontract-capacity
+│   │   └── capacity-load-review
+│   ├── replenishment-policies
+│   │   ├── reorder-point
+│   │   ├── min-max
+│   │   ├── replenishment-cycles
+│   │   ├── economic-order-quantity-assumptions
+│   │   ├── lot-for-lot
+│   │   ├── fixed-lot-sizes
+│   │   ├── minimum-order-quantities
+│   │   └── supplier-lead-times
+│   ├── multi-site-and-network-planning
+│   │   ├── distribution-requirements-planning
+│   │   ├── transfer-lead-times
+│   │   ├── supply-sourcing-rules
+│   │   ├── network-stock-balancing
+│   │   ├── inter-site-demand
+│   │   ├── transport-constraints
+│   │   ├── planning-sequence
+│   │   └── multi-echelon-tradeoffs
+│   ├── planning-execution-handoff
+│   │   ├── planned-to-firm-orders
+│   │   ├── purchase-requisition-generation
+│   │   ├── production-order-generation
+│   │   ├── transfer-order-generation
+│   │   ├── planner-approval
+│   │   ├── exception-prioritization
+│   │   ├── execution-feedback
+│   │   └── plan-versus-actual
+│   └── planning-exceptions
+│       ├── missing-bom
+│       ├── outdated-lead-time
+│       ├── unrealistic-capacity
+│       ├── double-counted-demand
+│       ├── late-supplier-order
+│       ├── excess-proposal
+│       ├── material-shortage
+│       └── unstable-rescheduling
+├── manufacturing-and-production-execution
+│   ├── manufacturing-models
+│   │   ├── make-to-stock
+│   │   ├── make-to-order
+│   │   ├── assemble-to-order
+│   │   ├── engineer-to-order
+│   │   ├── discrete-manufacturing
+│   │   ├── process-manufacturing
+│   │   ├── repetitive-manufacturing
+│   │   └── mixed-mode-operations
+│   ├── production-master-data
+│   │   ├── production-bom
+│   │   ├── recipes
+│   │   ├── routings
+│   │   ├── operations
+│   │   ├── work-centers
+│   │   ├── resources
+│   │   ├── production-versions
+│   │   └── standard-times
+│   ├── production-order-lifecycle
+│   │   ├── order-creation
+│   │   ├── order-cost-estimate
+│   │   ├── availability-check
+│   │   ├── release
+│   │   ├── dispatch
+│   │   ├── execution-confirmation
+│   │   ├── receipt-and-settlement
+│   │   └── order-closure
+│   ├── material-staging-and-consumption
+│   │   ├── material-picking
+│   │   ├── staging-locations
+│   │   ├── manual-consumption
+│   │   ├── backflush-consumption
+│   │   ├── substitutions
+│   │   ├── lot-selection
+│   │   ├── component-return
+│   │   └── actual-versus-planned-usage
+│   ├── shop-floor-execution
+│   │   ├── operation-start-and-stop
+│   │   ├── labor-recording
+│   │   ├── machine-time
+│   │   ├── yield-confirmation
+│   │   ├── scrap-recording
+│   │   ├── rework-routing
+│   │   ├── downtime-capture
+│   │   └── production-supervision
+│   ├── production-quality
+│   │   ├── in-process-inspection
+│   │   ├── sampling-and-results
+│   │   ├── nonconformance-handling
+│   │   ├── hold-and-release
+│   │   ├── finished-goods-inspection
+│   │   ├── traceability-labeling
+│   │   ├── quality-disposition
+│   │   └── production-quality-feedback
+│   ├── process-and-complex-manufacturing
+│   │   ├── batch-sizing
+│   │   ├── potency-and-concentration
+│   │   ├── formula-scaling
+│   │   ├── co-products
+│   │   ├── by-products
+│   │   ├── split-and-merge-batches
+│   │   ├── campaign-planning
+│   │   └── batch-genealogy
+│   ├── subcontract-manufacturing
+│   │   ├── supplier-operations
+│   │   ├── component-dispatch
+│   │   ├── supplier-stock-tracking
+│   │   ├── service-confirmation
+│   │   ├── subcontract-receipt
+│   │   ├── yield-and-scrap-reconciliation
+│   │   ├── subcontract-cost
+│   │   └── settlement-and-returns
+│   ├── production-accounting
+│   │   ├── work-in-progress
+│   │   ├── material-cost
+│   │   ├── labor-and-machine-cost
+│   │   ├── overhead-absorption
+│   │   ├── production-variance
+│   │   ├── finished-goods-valuation
+│   │   ├── order-settlement
+│   │   └── production-to-ledger-reconciliation
+│   ├── mes-and-equipment-integration
+│   │   ├── work-order-dispatch
+│   │   ├── operation-status
+│   │   ├── material-consumption-events
+│   │   ├── production-counts
+│   │   ├── quality-results
+│   │   ├── equipment-downtime
+│   │   ├── event-deduplication
+│   │   └── erp-mes-reconciliation
+│   └── manufacturing-exceptions
+│       ├── component-shortage
+│       ├── incorrect-bom
+│       ├── failed-backflush
+│       ├── overproduction
+│       ├── scrap-over-tolerance
+│       ├── missing-confirmation
+│       ├── closed-order-posting
+│       └── incomplete-settlement
+├── product-lifecycle-and-engineering
+│   ├── product-lifecycle
+│   │   ├── idea-and-requirements
+│   │   ├── concept-development
+│   │   ├── design-validation
+│   │   ├── production-release
+│   │   ├── service-life
+│   │   ├── product-retirement
+│   │   ├── lifecycle-status
+│   │   └── ownership-handoffs
+│   ├── product-definition
+│   │   ├── product-families
+│   │   ├── variants-and-options
+│   │   ├── specifications
+│   │   ├── drawings
+│   │   ├── documents
+│   │   ├── product-structures
+│   │   ├── item-revisions
+│   │   └── engineering-attributes
+│   ├── bill-of-material-management
+│   │   ├── engineering-bom
+│   │   ├── manufacturing-bom
+│   │   ├── service-bom
+│   │   ├── multilevel-structures
+│   │   ├── alternate-components
+│   │   ├── phantom-assemblies
+│   │   ├── effective-dates
+│   │   └── revision-comparison
+│   ├── engineering-change
+│   │   ├── change-request
+│   │   ├── impact-analysis
+│   │   ├── change-order
+│   │   ├── approval-workflow
+│   │   ├── release-and-effectivity
+│   │   ├── production-order-impact
+│   │   ├── inventory-disposition
+│   │   └── change-traceability
+│   ├── product-configuration
+│   │   ├── option-models
+│   │   ├── compatibility-rules
+│   │   ├── configuration-validation
+│   │   ├── configure-to-order
+│   │   ├── variant-generation
+│   │   ├── cost-and-price-derivation
+│   │   ├── configuration-baselines
+│   │   └── downstream-consistency
+│   ├── engineering-collaboration
+│   │   ├── cad-integration
+│   │   ├── plm-integration
+│   │   ├── supplier-design-data
+│   │   ├── document-versioning
+│   │   ├── review-and-signoff
+│   │   ├── intellectual-property-access
+│   │   ├── design-to-manufacturing-handoff
+│   │   └── service-feedback
+│   ├── product-cost-and-compliance
+│   │   ├── target-costing
+│   │   ├── cost-rollup
+│   │   ├── material-compliance-data
+│   │   ├── restricted-substances-declarations
+│   │   ├── product-certification-records
+│   │   ├── packaging-and-label-data
+│   │   ├── sustainability-source-data
+│   │   └── compliance-review-ownership
+│   └── engineering-exceptions
+│       ├── unreleased-revision
+│       ├── obsolete-component
+│       ├── conflicting-effectivity
+│       ├── incorrect-unit
+│       ├── bom-cycle
+│       ├── missing-routing
+│       ├── stale-drawing
+│       └── unapproved-change
+├── quality-management-and-traceability
+│   ├── quality-foundations
+│   │   ├── quality-planning
+│   │   ├── quality-assurance
+│   │   ├── quality-control
+│   │   ├── quality-cost
+│   │   ├── risk-based-inspection
+│   │   ├── quality-roles
+│   │   ├── acceptance-criteria
+│   │   └── evidence-and-records
+│   ├── quality-master-data
+│   │   ├── inspection-characteristics
+│   │   ├── inspection-methods
+│   │   ├── specifications
+│   │   ├── sampling-plans
+│   │   ├── inspection-plans
+│   │   ├── equipment-calibration
+│   │   ├── defect-codes
+│   │   └── disposition-codes
+│   ├── inspection-execution
+│   │   ├── incoming-inspection
+│   │   ├── in-process-inspection
+│   │   ├── final-inspection
+│   │   ├── inspection-lot-creation
+│   │   ├── sample-selection
+│   │   ├── result-recording
+│   │   ├── acceptance-decision
+│   │   └── stock-release-or-block
+│   ├── nonconformance-management
+│   │   ├── defect-capture
+│   │   ├── containment
+│   │   ├── root-cause-analysis
+│   │   ├── correction
+│   │   ├── corrective-action
+│   │   ├── preventive-action
+│   │   ├── effectiveness-check
+│   │   └── closure-approval
+│   ├── supplier-and-customer-quality
+│   │   ├── supplier-quality-agreements
+│   │   ├── incoming-defects
+│   │   ├── supplier-claims
+│   │   ├── customer-complaints
+│   │   ├── return-analysis
+│   │   ├── supplier-audits
+│   │   ├── corrective-action-requests
+│   │   └── quality-scorecards
+│   ├── traceability
+│   │   ├── lot-and-serial-genealogy
+│   │   ├── component-to-finished-product
+│   │   ├── supplier-to-customer-chain
+│   │   ├── split-and-merge-tracking
+│   │   ├── rework-traceability
+│   │   ├── chain-of-custody
+│   │   ├── recall-scope
+│   │   └── audit-drilldown
+│   ├── recall-management
+│   │   ├── recall-trigger
+│   │   ├── affected-stock-identification
+│   │   ├── affected-customer-identification
+│   │   ├── quarantine
+│   │   ├── customer-and-supplier-notification
+│   │   ├── return-and-disposition
+│   │   ├── recall-reconciliation
+│   │   └── closure-evidence
+│   ├── quality-measurement
+│   │   ├── defect-rate
+│   │   ├── first-pass-yield
+│   │   ├── scrap-rate
+│   │   ├── rework-cost
+│   │   ├── inspection-cycle-time
+│   │   ├── supplier-defect-trends
+│   │   ├── process-capability-boundaries
+│   │   └── quality-dashboard
+│   └── quality-exceptions
+│       ├── missing-inspection
+│       ├── expired-calibration
+│       ├── out-of-specification-result
+│       ├── unauthorized-release
+│       ├── lost-lot-trace
+│       ├── incorrect-sampling
+│       ├── unclosed-corrective-action
+│       └── recall-quantity-gap
+├── assets-maintenance-and-reliability
+│   ├── asset-management-foundations
+│   │   ├── physical-and-financial-assets
+│   │   ├── asset-hierarchy
+│   │   ├── functional-locations
+│   │   ├── criticality
+│   │   ├── equipment-ownership
+│   │   ├── maintenance-responsibility
+│   │   ├── lifecycle-cost
+│   │   └── asset-register
+│   ├── asset-onboarding
+│   │   ├── investment-request
+│   │   ├── acquisition
+│   │   ├── installation
+│   │   ├── commissioning
+│   │   ├── warranty-registration
+│   │   ├── technical-specifications
+│   │   ├── spare-parts-list
+│   │   └── asset-to-ledger-link
+│   ├── maintenance-strategies
+│   │   ├── reactive-maintenance
+│   │   ├── preventive-maintenance
+│   │   ├── condition-based-maintenance
+│   │   ├── predictive-maintenance
+│   │   ├── reliability-centered-maintenance
+│   │   ├── statutory-inspection-planning
+│   │   ├── maintenance-intervals
+│   │   └── strategy-selection
+│   ├── maintenance-order-lifecycle
+│   │   ├── fault-notification
+│   │   ├── triage
+│   │   ├── work-order-planning
+│   │   ├── resource-scheduling
+│   │   ├── permit-and-safety-check
+│   │   ├── execution-confirmation
+│   │   ├── technical-completion
+│   │   └── financial-settlement
+│   ├── maintenance-resources
+│   │   ├── technician-skills
+│   │   ├── maintenance-crews
+│   │   ├── spare-parts
+│   │   ├── tools
+│   │   ├── external-services
+│   │   ├── equipment-availability
+│   │   ├── work-calendars
+│   │   └── shutdown-windows
+│   ├── maintenance-execution
+│   │   ├── inspection-checklists
+│   │   ├── meter-readings
+│   │   ├── time-recording
+│   │   ├── material-issue
+│   │   ├── measurement-results
+│   │   ├── failure-codes
+│   │   ├── repair-history
+│   │   └── service-acceptance
+│   ├── reliability-and-cost
+│   │   ├── mean-time-between-failures
+│   │   ├── mean-time-to-repair
+│   │   ├── equipment-availability
+│   │   ├── maintenance-backlog
+│   │   ├── planned-maintenance-ratio
+│   │   ├── downtime-cost
+│   │   ├── cost-by-asset
+│   │   └── repair-versus-replace-analysis
+│   ├── asset-changes
+│   │   ├── asset-transfer
+│   │   ├── refurbishment
+│   │   ├── component-replacement
+│   │   ├── asset-modification
+│   │   ├── retirement
+│   │   ├── disposal
+│   │   ├── financial-asset-adjustment
+│   │   └── maintenance-history-retention
+│   └── maintenance-exceptions
+│       ├── emergency-breakdown
+│       ├── spare-part-shortage
+│       ├── overdue-inspection
+│       ├── missing-safety-approval
+│       ├── duplicate-work-order
+│       ├── incorrect-meter-reading
+│       ├── unconfirmed-work
+│       └── unsettled-maintenance-cost
+├── service-and-after-sales-management
+│   ├── service-foundations
+│   │   ├── service-products
+│   │   ├── installed-base
+│   │   ├── customer-equipment
+│   │   ├── warranties
+│   │   ├── service-contracts
+│   │   ├── entitlements
+│   │   ├── service-levels
+│   │   └── service-organization
+│   ├── case-and-request-management
+│   │   ├── request-intake
+│   │   ├── categorization
+│   │   ├── prioritization
+│   │   ├── entitlement-validation
+│   │   ├── assignment
+│   │   ├── customer-communication
+│   │   ├── escalation
+│   │   └── resolution-and-closure
+│   ├── service-order-planning
+│   │   ├── work-scope
+│   │   ├── service-quotation
+│   │   ├── parts-requirements
+│   │   ├── technician-requirements
+│   │   ├── scheduling
+│   │   ├── dispatch
+│   │   ├── subcontract-service
+│   │   └── approval-and-release
+│   ├── field-service-execution
+│   │   ├── mobile-work-orders
+│   │   ├── travel-and-arrival
+│   │   ├── job-checklists
+│   │   ├── time-entry
+│   │   ├── parts-consumption
+│   │   ├── customer-signature
+│   │   ├── offline-synchronization
+│   │   └── service-completion
+│   ├── repair-and-depot-service
+│   │   ├── return-authorization
+│   │   ├── equipment-receipt
+│   │   ├── fault-diagnosis
+│   │   ├── repair-estimate
+│   │   ├── repair-or-replace
+│   │   ├── testing-and-quality
+│   │   ├── return-shipment
+│   │   └── repair-history
+│   ├── warranty-and-contract-claims
+│   │   ├── coverage-check
+│   │   ├── claim-submission
+│   │   ├── proof-of-purchase
+│   │   ├── warranty-cost
+│   │   ├── supplier-recovery
+│   │   ├── rejected-claims
+│   │   ├── policy-exceptions
+│   │   └── claim-settlement
+│   ├── service-billing
+│   │   ├── time-and-materials
+│   │   ├── fixed-price-service
+│   │   ├── contract-inclusion
+│   │   ├── recurring-service-charges
+│   │   ├── expense-recovery
+│   │   ├── billable-versus-nonbillable
+│   │   ├── service-invoice
+│   │   └── revenue-reconciliation
+│   └── service-performance-and-exceptions
+│       ├── first-time-fix-rate
+│       ├── response-and-resolution-time
+│       ├── technician-utilization
+│       ├── repeat-visits
+│       ├── missing-parts
+│       ├── disputed-charges
+│       ├── expired-entitlement
+│       └── customer-feedback
+├── projects-and-professional-services
+│   ├── project-foundations
+│   │   ├── internal-and-customer-projects
+│   │   ├── project-lifecycle
+│   │   ├── project-sponsorship
+│   │   ├── work-breakdown-structure
+│   │   ├── tasks-and-milestones
+│   │   ├── deliverables
+│   │   ├── project-organizations
+│   │   └── project-financial-controls
+│   ├── project-commercial-setup
+│   │   ├── statement-of-work
+│   │   ├── contract-type
+│   │   ├── fixed-price-contract
+│   │   ├── time-and-material-contract
+│   │   ├── milestone-contract
+│   │   ├── billing-schedules
+│   │   ├── acceptance-criteria
+│   │   └── change-order-terms
+│   ├── project-planning
+│   │   ├── scope-baseline
+│   │   ├── task-dependencies
+│   │   ├── effort-estimates
+│   │   ├── resource-plan
+│   │   ├── schedule-baseline
+│   │   ├── budget-baseline
+│   │   ├── risk-register
+│   │   └── project-approvals
+│   ├── resource-management
+│   │   ├── skill-profiles
+│   │   ├── resource-requests
+│   │   ├── capacity-and-availability
+│   │   ├── staffing-approval
+│   │   ├── assignments
+│   │   ├── utilization
+│   │   ├── planned-versus-actual-effort
+│   │   └── resource-release
+│   ├── project-execution
+│   │   ├── time-entry
+│   │   ├── expense-entry
+│   │   ├── project-procurement
+│   │   ├── material-consumption
+│   │   ├── deliverable-progress
+│   │   ├── milestone-acceptance
+│   │   ├── change-control
+│   │   └── issue-management
+│   ├── project-accounting
+│   │   ├── cost-collection
+│   │   ├── committed-cost
+│   │   ├── work-in-progress
+│   │   ├── capitalization
+│   │   ├── billable-transactions
+│   │   ├── billing-and-revenue
+│   │   ├── cost-reallocation
+│   │   └── project-to-ledger-reconciliation
+│   ├── project-performance
+│   │   ├── budget-versus-actual
+│   │   ├── estimate-to-complete
+│   │   ├── estimate-at-completion
+│   │   ├── earned-value-concepts
+│   │   ├── margin-forecast
+│   │   ├── schedule-variance
+│   │   ├── resource-productivity
+│   │   └── scope-change-impact
+│   ├── project-closeout
+│   │   ├── deliverable-signoff
+│   │   ├── final-billing
+│   │   ├── open-commitment-close
+│   │   ├── cost-settlement
+│   │   ├── asset-handover
+│   │   ├── document-archive
+│   │   ├── lessons-learned
+│   │   └── financial-close
+│   └── project-exceptions
+│       ├── unapproved-timesheet
+│       ├── missing-project-dimension
+│       ├── over-budget-procurement
+│       ├── unbillable-cost
+│       ├── delayed-acceptance
+│       ├── incorrect-billing-rate
+│       ├── revenue-cost-mismatch
+│       └── unclosed-project-balance
+├── human-resources-time-and-payroll
+│   ├── hr-and-erp-boundaries
+│   │   ├── hcm-system-of-record
+│   │   ├── employee-financial-dimensions
+│   │   ├── workforce-to-cost-link
+│   │   ├── payroll-system-boundaries
+│   │   ├── employee-self-service
+│   │   ├── confidentiality
+│   │   ├── role-separation
+│   │   └── jurisdiction-specific-rules
+│   ├── workforce-master-data
+│   │   ├── employee-record
+│   │   ├── employment-contract
+│   │   ├── job-and-position
+│   │   ├── organization-assignment
+│   │   ├── compensation-components
+│   │   ├── bank-and-payment-data
+│   │   ├── tax-and-benefit-data
+│   │   └── effective-dated-changes
+│   ├── hire-and-onboard
+│   │   ├── approved-headcount
+│   │   ├── recruitment-handoff
+│   │   ├── employment-approval
+│   │   ├── onboarding-tasks
+│   │   ├── account-provisioning
+│   │   ├── equipment-assignment
+│   │   ├── payroll-enrollment
+│   │   └── policy-acknowledgment
+│   ├── time-and-attendance
+│   │   ├── work-schedules
+│   │   ├── shifts
+│   │   ├── clock-in-and-clock-out
+│   │   ├── overtime
+│   │   ├── absence-and-leave
+│   │   ├── time-approval
+│   │   ├── project-time-allocation
+│   │   └── payroll-input-validation
+│   ├── payroll-processing
+│   │   ├── pay-periods
+│   │   ├── payroll-inputs
+│   │   ├── gross-to-net-concepts
+│   │   ├── earnings-and-deductions
+│   │   ├── employer-contributions
+│   │   ├── retroactive-adjustments
+│   │   ├── payroll-review
+│   │   └── payslip-generation
+│   ├── payroll-accounting-and-payment
+│   │   ├── cost-distribution
+│   │   ├── payroll-journals
+│   │   ├── liability-accounts
+│   │   ├── payment-file-preparation
+│   │   ├── payment-approval
+│   │   ├── payroll-to-ledger-reconciliation
+│   │   ├── statutory-output-handoff
+│   │   └── bank-confirmation
+│   ├── employee-expenses-and-benefits
+│   │   ├── expense-policies
+│   │   ├── expense-reports
+│   │   ├── receipt-validation
+│   │   ├── advances
+│   │   ├── reimbursement-approval
+│   │   ├── travel-handoffs
+│   │   ├── benefit-enrollment
+│   │   └── expense-audit
+│   ├── workforce-changes-and-exit
+│   │   ├── transfer
+│   │   ├── promotion
+│   │   ├── compensation-change
+│   │   ├── leave-of-absence
+│   │   ├── off-cycle-payment
+│   │   ├── final-settlement
+│   │   ├── asset-return
+│   │   └── access-revocation
+│   └── hr-controls-and-exceptions
+│       ├── sensitive-data-access
+│       ├── payroll-change-review
+│       ├── duplicate-employee
+│       ├── missing-time-input
+│       ├── incorrect-cost-allocation
+│       ├── bank-detail-mismatch
+│       ├── payroll-variance-check
+│       └── localized-compliance-validation
+├── multi-entity-global-and-localized-operations
+│   ├── multi-company-design
+│   │   ├── group-structure
+│   │   ├── shared-services
+│   │   ├── shared-master-data
+│   │   ├── separate-books
+│   │   ├── cross-company-access
+│   │   ├── common-chart-of-accounts
+│   │   ├── local-extensions
+│   │   └── global-template-governance
+│   ├── intercompany-transactions
+│   │   ├── intercompany-sales
+│   │   ├── intercompany-purchases
+│   │   ├── stock-transfers
+│   │   ├── service-charges
+│   │   ├── cross-company-projects
+│   │   ├── intercompany-loans
+│   │   ├── settlement-cycles
+│   │   └── transfer-price-policy-inputs
+│   ├── intercompany-reconciliation
+│   │   ├── counterparty-matching
+│   │   ├── paired-document-references
+│   │   ├── timing-differences
+│   │   ├── currency-differences
+│   │   ├── quantity-differences
+│   │   ├── markup-differences
+│   │   ├── dispute-resolution
+│   │   └── balance-confirmation
+│   ├── multicurrency
+│   │   ├── transaction-currency
+│   │   ├── functional-currency
+│   │   ├── reporting-currency
+│   │   ├── exchange-rate-sources
+│   │   ├── rate-types
+│   │   ├── realized-differences
+│   │   ├── unrealized-revaluation
+│   │   └── rounding-differences
+│   ├── consolidation-boundary
+│   │   ├── erp-and-consolidation-system
+│   │   ├── ownership-structures
+│   │   ├── reporting-packages
+│   │   ├── account-mapping
+│   │   ├── currency-translation
+│   │   ├── intercompany-elimination
+│   │   ├── consolidation-adjustments
+│   │   └── close-calendar-coordination
+│   ├── localization-design
+│   │   ├── country-requirements-register
+│   │   ├── local-chart-mapping
+│   │   ├── tax-engine-integration
+│   │   ├── statutory-reporting
+│   │   ├── electronic-invoicing
+│   │   ├── payment-formats
+│   │   ├── language-and-address-formats
+│   │   └── local-expert-validation
+│   ├── vietnam-localization-lab
+│   │   ├── vietnamese-language-and-unicode
+│   │   ├── local-entity-and-currency-setup
+│   │   ├── invoice-provider-interface
+│   │   ├── tax-code-mapping-review
+│   │   ├── statutory-report-output-review
+│   │   ├── payroll-localization-boundaries
+│   │   ├── source-and-effective-date-register
+│   │   └── sandbox-compliance-tests
+│   ├── global-rollout
+│   │   ├── template-versus-local-gap
+│   │   ├── rollout-waves
+│   │   ├── local-data-preparation
+│   │   ├── country-test-packs
+│   │   ├── time-zone-coordination
+│   │   ├── local-training
+│   │   ├── regulatory-change-review
+│   │   └── local-support-handoff
+│   └── cross-border-exceptions
+│       ├── unmatched-intercompany-invoice
+│       ├── missing-exchange-rate
+│       ├── inconsistent-tax-treatment
+│       ├── unsupported-local-format
+│       ├── duplicate-electronic-invoice
+│       ├── delayed-country-close
+│       ├── translation-gap
+│       └── conflicting-local-requirements
+├── industry-specific-processes
+│   ├── trading-and-wholesale
+│   │   ├── supplier-catalogs
+│   │   ├── bulk-ordering
+│   │   ├── multi-warehouse-stock
+│   │   ├── customer-price-agreements
+│   │   ├── landed-costs
+│   │   ├── rebates
+│   │   ├── delivery-routes
+│   │   └── margin-and-credit-control
+│   ├── retail-and-ecommerce
+│   │   ├── point-of-sale
+│   │   ├── online-order-capture
+│   │   ├── promotions
+│   │   ├── store-replenishment
+│   │   ├── stock-visibility
+│   │   ├── payment-settlement
+│   │   ├── omnichannel-returns
+│   │   └── channel-reconciliation
+│   ├── discrete-manufacturing
+│   │   ├── engineering-bom
+│   │   ├── multilevel-assembly
+│   │   ├── serial-traceability
+│   │   ├── make-to-order
+│   │   ├── component-shortages
+│   │   ├── subcontract-operations
+│   │   ├── warranty-tracking
+│   │   └── production-variance
+│   ├── process-manufacturing
+│   │   ├── recipes
+│   │   ├── batch-sizing
+│   │   ├── potency-management
+│   │   ├── co-products
+│   │   ├── yield-variation
+│   │   ├── batch-quality
+│   │   ├── expiry-management
+│   │   └── formula-versioning
+│   ├── food-and-beverage
+│   │   ├── shelf-life
+│   │   ├── cold-chain-data
+│   │   ├── lot-genealogy
+│   │   ├── catch-weight
+│   │   ├── allergen-master-data
+│   │   ├── recall-workflows
+│   │   ├── production-yield
+│   │   └── regulatory-evidence
+│   ├── pharmaceutical-and-medical-supply
+│   │   ├── batch-status
+│   │   ├── controlled-documentation
+│   │   ├── validation-evidence
+│   │   ├── serialized-products
+│   │   ├── quality-release
+│   │   ├── distribution-traceability
+│   │   ├── expiry-and-recall
+│   │   └── restricted-access
+│   ├── construction-and-engineering
+│   │   ├── project-estimates
+│   │   ├── site-procurement
+│   │   ├── subcontractor-progress
+│   │   ├── retention-amounts
+│   │   ├── change-orders
+│   │   ├── equipment-charges
+│   │   ├── progress-billing
+│   │   └── project-cash-flow
+│   ├── professional-services
+│   │   ├── resource-planning
+│   │   ├── time-and-expense
+│   │   ├── utilization
+│   │   ├── project-billing
+│   │   ├── milestone-acceptance
+│   │   ├── subcontractor-cost
+│   │   ├── project-margin
+│   │   └── contract-renewal
+│   ├── asset-intensive-business
+│   │   ├── asset-register
+│   │   ├── maintenance-strategies
+│   │   ├── spare-part-availability
+│   │   ├── shutdown-planning
+│   │   ├── equipment-metering
+│   │   ├── reliability-analysis
+│   │   ├── work-permits
+│   │   └── lifecycle-cost
+│   ├── public-sector-and-nonprofit
+│   │   ├── fund-accounting-boundaries
+│   │   ├── grants-and-restrictions
+│   │   ├── budgetary-control
+│   │   ├── procurement-transparency
+│   │   ├── donor-and-funder-reporting
+│   │   ├── program-costing
+│   │   ├── audit-evidence
+│   │   └── approval-governance
+│   └── industry-solution-assessment
+│       ├── standard-capability-fit
+│       ├── specialist-system-boundaries
+│       ├── regulated-data-needs
+│       ├── industry-addons
+│       ├── integration-dependencies
+│       ├── partner-expertise
+│       ├── representative-demo-scenarios
+│       └── lifecycle-cost-and-upgrade-risk
+├── analytics-reporting-and-decision-support
+│   ├── reporting-foundations
+│   │   ├── operational-versus-analytical-reporting
+│   │   ├── transactions-versus-snapshots
+│   │   ├── business-grain
+│   │   ├── dimensions-and-measures
+│   │   ├── reporting-time-cutoffs
+│   │   ├── data-freshness
+│   │   ├── metric-ownership
+│   │   └── trusted-source-selection
+│   ├── operational-reports
+│   │   ├── open-purchase-orders
+│   │   ├── outstanding-sales-orders
+│   │   ├── stock-availability
+│   │   ├── shortages-and-backorders
+│   │   ├── production-progress
+│   │   ├── overdue-receivables
+│   │   ├── payables-due
+│   │   └── approval-backlogs
+│   ├── financial-and-management-reporting
+│   │   ├── trial-balance
+│   │   ├── financial-statements
+│   │   ├── budget-versus-actual
+│   │   ├── cash-position
+│   │   ├── profitability
+│   │   ├── cost-center-results
+│   │   ├── intercompany-balances
+│   │   └── close-progress
+│   ├── analytical-data-model
+│   │   ├── fact-and-dimension-design
+│   │   ├── document-header-and-line-grain
+│   │   ├── conformed-dimensions
+│   │   ├── slowly-changing-dimensions
+│   │   ├── currency-conversion
+│   │   ├── snapshot-facts
+│   │   ├── semantic-layer
+│   │   └── ledger-to-report-lineage
+│   ├── erp-data-extraction
+│   │   ├── supported-reporting-apis
+│   │   ├── read-only-views
+│   │   ├── governed-exports
+│   │   ├── incremental-extracts
+│   │   ├── change-data-capture-boundaries
+│   │   ├── extraction-watermarks
+│   │   ├── row-level-access
+│   │   └── operational-load-protection
+│   ├── dashboard-design
+│   │   ├── audience-and-decisions
+│   │   ├── kpi-definition
+│   │   ├── exception-first-layout
+│   │   ├── drilldown-and-drillthrough
+│   │   ├── filters-and-periods
+│   │   ├── accessible-visuals
+│   │   ├── actionable-thresholds
+│   │   └── ownership-and-refresh
+│   ├── report-validation
+│   │   ├── control-totals
+│   │   ├── duplicate-row-detection
+│   │   ├── join-cardinality
+│   │   ├── date-filter-consistency
+│   │   ├── currency-consistency
+│   │   ├── organization-scope
+│   │   ├── subledger-and-gl-agreement
+│   │   └── signoff-evidence
+│   ├── business-performance
+│   │   ├── inventory-turnover
+│   │   ├── order-fill-rate
+│   │   ├── supplier-delivery-performance
+│   │   ├── production-yield
+│   │   ├── gross-margin
+│   │   ├── cash-conversion-cycle
+│   │   ├── service-resolution-time
+│   │   └── project-utilization
+│   └── reporting-exceptions
+│       ├── stale-data
+│       ├── inconsistent-kpis
+│       ├── unauthorized-data-exposure
+│       ├── missing-dimensions
+│       ├── duplicate-joins
+│       ├── late-postings
+│       ├── unmatched-source-totals
+│       └── misleading-aggregation
+├── architecture-platform-and-environment-design
+│   ├── erp-architecture
+│   │   ├── presentation-layer
+│   │   ├── application-services
+│   │   ├── business-rules
+│   │   ├── transaction-engine
+│   │   ├── persistence-layer
+│   │   ├── reporting-layer
+│   │   ├── integration-layer
+│   │   └── background-processing
+│   ├── deployment-models
+│   │   ├── on-premises
+│   │   ├── hosted-private-cloud
+│   │   ├── public-saas
+│   │   ├── hybrid-landscape
+│   │   ├── single-tenant
+│   │   ├── multi-tenant
+│   │   ├── managed-service
+│   │   └── shared-responsibility
+│   ├── landscape-planning
+│   │   ├── development-environment
+│   │   ├── configuration-sandbox
+│   │   ├── integration-test
+│   │   ├── user-acceptance-test
+│   │   ├── training-environment
+│   │   ├── production
+│   │   ├── disaster-recovery
+│   │   └── environment-refresh
+│   ├── enterprise-architecture
+│   │   ├── business-capability-map
+│   │   ├── application-portfolio
+│   │   ├── system-of-record-matrix
+│   │   ├── bounded-contexts
+│   │   ├── integration-topology
+│   │   ├── shared-services
+│   │   ├── platform-dependencies
+│   │   └── architecture-decisions
+│   ├── nonfunctional-requirements
+│   │   ├── availability
+│   │   ├── response-time
+│   │   ├── throughput
+│   │   ├── batch-windows
+│   │   ├── concurrency
+│   │   ├── scalability
+│   │   ├── data-residency
+│   │   └── recovery-objectives
+│   ├── transaction-and-storage-design
+│   │   ├── database-transactions
+│   │   ├── concurrency-control
+│   │   ├── referential-integrity
+│   │   ├── posting-atomicity
+│   │   ├── document-indexing
+│   │   ├── retention-and-archiving
+│   │   ├── attachment-storage
+│   │   └── audit-log-storage
+│   ├── infrastructure-readiness
+│   │   ├── identity-provider
+│   │   ├── network-connectivity
+│   │   ├── dns-and-certificates
+│   │   ├── connectivity-to-banks
+│   │   ├── printers-and-scanners
+│   │   ├── endpoint-security
+│   │   ├── capacity-planning
+│   │   └── monitoring-access
+│   ├── resilience-and-recovery
+│   │   ├── backup-policy
+│   │   ├── restore-validation
+│   │   ├── recovery-point-objective
+│   │   ├── recovery-time-objective
+│   │   ├── failover-design
+│   │   ├── disaster-recovery-drills
+│   │   ├── dependency-recovery
+│   │   └── business-continuity-procedures
+│   ├── cloud-service-boundaries
+│   │   ├── service-level-agreements
+│   │   ├── planned-maintenance
+│   │   ├── release-cadence
+│   │   ├── extension-restrictions
+│   │   ├── data-export-rights
+│   │   ├── tenant-isolation
+│   │   ├── capacity-and-api-quotas
+│   │   └── exit-and-portability-plan
+│   └── architecture-exceptions
+│       ├── single-point-of-failure
+│       ├── unsupported-direct-database-write
+│       ├── environment-drift
+│       ├── untested-restores
+│       ├── excessive-customization
+│       ├── integration-sprawl
+│       ├── uncontrolled-data-copies
+│       └── obsolete-dependencies
+├── integration-apis-and-interoperability
+│   ├── integration-foundations
+│   │   ├── system-boundaries
+│   │   ├── authoritative-data
+│   │   ├── integration-ownership
+│   │   ├── business-events
+│   │   ├── canonical-versus-native-models
+│   │   ├── interface-contracts
+│   │   ├── service-levels
+│   │   └── failure-responsibility
+│   ├── integration-patterns
+│   │   ├── synchronous
+│   │   │   ├── request-response
+│   │   │   ├── validation-before-posting
+│   │   │   ├── timeout-handling
+│   │   │   ├── circuit-breaker
+│   │   │   ├── correlation-identifiers
+│   │   │   ├── duplicate-request-control
+│   │   │   └── compensation-boundaries
+│   │   ├── asynchronous
+│   │   │   ├── event-publication
+│   │   │   ├── message-brokers
+│   │   │   ├── durable-queues
+│   │   │   ├── ordering-and-partitioning
+│   │   │   ├── at-least-once-delivery
+│   │   │   ├── deduplication
+│   │   │   └── outbox-and-inbox-patterns
+│   │   └── batch-and-files
+│   │       ├── scheduled-extracts
+│   │       ├── delimited-files
+│   │       ├── xml-and-json
+│   │       ├── secure-file-transfer
+│   │       ├── file-manifests
+│   │       ├── checksums
+│   │       └── acknowledgments
+│   ├── api-design-and-security
+│   │   ├── rest-and-odata
+│   │   ├── soap-and-legacy-services
+│   │   ├── authentication-and-authorization
+│   │   ├── scopes-and-service-accounts
+│   │   ├── pagination-and-filtering
+│   │   ├── rate-limits
+│   │   ├── schema-versioning
+│   │   └── secret-rotation
+│   ├── business-system-integrations
+│   │   ├── crm-to-erp
+│   │   ├── ecommerce-to-erp
+│   │   ├── pos-to-erp
+│   │   ├── wms-and-3pl
+│   │   ├── mes-and-shop-floor
+│   │   ├── payroll-and-hcm
+│   │   ├── banks-and-payment-providers
+│   │   └── tax-and-invoice-providers
+│   ├── b2b-and-edi
+│   │   ├── partner-onboarding
+│   │   ├── partner-identifiers
+│   │   ├── purchase-order-messages
+│   │   ├── order-acknowledgments
+│   │   ├── shipment-notices
+│   │   ├── invoice-messages
+│   │   ├── message-mapping
+│   │   └── partner-reconciliation
+│   ├── mapping-and-transformation
+│   │   ├── identifier-crosswalks
+│   │   ├── unit-conversions
+│   │   ├── currency-and-precision
+│   │   ├── date-and-time-zone-mapping
+│   │   ├── code-list-mapping
+│   │   ├── required-field-validation
+│   │   ├── schema-evolution
+│   │   └── business-rule-validation
+│   ├── reliability-and-recovery
+│   │   ├── idempotency-keys
+│   │   ├── retries-and-backoff
+│   │   ├── dead-letter-queues
+│   │   ├── replay-safety
+│   │   ├── partial-failure-handling
+│   │   ├── compensating-transactions
+│   │   ├── reconciliation-jobs
+│   │   └── duplicate-financial-posting-prevention
+│   ├── integration-observability
+│   │   ├── message-status
+│   │   ├── correlation-and-tracing
+│   │   ├── processing-latency
+│   │   ├── error-classification
+│   │   ├── backlog-monitoring
+│   │   ├── business-control-totals
+│   │   ├── alert-routing
+│   │   └── support-dashboards
+│   └── integration-testing
+│       ├── contract-tests
+│       ├── schema-validation
+│       ├── representative-payloads
+│       ├── out-of-order-messages
+│       ├── duplicate-delivery
+│       ├── partner-downtime
+│       ├── authorization-failures
+│       └── end-to-end-reconciliation
+├── configuration-extensibility-and-development
+│   ├── solution-change-types
+│   │   ├── standard-functionality
+│   │   ├── configuration
+│   │   ├── personalization
+│   │   ├── low-code-extension
+│   │   ├── custom-module
+│   │   ├── external-extension
+│   │   ├── integration
+│   │   └── process-change
+│   ├── configuration-foundations
+│   │   ├── organization-settings
+│   │   ├── document-types
+│   │   ├── number-ranges
+│   │   ├── account-determination
+│   │   ├── pricing-rules
+│   │   ├── tolerance-rules
+│   │   ├── scheduling-parameters
+│   │   └── status-profiles
+│   ├── configuration-lifecycle
+│   │   ├── configuration-workbook
+│   │   ├── dependency-order
+│   │   ├── sandbox-validation
+│   │   ├── peer-review
+│   │   ├── version-history
+│   │   ├── transport-or-package
+│   │   ├── promotion-approval
+│   │   └── production-readback
+│   ├── fit-to-standard-and-fit-gap
+│   │   ├── standard-process-demonstration
+│   │   ├── requirement-fit
+│   │   ├── gap-classification
+│   │   ├── workaround-assessment
+│   │   ├── configuration-first
+│   │   ├── extension-justification
+│   │   ├── supportability-review
+│   │   └── decision-signoff
+│   ├── extension-architecture
+│   │   ├── extension-points
+│   │   ├── supported-apis
+│   │   ├── event-hooks
+│   │   ├── custom-fields
+│   │   ├── custom-entities
+│   │   ├── side-by-side-services
+│   │   ├── clean-core-principles
+│   │   └── upgrade-compatibility
+│   ├── functional-specification
+│   │   ├── business-context
+│   │   ├── process-flow
+│   │   ├── field-and-rule-catalog
+│   │   ├── input-and-output-contract
+│   │   ├── acceptance-criteria
+│   │   ├── authorization-rules
+│   │   ├── exception-behavior
+│   │   └── reporting-and-audit-needs
+│   ├── technical-implementation
+│   │   ├── domain-model
+│   │   ├── validation-rules
+│   │   ├── transaction-boundaries
+│   │   ├── posting-service-reuse
+│   │   ├── authorization-checks
+│   │   ├── integration-adapters
+│   │   ├── migration-scripts
+│   │   └── instrumentation
+│   ├── user-interface-and-output
+│   │   ├── forms-and-pages
+│   │   ├── list-views
+│   │   ├── role-based-workspaces
+│   │   ├── accessible-interactions
+│   │   ├── report-layouts
+│   │   ├── document-templates
+│   │   ├── barcode-labels
+│   │   └── localization-and-translations
+│   ├── development-quality
+│   │   ├── source-control
+│   │   ├── code-review
+│   │   ├── automated-tests
+│   │   ├── static-analysis
+│   │   ├── dependency-management
+│   │   ├── build-pipeline
+│   │   ├── deployment-packages
+│   │   └── rollback-and-feature-switches
+│   └── customization-risk-management
+│       ├── direct-core-modification
+│       ├── unsupported-database-access
+│       ├── hardcoded-business-rules
+│       ├── duplicated-master-data
+│       ├── bypassed-approval
+│       ├── unstable-ui-automation
+│       ├── performance-regression
+│       └── upgrade-remediation
+├── workflow-automation-and-ai
+│   ├── workflow-foundations
+│   │   ├── business-trigger
+│   │   ├── workflow-instance
+│   │   ├── state-transitions
+│   │   ├── approval-tasks
+│   │   ├── decision-conditions
+│   │   ├── task-ownership
+│   │   ├── completion-criteria
+│   │   └── audit-record
+│   ├── approval-design
+│   │   ├── approval-matrix
+│   │   ├── monetary-thresholds
+│   │   ├── organizational-routing
+│   │   ├── sequential-and-parallel-approval
+│   │   ├── delegation
+│   │   ├── escalation
+│   │   ├── rejection-and-resubmission
+│   │   └── self-approval-prevention
+│   ├── rules-and-decision-automation
+│   │   ├── decision-tables
+│   │   ├── effective-dated-rules
+│   │   ├── rule-priority
+│   │   ├── exception-routing
+│   │   ├── validation-rules
+│   │   ├── simulation-and-test-cases
+│   │   ├── policy-versioning
+│   │   └── human-override
+│   ├── business-process-automation
+│   │   ├── scheduled-jobs
+│   │   ├── document-generation
+│   │   ├── notifications
+│   │   ├── task-creation
+│   │   ├── data-validation
+│   │   ├── reconciliation-assistance
+│   │   ├── document-distribution
+│   │   └── failure-recovery
+│   ├── robotic-process-automation
+│   │   ├── appropriate-use-cases
+│   │   ├── api-first-alternatives
+│   │   ├── attended-and-unattended-bots
+│   │   ├── credential-vaults
+│   │   ├── ui-change-risk
+│   │   ├── duplicate-prevention
+│   │   ├── exception-queues
+│   │   └── bot-run-evidence
+│   ├── ai-assisted-use-cases
+│   │   ├── invoice-data-extraction
+│   │   ├── document-classification
+│   │   ├── demand-forecast-assistance
+│   │   ├── anomaly-detection
+│   │   ├── knowledge-search
+│   │   ├── draft-communications
+│   │   ├── master-data-suggestions
+│   │   └── reconciliation-candidates
+│   ├── ai-grounding-and-evaluation
+│   │   ├── approved-data-sources
+│   │   ├── user-permission-filtering
+│   │   ├── source-provenance
+│   │   ├── factual-validation
+│   │   ├── confidence-and-abstention
+│   │   ├── representative-evaluation-set
+│   │   ├── business-error-cost
+│   │   └── monitoring-and-feedback
+│   ├── safe-action-boundaries
+│   │   ├── read-only-default
+│   │   ├── draft-versus-post
+│   │   ├── human-approval-for-posting
+│   │   ├── payment-execution-separation
+│   │   ├── tool-allowlists
+│   │   ├── transaction-limits
+│   │   ├── prompt-injection-defense
+│   │   └── irreversible-action-review
+│   └── automation-governance
+│       ├── process-owner-approval
+│       ├── test-before-enable
+│       ├── release-versioning
+│       ├── bot-and-agent-identities
+│       ├── auditability
+│       ├── fail-safe-routing
+│       ├── manual-fallback
+│       └── value-and-risk-review
+├── security-internal-controls-and-audit
+│   ├── identity-and-access
+│   │   ├── single-sign-on
+│   │   ├── multifactor-authentication
+│   │   ├── identity-lifecycle
+│   │   ├── role-based-access
+│   │   ├── attribute-based-restrictions
+│   │   ├── service-identities
+│   │   ├── emergency-access
+│   │   └── periodic-access-review
+│   ├── authorization-design
+│   │   ├── business-roles
+│   │   ├── task-permissions
+│   │   ├── company-level-access
+│   │   ├── warehouse-level-access
+│   │   ├── financial-dimension-access
+│   │   ├── field-level-protection
+│   │   ├── report-and-export-access
+│   │   └── authorization-negative-tests
+│   ├── segregation-of-duties
+│   │   ├── supplier-create-versus-pay
+│   │   ├── purchase-versus-receipt
+│   │   ├── invoice-versus-payment
+│   │   ├── journal-create-versus-approve
+│   │   ├── payroll-change-versus-release
+│   │   ├── user-admin-versus-audit
+│   │   ├── conflict-detection
+│   │   └── mitigating-controls
+│   ├── transaction-controls
+│   │   ├── approval-limits
+│   │   ├── duplicate-document-controls
+│   │   ├── posting-period-locks
+│   │   ├── budget-checks
+│   │   ├── credit-checks
+│   │   ├── matching-tolerances
+│   │   ├── bank-change-verification
+│   │   └── sensitive-change-alerts
+│   ├── audit-and-evidence
+│   │   ├── transaction-audit-trail
+│   │   ├── master-data-change-log
+│   │   ├── configuration-change-log
+│   │   ├── privileged-access-log
+│   │   ├── approval-evidence
+│   │   ├── evidence-chain
+│   │   ├── record-retention
+│   │   └── auditor-read-only-access
+│   ├── data-protection
+│   │   ├── classification
+│   │   ├── encryption-in-transit
+│   │   ├── encryption-at-rest
+│   │   ├── masking-and-tokenization
+│   │   ├── nonproduction-data-protection
+│   │   ├── export-controls
+│   │   ├── data-minimization
+│   │   └── retention-and-deletion-workflows
+│   ├── application-and-integration-security
+│   │   ├── input-validation
+│   │   ├── injection-prevention
+│   │   ├── secure-file-uploads
+│   │   ├── api-authorization
+│   │   ├── secret-management
+│   │   ├── patch-and-vulnerability-management
+│   │   ├── dependency-risk
+│   │   └── boundary-testing
+│   ├── fraud-and-control-monitoring
+│   │   ├── duplicate-supplier-patterns
+│   │   ├── suspicious-bank-changes
+│   │   ├── split-order-patterns
+│   │   ├── duplicate-invoices
+│   │   ├── unusual-journals
+│   │   ├── inventory-adjustment-anomalies
+│   │   ├── approval-bypass-alerts
+│   │   └── investigation-escalation
+│   └── control-assurance
+│       ├── risk-control-matrix
+│       ├── control-design-review
+│       ├── operating-effectiveness-test
+│       ├── evidence-sampling
+│       ├── findings-and-remediation
+│       ├── compensating-control-review
+│       ├── external-audit-coordination
+│       └── management-signoff
+├── erp-selection-and-business-case
+│   ├── business-readiness
+│   │   ├── strategic-drivers
+│   │   ├── current-pain-points
+│   │   ├── process-maturity
+│   │   ├── data-readiness
+│   │   ├── internal-capacity
+│   │   ├── executive-sponsorship
+│   │   ├── change-readiness
+│   │   └── decision-governance
+│   ├── scope-and-requirements
+│   │   ├── must-have-capabilities
+│   │   ├── industry-requirements
+│   │   ├── country-requirements
+│   │   ├── organization-scale
+│   │   ├── transaction-volume
+│   │   ├── integration-needs
+│   │   ├── reporting-needs
+│   │   └── nonfunctional-needs
+│   ├── solution-market-assessment
+│   │   ├── suite-versus-best-of-breed
+│   │   ├── enterprise-versus-smb
+│   │   ├── cloud-versus-on-premises
+│   │   ├── open-source-versus-proprietary
+│   │   ├── product-edition
+│   │   ├── partner-ecosystem
+│   │   ├── localization-coverage
+│   │   └── lifecycle-and-roadmap
+│   ├── procurement-and-evaluation
+│   │   ├── request-for-information
+│   │   ├── request-for-proposal
+│   │   ├── scenario-based-demos
+│   │   ├── weighted-scorecard
+│   │   ├── reference-checks
+│   │   ├── proof-of-concept
+│   │   ├── gap-validation
+│   │   └── independent-evidence
+│   ├── business-case
+│   │   ├── baseline-costs
+│   │   ├── expected-benefits
+│   │   ├── benefit-owners
+│   │   ├── measurable-outcomes
+│   │   ├── cash-flow-timing
+│   │   ├── scenario-assumptions
+│   │   ├── sensitivity-analysis
+│   │   └── benefits-realization-plan
+│   ├── total-cost-of-ownership
+│   │   ├── subscription-or-license
+│   │   ├── implementation-services
+│   │   ├── integrations
+│   │   ├── data-cleaning
+│   │   ├── customization
+│   │   ├── infrastructure-and-operations
+│   │   ├── training-and-adoption
+│   │   └── upgrades-and-exit
+│   ├── partner-selection
+│   │   ├── industry-experience
+│   │   ├── functional-expertise
+│   │   ├── technical-expertise
+│   │   ├── local-delivery-capacity
+│   │   ├── staffing-transparency
+│   │   ├── reference-projects
+│   │   ├── support-model
+│   │   └── knowledge-transfer-commitment
+│   ├── contract-and-delivery-boundaries
+│   │   ├── scope-and-deliverables
+│   │   ├── acceptance-criteria
+│   │   ├── change-request-mechanism
+│   │   ├── customer-responsibilities
+│   │   ├── service-levels
+│   │   ├── data-ownership
+│   │   ├── commercial-review
+│   │   └── legal-review
+│   └── selection-risks
+│       ├── demo-without-real-scenarios
+│       ├── underestimated-data-work
+│       ├── hidden-addons
+│       ├── unsupported-customizations
+│       ├── vendor-lock-in
+│       ├── unrealistic-timeline
+│       ├── benefit-overstatement
+│       └── weak-process-ownership
+├── implementation-and-solution-delivery
+│   ├── implementation-strategy
+│   │   ├── greenfield
+│   │   ├── reimplementation
+│   │   ├── migration-and-conversion
+│   │   ├── phased-rollout
+│   │   ├── big-bang
+│   │   ├── two-tier-erp
+│   │   ├── pilot-first
+│   │   └── global-template-rollout
+│   ├── project-initiation
+│   │   ├── project-charter
+│   │   ├── scope-baseline
+│   │   ├── sponsor-and-governance
+│   │   ├── workstream-structure
+│   │   ├── delivery-method
+│   │   ├── resource-plan
+│   │   ├── milestone-plan
+│   │   └── risk-register
+│   ├── discovery-and-design
+│   │   ├── requirements-workshops
+│   │   ├── fit-to-standard-sessions
+│   │   ├── process-blueprint
+│   │   ├── enterprise-structure-design
+│   │   ├── data-design
+│   │   ├── integration-design
+│   │   ├── security-design
+│   │   └── reporting-design
+│   ├── build-and-configuration
+│   │   ├── configuration-backlog
+│   │   ├── standard-scenario-setup
+│   │   ├── extension-build
+│   │   ├── interface-build
+│   │   ├── workflow-build
+│   │   ├── report-build
+│   │   ├── technical-documentation
+│   │   └── configuration-review
+│   ├── iterative-validation
+│   │   ├── conference-room-pilot
+│   │   ├── business-scenario-demo
+│   │   ├── feedback-triage
+│   │   ├── gap-resolution
+│   │   ├── integrated-prototype
+│   │   ├── design-decision-review
+│   │   ├── acceptance-refinement
+│   │   └── readiness-checkpoints
+│   ├── project-controls
+│   │   ├── scope-control
+│   │   ├── dependency-management
+│   │   ├── milestone-tracking
+│   │   ├── issue-management
+│   │   ├── risk-management
+│   │   ├── budget-control
+│   │   ├── decision-log
+│   │   └── steering-committee-reporting
+│   ├── delivery-artifacts
+│   │   ├── process-design-documents
+│   │   ├── configuration-workbooks
+│   │   ├── functional-specifications
+│   │   ├── technical-specifications
+│   │   ├── interface-catalog
+│   │   ├── data-mapping-workbooks
+│   │   ├── test-packs
+│   │   └── operational-runbooks
+│   ├── workstream-coordination
+│   │   ├── finance-and-logistics-alignment
+│   │   ├── data-and-process-dependencies
+│   │   ├── partner-system-readiness
+│   │   ├── testing-and-migration-sequencing
+│   │   ├── training-and-release-alignment
+│   │   ├── environment-booking
+│   │   ├── defect-ownership
+│   │   └── handoff-acceptance
+│   └── implementation-failure-patterns
+│       ├── unclear-business-ownership
+│       ├── excessive-customization
+│       ├── late-data-cleaning
+│       ├── weak-integration-design
+│       ├── insufficient-user-testing
+│       ├── missing-change-management
+│       ├── optimistic-cutover-plan
+│       └── unready-support-team
+├── data-migration-and-opening-balances
+│   ├── migration-strategy
+│   │   ├── migration-scope
+│   │   ├── cutover-date
+│   │   ├── data-history-policy
+│   │   ├── master-versus-transaction-data
+│   │   ├── open-item-strategy
+│   │   ├── historical-archive
+│   │   ├── authoritative-source
+│   │   └── business-ownership
+│   ├── source-discovery
+│   │   ├── source-system-inventory
+│   │   ├── table-and-export-inventory
+│   │   ├── data-profiling
+│   │   ├── legacy-code-lists
+│   │   ├── duplicate-records
+│   │   ├── missing-references
+│   │   ├── data-volume
+│   │   └── sensitive-data-identification
+│   ├── mapping-and-transformation
+│   │   ├── source-to-target-mapping
+│   │   ├── field-defaults
+│   │   ├── business-key-crosswalks
+│   │   ├── account-mapping
+│   │   ├── organizational-mapping
+│   │   ├── unit-and-currency-conversion
+│   │   ├── date-and-status-mapping
+│   │   └── transformation-approval
+│   ├── data-cleansing
+│   │   ├── duplicate-merging
+│   │   ├── inactive-record-review
+│   │   ├── mandatory-field-enrichment
+│   │   ├── address-standardization
+│   │   ├── bank-detail-verification
+│   │   ├── invalid-code-remediation
+│   │   ├── broken-reference-fixes
+│   │   └── business-signoff
+│   ├── load-sequencing
+│   │   ├── organization-and-configuration
+│   │   ├── reference-data
+│   │   ├── chart-of-accounts
+│   │   ├── business-partners
+│   │   ├── products-and-resources
+│   │   ├── bills-and-routings
+│   │   ├── open-documents
+│   │   └── balances-and-reconciliation
+│   ├── financial-opening-balances
+│   │   ├── trial-balance
+│   │   ├── receivables-open-items
+│   │   ├── payables-open-items
+│   │   ├── bank-and-cash-balances
+│   │   ├── fixed-assets-and-depreciation
+│   │   ├── customer-and-supplier-advances
+│   │   ├── intercompany-balances
+│   │   └── opening-clearing-accounts
+│   ├── operational-opening-data
+│   │   ├── stock-quantity-and-value
+│   │   ├── lots-and-serials
+│   │   ├── reserved-stock
+│   │   ├── open-purchase-orders
+│   │   ├── open-sales-orders
+│   │   ├── open-production-orders
+│   │   ├── work-in-progress
+│   │   └── open-projects-and-service-orders
+│   ├── migration-tooling
+│   │   ├── supported-import-templates
+│   │   ├── migration-apis
+│   │   ├── staging-tables
+│   │   ├── transformation-scripts
+│   │   ├── validation-rules
+│   │   ├── batch-control
+│   │   ├── error-files
+│   │   └── restart-and-resume
+│   ├── reconciliation
+│   │   ├── record-counts
+│   │   ├── control-totals
+│   │   ├── document-balances
+│   │   ├── stock-quantity-and-value
+│   │   ├── subledger-to-ledger-agreement
+│   │   ├── lot-and-serial-completeness
+│   │   ├── open-order-residuals
+│   │   └── reconciliation-signoff
+│   ├── mock-migrations
+│   │   ├── trial-load
+│   │   ├── representative-volume
+│   │   ├── load-duration
+│   │   ├── defect-log
+│   │   ├── cleansing-feedback
+│   │   ├── repeatability
+│   │   ├── delta-extraction
+│   │   └── cutover-window-validation
+│   └── migration-control-and-recovery
+│       ├── freeze-and-extract
+│       ├── export-integrity
+│       ├── approval-before-load
+│       ├── rollback-boundaries
+│       ├── corrected-reload
+│       ├── duplicate-prevention
+│       ├── audit-traceability
+│       └── historical-access-preservation
+├── testing-and-business-validation
+│   ├── test-strategy
+│   │   ├── business-risk-coverage
+│   │   ├── scope-and-priorities
+│   │   ├── test-levels
+│   │   ├── environments-and-roles
+│   │   ├── entry-and-exit-criteria
+│   │   ├── test-data-strategy
+│   │   ├── evidence-standards
+│   │   └── acceptance-authority
+│   ├── functional-testing
+│   │   ├── configuration-tests
+│   │   ├── master-data-tests
+│   │   ├── transaction-tests
+│   │   ├── posting-tests
+│   │   ├── pricing-and-tax-tests
+│   │   ├── workflow-tests
+│   │   ├── report-tests
+│   │   └── authorization-tests
+│   ├── end-to-end-testing
+│   │   ├── source-to-pay
+│   │   ├── order-to-cash
+│   │   ├── plan-to-produce
+│   │   ├── record-to-report
+│   │   ├── acquire-to-dispose
+│   │   ├── project-to-profit
+│   │   ├── service-to-cash
+│   │   └── hire-to-retire
+│   ├── integration-testing
+│   │   ├── contract-tests
+│   │   ├── data-mapping-tests
+│   │   ├── retry-and-duplicate-tests
+│   │   ├── partial-failure-tests
+│   │   ├── external-outage-tests
+│   │   ├── sequence-and-timing-tests
+│   │   ├── volume-tests
+│   │   └── reconciliation-tests
+│   ├── financial-and-inventory-validation
+│   │   ├── expected-journal-entries
+│   │   ├── expected-stock-movements
+│   │   ├── account-and-dimension-checks
+│   │   ├── quantity-and-value-checks
+│   │   ├── receipt-invoice-matching
+│   │   ├── period-cutoff-tests
+│   │   ├── currency-and-rounding-tests
+│   │   └── reversal-and-return-tests
+│   ├── user-acceptance-testing
+│   │   ├── business-owned-scenarios
+│   │   ├── realistic-job-roles
+│   │   ├── migrated-data
+│   │   ├── representative-exceptions
+│   │   ├── daily-workflow-rehearsal
+│   │   ├── user-feedback
+│   │   ├── defect-resolution
+│   │   └── acceptance-signoff
+│   ├── nonfunctional-testing
+│   │   ├── peak-load
+│   │   ├── response-times
+│   │   ├── batch-window
+│   │   ├── capacity-and-growth
+│   │   ├── recovery-tests
+│   │   ├── security-tests
+│   │   ├── usability-tests
+│   │   └── device-and-print-tests
+│   ├── regression-and-automation
+│   │   ├── critical-process-regression
+│   │   ├── stable-test-data
+│   │   ├── api-level-tests
+│   │   ├── ui-smoke-tests
+│   │   ├── test-fixtures
+│   │   ├── automated-reconciliation
+│   │   ├── pipeline-integration
+│   │   └── flaky-test-management
+│   ├── negative-and-boundary-testing
+│   │   ├── missing-mandatory-data
+│   │   ├── invalid-status-transition
+│   │   ├── exceeded-tolerance
+│   │   ├── duplicate-posting
+│   │   ├── unauthorized-approval
+│   │   ├── insufficient-stock
+│   │   ├── closed-period
+│   │   └── concurrent-edits
+│   └── defect-management
+│       ├── reproduction-steps
+│       ├── severity-versus-priority
+│       ├── evidence-attachment
+│       ├── root-cause-classification
+│       ├── ownership-assignment
+│       ├── fix-verification
+│       ├── regression-check
+│       └── closure-and-deferred-risk
+├── cutover-go-live-and-hypercare
+│   ├── cutover-strategy
+│   │   ├── business-cutover-boundary
+│   │   ├── phased-versus-single-switch
+│   │   ├── cutover-window
+│   │   ├── coexistence-policy
+│   │   ├── transaction-freeze
+│   │   ├── decision-authority
+│   │   ├── rollback-feasibility
+│   │   └── business-continuity
+│   ├── cutover-planning
+│   │   ├── task-sequence
+│   │   ├── dependency-network
+│   │   ├── task-owner
+│   │   ├── execution-duration
+│   │   ├── verification-step
+│   │   ├── communication-plan
+│   │   ├── support-roster
+│   │   └── contingency-buffer
+│   ├── readiness-gates
+│   │   ├── scope-acceptance
+│   │   ├── uat-signoff
+│   │   ├── migration-signoff
+│   │   ├── security-readiness
+│   │   ├── integration-readiness
+│   │   ├── user-training-completion
+│   │   ├── operations-readiness
+│   │   └── go-no-go-decision
+│   ├── cutover-rehearsal
+│   │   ├── mock-cutover
+│   │   ├── timing-measurement
+│   │   ├── dependency-check
+│   │   ├── data-load-rehearsal
+│   │   ├── interface-switch-rehearsal
+│   │   ├── business-smoke-tests
+│   │   ├── rollback-rehearsal
+│   │   └── runbook-improvement
+│   ├── production-preparation
+│   │   ├── configuration-deployment
+│   │   ├── user-and-role-provisioning
+│   │   ├── reference-data-load
+│   │   ├── certificate-and-endpoint-check
+│   │   ├── scheduled-jobs
+│   │   ├── printer-and-device-validation
+│   │   ├── monitoring-enablement
+│   │   └── backup-and-restore-check
+│   ├── final-data-transition
+│   │   ├── legacy-freeze
+│   │   ├── final-extract
+│   │   ├── delta-load
+│   │   ├── open-items-and-balances
+│   │   ├── quantity-and-value-reconciliation
+│   │   ├── business-owner-approval
+│   │   ├── integration-queue-release
+│   │   └── legacy-read-only-access
+│   ├── go-live-execution
+│   │   ├── command-center
+│   │   ├── status-checkpoints
+│   │   ├── issue-triage
+│   │   ├── interface-activation
+│   │   ├── first-purchase
+│   │   ├── first-sale
+│   │   ├── first-receipt
+│   │   └── first-financial-close-check
+│   ├── hypercare
+│   │   ├── extended-support
+│   │   ├── daily-process-health
+│   │   ├── exception-backlog
+│   │   ├── incident-prioritization
+│   │   ├── user-coaching
+│   │   ├── reconciliation-monitoring
+│   │   ├── stabilization-kpis
+│   │   └── ownership-handover
+│   └── cutover-recovery
+│       ├── stop-and-assess
+│       ├── failure-scope
+│       ├── containment
+│       ├── transaction-compensation
+│       ├── restore-decision
+│       ├── external-system-reconciliation
+│       ├── stakeholder-notification
+│       └── restart-approval
+├── operations-support-and-continuous-improvement
+│   ├── support-operating-model
+│   │   ├── service-desk
+│   │   ├── key-user-network
+│   │   ├── functional-support
+│   │   ├── technical-support
+│   │   ├── platform-support
+│   │   ├── vendor-support
+│   │   ├── escalation-matrix
+│   │   └── service-levels
+│   ├── incident-management
+│   │   ├── ticket-intake
+│   │   ├── business-impact-assessment
+│   │   ├── prioritization
+│   │   ├── diagnostic-evidence
+│   │   ├── reproduction
+│   │   ├── workaround
+│   │   ├── resolution
+│   │   └── verification-and-closure
+│   ├── functional-diagnostics
+│   │   ├── master-data-error
+│   │   ├── configuration-error
+│   │   ├── process-sequence-error
+│   │   ├── transaction-status-error
+│   │   ├── authorization-error
+│   │   ├── user-input-error
+│   │   ├── accounting-policy-mismatch
+│   │   └── integration-data-error
+│   ├── technical-diagnostics
+│   │   ├── application-logs
+│   │   ├── background-job-logs
+│   │   ├── interface-monitor
+│   │   ├── database-locks
+│   │   ├── resource-capacity
+│   │   ├── authentication-failures
+│   │   ├── connectivity-and-certificates
+│   │   └── change-correlation
+│   ├── transaction-recovery
+│   │   ├── approved-reversal
+│   │   ├── safe-reprocessing
+│   │   ├── idempotent-replay
+│   │   ├── queue-release
+│   │   ├── controlled-master-data-correction
+│   │   ├── supported-repair-tools
+│   │   ├── financial-reconciliation
+│   │   └── recovery-evidence
+│   ├── scheduled-and-periodic-operations
+│   │   ├── daily-job-monitoring
+│   │   ├── interface-reconciliation
+│   │   ├── payment-run-checks
+│   │   ├── stock-integrity-checks
+│   │   ├── period-end-support
+│   │   ├── archival-jobs
+│   │   ├── access-review
+│   │   └── backup-validation
+│   ├── problem-management
+│   │   ├── recurring-incident-analysis
+│   │   ├── root-cause-investigation
+│   │   ├── known-error-register
+│   │   ├── permanent-fix
+│   │   ├── prioritization
+│   │   ├── preventive-actions
+│   │   ├── knowledge-base-update
+│   │   └── effectiveness-review
+│   ├── release-and-upgrade-management
+│   │   ├── release-notes
+│   │   ├── impact-assessment
+│   │   ├── sandbox-upgrade
+│   │   ├── addon-compatibility
+│   │   ├── regression-tests
+│   │   ├── business-acceptance
+│   │   ├── deployment-window
+│   │   └── rollback-plan
+│   ├── continuity-and-resilience
+│   │   ├── business-impact-analysis
+│   │   ├── critical-process-fallback
+│   │   ├── manual-transaction-capture
+│   │   ├── restoration-priorities
+│   │   ├── disaster-recovery-exercise
+│   │   ├── post-restore-reconciliation
+│   │   ├── communication-drill
+│   │   └── resilience-improvements
+│   ├── continuous-improvement
+│   │   ├── adoption-metrics
+│   │   ├── process-bottlenecks
+│   │   ├── control-weaknesses
+│   │   ├── enhancement-backlog
+│   │   ├── benefit-measurement
+│   │   ├── automation-opportunities
+│   │   ├── simplification-and-retirement
+│   │   └── improvement-governance
+│   └── support-evidence-and-handover
+│       ├── support-runbooks
+│       ├── configuration-baseline
+│       ├── interface-catalog
+│       ├── job-calendar
+│       ├── escalation-contacts
+│       ├── access-procedures
+│       ├── known-limitations
+│       └── support-acceptance
+├── change-management-training-and-adoption
+│   ├── change-foundations
+│   │   ├── stakeholder-impact
+│   │   ├── operating-model-change
+│   │   ├── role-and-responsibility-change
+│   │   ├── process-change
+│   │   ├── behavior-change
+│   │   ├── adoption-risks
+│   │   ├── leadership-sponsorship
+│   │   └── change-ownership
+│   ├── stakeholder-engagement
+│   │   ├── stakeholder-mapping
+│   │   ├── sponsor-coalition
+│   │   ├── process-champions
+│   │   ├── key-user-network
+│   │   ├── user-interviews
+│   │   ├── feedback-channels
+│   │   ├── resistance-analysis
+│   │   └── engagement-plan
+│   ├── communication
+│   │   ├── change-narrative
+│   │   ├── audience-segmentation
+│   │   ├── communication-calendar
+│   │   ├── milestone-messages
+│   │   ├── role-specific-impact
+│   │   ├── launch-communications
+│   │   ├── outage-communications
+│   │   └── feedback-response
+│   ├── training-design
+│   │   ├── role-based-curriculum
+│   │   ├── process-before-screens
+│   │   ├── prerequisite-knowledge
+│   │   ├── realistic-scenarios
+│   │   ├── sandbox-exercises
+│   │   ├── job-aids
+│   │   ├── accessible-materials
+│   │   └── localized-content
+│   ├── training-delivery
+│   │   ├── train-the-trainer
+│   │   ├── instructor-led-sessions
+│   │   ├── self-paced-learning
+│   │   ├── task-simulations
+│   │   ├── exception-handling-practice
+│   │   ├── knowledge-checks
+│   │   ├── competency-demonstration
+│   │   └── attendance-and-followup
+│   ├── user-readiness
+│   │   ├── system-access
+│   │   ├── task-competency
+│   │   ├── policy-understanding
+│   │   ├── first-day-checklist
+│   │   ├── manager-confirmation
+│   │   ├── unresolved-questions
+│   │   ├── local-champion-readiness
+│   │   └── readiness-signoff
+│   ├── adoption-measurement
+│   │   ├── active-use
+│   │   ├── process-completion
+│   │   ├── first-pass-accuracy
+│   │   ├── exception-rate
+│   │   ├── shadow-system-use
+│   │   ├── support-demand
+│   │   ├── satisfaction-and-feedback
+│   │   └── benefit-adoption-link
+│   └── post-launch-enablement
+│       ├── floor-support
+│       ├── office-hours
+│       ├── refresher-training
+│       ├── new-hire-onboarding
+│       ├── release-training
+│       ├── knowledge-base-maintenance
+│       ├── feedback-driven-improvements
+│       └── sustained-ownership
+├── platforms-and-practice-environments
+│   ├── platform-evaluation
+│   │   ├── business-process-fit
+│   │   ├── industry-fit
+│   │   ├── company-size-fit
+│   │   ├── deployment-fit
+│   │   ├── localization-fit
+│   │   ├── integration-fit
+│   │   ├── total-cost-and-support
+│   │   └── practice-access-and-license
+│   ├── sap-landscape
+│   │   ├── sap-cloud-erp-and-s4hana
+│   │   ├── sap-business-one
+│   │   ├── business-process-mapping
+│   │   ├── configuration-and-extension-boundaries
+│   │   ├── integration-and-analytics
+│   │   ├── official-learning-systems
+│   │   └── edition-and-scope-validation
+│   ├── oracle-landscape
+│   │   ├── oracle-fusion-cloud-erp
+│   │   ├── financials-and-procurement
+│   │   ├── project-management
+│   │   ├── erp-and-scm-boundaries
+│   │   ├── integration-and-reporting
+│   │   ├── implementation-documentation
+│   │   └── licensed-sandbox-access
+│   ├── netsuite-landscape
+│   │   ├── accounting-and-financials
+│   │   ├── order-and-inventory-management
+│   │   ├── multi-subsidiary-concepts
+│   │   ├── project-and-services-operations
+│   │   ├── suitecloud-extension-boundaries
+│   │   ├── sandbox-and-role-setup
+│   │   └── feature-and-license-verification
+│   ├── microsoft-dynamics-landscape
+│   │   ├── dynamics-365-finance
+│   │   ├── dynamics-365-supply-chain-management
+│   │   ├── dynamics-365-business-central
+│   │   ├── business-process-catalog
+│   │   ├── power-platform-integration
+│   │   ├── extension-and-release-model
+│   │   └── official-training-environments
+│   ├── odoo-landscape
+│   │   ├── sales-purchase-and-inventory
+│   │   ├── accounting-and-manufacturing
+│   │   ├── integrated-business-workflows
+│   │   ├── community-and-enterprise-boundaries
+│   │   ├── localization-and-addon-review
+│   │   ├── configuration-and-module-development
+│   │   └── controlled-training-database
+│   ├── erpnext-landscape
+│   │   ├── company-and-accounting-setup
+│   │   ├── buying-selling-and-stock
+│   │   ├── manufacturing-and-assets
+│   │   ├── role-and-permission-setup
+│   │   ├── opening-balances-and-migration
+│   │   ├── frappe-framework-boundary
+│   │   └── synthetic-company-lab
+│   ├── cross-platform-labs
+│   │   ├── same-business-dataset
+│   │   ├── terminology-crosswalk
+│   │   ├── equivalent-document-chain
+│   │   ├── posting-and-stock-comparison
+│   │   ├── configuration-versus-customization
+│   │   ├── capability-and-license-differences
+│   │   ├── evidence-based-comparison
+│   │   └── portability-lessons
+│   └── practice-environment-management
+│       ├── supported-installation
+│       ├── authorized-demo-access
+│       ├── synthetic-company-data
+│       ├── separate-user-roles
+│       ├── resettable-baselines
+│       ├── backups-and-snapshots
+│       ├── disabled-external-payments
+│       └── lab-evidence-folder
+├── professional-delivery-and-career-paths
+│   ├── role-based-learning-paths
+│   │   ├── business-user
+│   │   ├── key-user
+│   │   ├── business-analyst
+│   │   ├── functional-consultant
+│   │   ├── technical-developer
+│   │   ├── integration-specialist
+│   │   ├── data-migration-specialist
+│   │   ├── erp-administrator
+│   │   └── solution-architect
+│   ├── business-analysis-practice
+│   │   ├── requirements-elicitation
+│   │   ├── process-walkthrough
+│   │   ├── gap-analysis
+│   │   ├── business-rules
+│   │   ├── acceptance-criteria
+│   │   ├── traceability
+│   │   ├── stakeholder-validation
+│   │   └── change-impact-assessment
+│   ├── functional-consulting-practice
+│   │   ├── business-process-depth
+│   │   ├── configuration-design
+│   │   ├── posting-understanding
+│   │   ├── cross-module-dependencies
+│   │   ├── test-scenario-design
+│   │   ├── defect-diagnosis
+│   │   ├── user-training
+│   │   └── solution-documentation
+│   ├── technical-consulting-practice
+│   │   ├── platform-extension
+│   │   ├── integration-development
+│   │   ├── data-modeling
+│   │   ├── report-development
+│   │   ├── automation
+│   │   ├── secure-development
+│   │   ├── deployment-management
+│   │   └── production-diagnostics
+│   ├── consulting-delivery-skills
+│   │   ├── workshop-facilitation
+│   │   ├── active-listening
+│   │   ├── assumption-validation
+│   │   ├── scope-negotiation
+│   │   ├── issue-escalation
+│   │   ├── decision-documentation
+│   │   ├── status-reporting
+│   │   └── professional-handover
+│   ├── portfolio-and-evidence
+│   │   ├── synthetic-company-case
+│   │   ├── process-maps
+│   │   ├── configuration-workbook
+│   │   ├── data-migration-pack
+│   │   ├── test-and-reconciliation-evidence
+│   │   ├── integration-demo
+│   │   ├── support-case-study
+│   │   └── outcome-retrospective
+│   ├── professional-standards
+│   │   ├── authorized-system-access
+│   │   ├── confidentiality
+│   │   ├── customer-data-protection
+│   │   ├── truthful-capability-claims
+│   │   ├── evidence-before-diagnosis
+│   │   ├── conflict-of-interest-awareness
+│   │   ├── knowledge-transfer
+│   │   └── official-documentation-review
+│   └── career-development
+│       ├── domain-specialization
+│       ├── platform-specialization
+│       ├── cross-functional-exposure
+│       ├── practical-assessments
+│       ├── certification-scope-check
+│       ├── project-shadowing
+│       ├── mentoring
+│       └── reflective-practice
+└── practice-projects
+    ├── first-company-and-document-flow
+    │   ├── sandbox-provisioning
+    │   ├── organization-and-calendar-setup
+    │   ├── synthetic-customer-and-supplier
+    │   ├── item-and-account-setup
+    │   ├── first-purchase-and-receipt
+    │   ├── first-sale-and-invoice
+    │   ├── ledger-and-stock-trace
+    │   └── evidence-and-reset
+    ├── source-to-pay-trading-cycle
+    │   ├── supplier-onboarding
+    │   ├── requisition-and-approval
+    │   ├── purchase-order
+    │   ├── partial-receipt
+    │   ├── three-way-invoice-match
+    │   ├── supplier-payment
+    │   ├── stock-and-ledger-reconciliation
+    │   └── price-mismatch-exception
+    ├── service-procurement-and-budget-control
+    │   ├── service-master
+    │   ├── contract-and-budget
+    │   ├── service-requisition
+    │   ├── purchase-approval
+    │   ├── service-acceptance
+    │   ├── invoice-validation
+    │   ├── budget-versus-actual
+    │   └── rejected-service-scenario
+    ├── order-to-cash-with-credit-control
+    │   ├── customer-and-price-setup
+    │   ├── quotation-and-order
+    │   ├── credit-limit-check
+    │   ├── stock-reservation
+    │   ├── partial-delivery
+    │   ├── invoice-and-cash-application
+    │   ├── document-chain-review
+    │   └── credit-block-and-release
+    ├── customer-returns-and-refunds
+    │   ├── original-sales-transaction
+    │   ├── return-authorization
+    │   ├── returned-stock-inspection
+    │   ├── replacement-or-credit
+    │   ├── refund-approval
+    │   ├── inventory-valuation-effects
+    │   ├── receivable-reconciliation
+    │   └── duplicate-return-prevention
+    ├── landed-cost-and-import-receipt
+    │   ├── foreign-currency-purchase
+    │   ├── inbound-receipt
+    │   ├── freight-and-duty-sample-charges
+    │   ├── cost-allocation
+    │   ├── cost-of-goods-sold-impact
+    │   ├── exchange-difference-review
+    │   ├── stock-ledger-reconciliation
+    │   └── approved-adjustment
+    ├── warehouse-barcode-and-cycle-count
+    │   ├── bin-and-location-design
+    │   ├── barcode-labels
+    │   ├── inbound-putaway
+    │   ├── replenishment-and-picking
+    │   ├── shipping-verification
+    │   ├── blind-cycle-count
+    │   ├── approved-variance-posting
+    │   └── scanner-failure-fallback
+    ├── lot-traceability-and-recall
+    │   ├── supplier-lot-receipt
+    │   ├── production-consumption
+    │   ├── finished-goods-lot
+    │   ├── customer-shipment
+    │   ├── genealogy-report
+    │   ├── affected-stock-quarantine
+    │   ├── recall-quantity-reconciliation
+    │   └── evidence-pack
+    ├── demand-planning-and-mrp
+    │   ├── clean-demand-history
+    │   ├── forecast-and-sales-plan
+    │   ├── bom-and-lead-time-setup
+    │   ├── supply-and-stock-baseline
+    │   ├── mrp-run
+    │   ├── planned-order-review
+    │   ├── capacity-and-shortage-check
+    │   └── plan-versus-actual-review
+    ├── make-to-stock-manufacturing
+    │   ├── product-and-bom
+    │   ├── work-center-and-routing
+    │   ├── production-order
+    │   ├── material-staging
+    │   ├── labor-and-yield-confirmation
+    │   ├── finished-goods-receipt
+    │   ├── variance-and-wip-review
+    │   └── shortage-and-scrap-scenario
+    ├── make-to-order-assembly
+    │   ├── customer-configuration
+    │   ├── sales-to-production-link
+    │   ├── component-procurement
+    │   ├── assembly-order
+    │   ├── order-specific-stock
+    │   ├── delivery-and-invoice
+    │   ├── order-profitability
+    │   └── change-after-release
+    ├── subcontract-production
+    │   ├── subcontract-bom
+    │   ├── supplier-component-stock
+    │   ├── component-dispatch
+    │   ├── subcontract-purchase-order
+    │   ├── receipt-and-consumption
+    │   ├── service-invoice
+    │   ├── scrap-and-return
+    │   └── component-balance-reconciliation
+    ├── quality-nonconformance-and-corrective-action
+    │   ├── inspection-plan
+    │   ├── rejected-receipt
+    │   ├── stock-quarantine
+    │   ├── supplier-claim
+    │   ├── root-cause-record
+    │   ├── corrective-action
+    │   ├── verification-and-release
+    │   └── quality-cost-report
+    ├── engineering-change-and-bom-revision
+    │   ├── baseline-product-design
+    │   ├── change-request
+    │   ├── impacted-orders-and-stock
+    │   ├── revision-approval
+    │   ├── effectivity-planning
+    │   ├── production-bom-update
+    │   ├── validation-order
+    │   └── obsolete-component-disposition
+    ├── preventive-maintenance-cycle
+    │   ├── equipment-register
+    │   ├── maintenance-plan
+    │   ├── spare-part-stock
+    │   ├── scheduled-work-order
+    │   ├── technician-and-parts-confirmation
+    │   ├── maintenance-cost-settlement
+    │   ├── overdue-task-escalation
+    │   └── reliability-report
+    ├── asset-acquisition-to-disposal
+    │   ├── investment-approval
+    │   ├── asset-purchase
+    │   ├── capitalization
+    │   ├── depreciation-schedule
+    │   ├── asset-transfer
+    │   ├── maintenance-cost-link
+    │   ├── disposal-transaction
+    │   └── asset-to-ledger-reconciliation
+    ├── field-service-and-warranty
+    │   ├── customer-installed-base
+    │   ├── warranty-entitlement
+    │   ├── service-request
+    │   ├── dispatch-and-parts
+    │   ├── mobile-work-confirmation
+    │   ├── customer-acceptance
+    │   ├── billable-versus-warranty-cost
+    │   └── service-close-and-review
+    ├── project-time-expense-and-billing
+    │   ├── contract-and-wbs
+    │   ├── project-budget
+    │   ├── resource-assignment
+    │   ├── approved-timesheets
+    │   ├── expense-and-procurement
+    │   ├── project-invoice
+    │   ├── cost-and-revenue-reconciliation
+    │   └── project-margin-review
+    ├── workforce-to-payroll-accounting
+    │   ├── synthetic-employee-records
+    │   ├── organization-and-cost-centers
+    │   ├── attendance-and-leave
+    │   ├── approved-payroll-input
+    │   ├── sample-payroll-calculation-boundary
+    │   ├── payroll-journal
+    │   ├── sandbox-payment-file
+    │   └── payroll-reconciliation
+    ├── period-end-financial-close
+    │   ├── close-calendar
+    │   ├── subledger-completion
+    │   ├── bank-reconciliation
+    │   ├── inventory-reconciliation
+    │   ├── accruals-and-depreciation
+    │   ├── currency-revaluation
+    │   ├── balance-sheet-review
+    │   └── close-signoff-and-lock
+    ├── budget-control-and-forecast
+    │   ├── cost-center-budget
+    │   ├── driver-assumptions
+    │   ├── purchase-commitments
+    │   ├── budget-limit-test
+    │   ├── actual-cost-posting
+    │   ├── forecast-revision
+    │   ├── variance-explanation
+    │   └── corrective-action-plan
+    ├── intercompany-trade-and-consolidation-input
+    │   ├── two-company-setup
+    │   ├── intercompany-order-pair
+    │   ├── cross-company-shipment
+    │   ├── reciprocal-invoices
+    │   ├── settlement-reconciliation
+    │   ├── account-and-counterparty-mapping
+    │   ├── elimination-input-pack
+    │   └── timing-difference-resolution
+    ├── multicurrency-and-localization-readiness
+    │   ├── currency-and-rate-setup
+    │   ├── foreign-currency-transactions
+    │   ├── rounding-and-revaluation
+    │   ├── local-requirements-register
+    │   ├── invoice-format-mapping
+    │   ├── sandbox-provider-test
+    │   ├── statutory-output-review
+    │   └── specialist-validation-record
+    ├── subscription-billing-and-renewal
+    │   ├── service-contract
+    │   ├── recurring-charge-schedule
+    │   ├── activation-and-amendment
+    │   ├── sample-proration
+    │   ├── credit-and-adjustment
+    │   ├── revenue-policy-handoff
+    │   ├── renewal-and-termination
+    │   └── billing-reconciliation
+    ├── crm-and-ecommerce-integration
+    │   ├── customer-identity-mapping
+    │   ├── product-and-price-sync
+    │   ├── order-api-contract
+    │   ├── stock-availability-sync
+    │   ├── order-idempotency
+    │   ├── shipment-and-invoice-feedback
+    │   ├── failure-retry-queue
+    │   └── cross-system-reconciliation
+    ├── bank-or-invoice-provider-sandbox
+    │   ├── provider-test-credentials
+    │   ├── message-schema
+    │   ├── secure-file-or-api-transport
+    │   ├── approval-before-send
+    │   ├── test-acknowledgments
+    │   ├── rejection-handling
+    │   ├── duplicate-send-control
+    │   └── reconciliation-and-audit
+    ├── integration-recovery-and-replay-lab
+    │   ├── controlled-message-failure
+    │   ├── duplicate-delivery
+    │   ├── out-of-order-events
+    │   ├── dead-letter-triage
+    │   ├── approved-replay
+    │   ├── partial-posting-check
+    │   ├── business-control-totals
+    │   └── incident-runbook
+    ├── role-matrix-and-segregation-of-duties
+    │   ├── business-role-catalog
+    │   ├── permission-matrix
+    │   ├── conflicting-duty-analysis
+    │   ├── least-privilege-setup
+    │   ├── negative-access-tests
+    │   ├── emergency-access-workflow
+    │   ├── access-review
+    │   └── control-evidence
+    ├── master-data-cleanup-and-migration
+    │   ├── legacy-data-profiling
+    │   ├── duplicate-resolution
+    │   ├── ownership-approval
+    │   ├── field-mapping
+    │   ├── dependency-aware-load
+    │   ├── error-quarantine
+    │   ├── control-total-reconciliation
+    │   └── repeatable-import
+    ├── opening-balances-and-mock-cutover
+    │   ├── legacy-freeze-snapshot
+    │   ├── trial-balance-and-open-items
+    │   ├── stock-and-asset-balances
+    │   ├── migration-sequence
+    │   ├── timed-trial-load
+    │   ├── ledger-and-quantity-validation
+    │   ├── go-no-go-checklist
+    │   └── restore-or-correction-drill
+    ├── erp-dashboard-and-metric-reconciliation
+    │   ├── business-question
+    │   ├── metric-dictionary
+    │   ├── governed-data-extraction
+    │   ├── analytical-grain
+    │   ├── role-based-dashboard
+    │   ├── document-drilldown
+    │   ├── source-control-totals
+    │   └── action-and-ownership-review
+    ├── procurement-approval-extension
+    │   ├── functional-requirement
+    │   ├── supported-extension-point
+    │   ├── approval-thresholds
+    │   ├── role-and-budget-checks
+    │   ├── rejection-and-resubmission
+    │   ├── audit-history
+    │   ├── automated-tests
+    │   └── upgrade-compatibility-review
+    ├── ai-assisted-invoice-review
+    │   ├── synthetic-invoice-input
+    │   ├── document-extraction
+    │   ├── supplier-and-order-matching
+    │   ├── evidence-and-confidence-display
+    │   ├── human-approval-gate
+    │   ├── no-autonomous-payment
+    │   ├── representative-error-tests
+    │   └── audit-and-fallback
+    ├── support-desk-simulation
+    │   ├── ticket-catalog
+    │   ├── business-impact-triage
+    │   ├── role-based-reproduction
+    │   ├── log-and-document-evidence
+    │   ├── root-cause-classification
+    │   ├── approved-fix-or-workaround
+    │   ├── regression-and-reconciliation
+    │   └── knowledge-base-handover
+    ├── cross-platform-erp-comparison
+    │   ├── shared-company-scenario
+    │   ├── comparable-master-data
+    │   ├── purchase-and-sales-cycle
+    │   ├── inventory-and-ledger-results
+    │   ├── permission-comparison
+    │   ├── extension-boundaries
+    │   ├── cost-and-access-assumptions
+    │   └── evidence-based-findings
+    ├── trading-company-capstone
+    │   ├── business-design
+    │   │   ├── company-and-roles
+    │   │   ├── product-and-partner-data
+    │   │   ├── purchase-and-sales-policy
+    │   │   ├── inventory-and-credit-policy
+    │   │   ├── accounting-and-reporting-design
+    │   │   └── control-and-approval-matrix
+    │   ├── process-execution
+    │   │   ├── source-to-pay
+    │   │   ├── order-to-cash
+    │   │   ├── returns-and-refunds
+    │   │   ├── warehouse-and-counting
+    │   │   ├── bank-and-cash-reconciliation
+    │   │   └── period-end-close
+    │   └── exceptions-and-delivery
+    │       ├── supplier-short-delivery
+    │       ├── credit-block
+    │       ├── duplicate-invoice
+    │       ├── stock-discrepancy
+    │       ├── integration-outage
+    │       ├── user-acceptance-evidence
+    │       ├── go-live-rehearsal
+    │       └── support-handover
+    ├── manufacturing-company-capstone
+    │   ├── business-design
+    │   │   ├── organizational-design
+    │   │   ├── product-bom-and-routing
+    │   │   ├── planning-and-costing-policy
+    │   │   ├── quality-and-traceability-policy
+    │   │   ├── maintenance-and-spares
+    │   │   └── accounting-and-security-design
+    │   ├── process-execution
+    │   │   ├── demand-and-mrp
+    │   │   ├── procurement-and-inspection
+    │   │   ├── production-and-confirmation
+    │   │   ├── finished-goods-and-shipping
+    │   │   ├── invoicing-and-collections
+    │   │   ├── maintenance-and-asset-events
+    │   │   └── costing-and-close
+    │   └── exceptions-and-delivery
+    │       ├── component-shortage
+    │       ├── engineering-change
+    │       ├── scrap-and-rework
+    │       ├── quality-hold
+    │       ├── order-cost-variance
+    │       ├── migration-and-cutover-test
+    │       ├── business-reconciliation
+    │       └── final-demo-and-retrospective
+    └── service-company-capstone
+        ├── business-design
+        │   ├── project-and-service-offerings
+        │   ├── customer-contracts
+        │   ├── resource-and-rate-model
+        │   ├── expense-and-procurement-policy
+        │   ├── billing-and-revenue-boundaries
+        │   └── user-roles-and-controls
+        ├── process-execution
+        │   ├── opportunity-to-project
+        │   ├── resource-staffing
+        │   ├── time-and-expense-capture
+        │   ├── service-delivery-and-acceptance
+        │   ├── project-billing
+        │   ├── cash-application
+        │   └── profitability-and-close
+        └── exceptions-and-delivery
+            ├── unapproved-time
+            ├── budget-overrun
+            ├── delayed-acceptance
+            ├── disputed-invoice
+            ├── staffing-conflict
+            ├── automated-regression
+            ├── business-signoff
+            └── operational-handover

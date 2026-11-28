@@ -1,0 +1,2905 @@
+module
+├── foundation
+│   ├── css-overview
+│   │   ├── styling-language-and-web-platform
+│   │   ├── html-css-and-javascript
+│   │   ├── separation-of-content-and-presentation
+│   │   ├── declarative-styling
+│   │   ├── browser-and-document-contexts
+│   │   ├── use-cases-and-tradeoffs
+│   │   └── learning-path
+│   ├── web-prerequisites
+│   │   ├── semantic-html
+│   │   ├── document-tree
+│   │   ├── attributes-and-classes
+│   │   ├── links-images-and-forms
+│   │   ├── browser-and-server
+│   │   ├── urls-and-relative-paths
+│   │   └── text-encoding-and-unicode
+│   ├── rendering-mental-model
+│   │   ├── source-html-and-dom
+│   │   ├── stylesheets-and-cssom
+│   │   ├── element-tree-and-box-tree
+│   │   ├── style-calculation
+│   │   ├── layout
+│   │   ├── paint-and-compositing
+│   │   └── visual-output-and-accessibility-tree
+│   ├── environment-setup
+│   │   ├── code-editor
+│   │   ├── browser-developer-tools
+│   │   ├── local-development-server
+│   │   ├── project-and-asset-layout
+│   │   ├── stylesheet-linking
+│   │   ├── first-styled-page
+│   │   └── device-preview-and-real-device-testing
+│   ├── visual-foundations
+│   │   ├── visual-hierarchy
+│   │   ├── alignment-and-proximity
+│   │   ├── spacing-and-rhythm
+│   │   ├── contrast-and-emphasis
+│   │   ├── consistency-and-variation
+│   │   ├── content-density
+│   │   └── design-reference-analysis
+│   ├── learning-workflow
+│   │   ├── isolate-one-variable
+│   │   ├── edit-inspect-compare
+│   │   ├── minimal-reproduction
+│   │   ├── computed-style-inspection
+│   │   ├── layout-overlays
+│   │   ├── hypothesis-and-observation
+│   │   └── progressive-practice
+│   ├── documentation-and-evidence
+│   │   ├── mdn-guides-and-reference
+│   │   ├── w3c-specification-navigation
+│   │   ├── property-formal-definition
+│   │   ├── examples-and-edge-cases
+│   │   ├── browser-compatibility-data
+│   │   ├── standards-and-implementation-differences
+│   │   └── reproducible-test-cases
+│   └── css-and-adjacent-disciplines
+│       ├── css-and-html-semantics
+│       ├── css-and-javascript-behavior
+│       ├── css-and-accessibility
+│       ├── css-and-design-tools
+│       ├── css-and-svg
+│       ├── css-and-ui-frameworks
+│       └── css-and-server-rendering
+├── syntax-and-stylesheet-structure
+│   ├── rule-anatomy
+│   │   ├── qualified-rules
+│   │   ├── selector-lists
+│   │   ├── declaration-blocks
+│   │   ├── property-value-pairs
+│   │   ├── semicolons-and-braces
+│   │   ├── comments
+│   │   └── whitespace-and-tokenization
+│   ├── stylesheet-attachment
+│   │   ├── external-stylesheets
+│   │   ├── embedded-style-elements
+│   │   ├── inline-style-attributes
+│   │   ├── media-qualified-stylesheets
+│   │   ├── stylesheet-load-order
+│   │   ├── alternate-stylesheets
+│   │   └── disabled-stylesheets
+│   ├── property-grammar
+│   │   ├── keywords
+│   │   ├── numbers-and-dimensions
+│   │   ├── strings-and-escapes
+│   │   ├── identifiers-and-custom-identifiers
+│   │   ├── urls-and-resource-values
+│   │   ├── functional-notation
+│   │   ├── comma-and-space-separation
+│   │   └── value-definition-syntax
+│   ├── declarations
+│   │   ├── longhand-properties
+│   │   ├── shorthand-properties
+│   │   ├── shorthand-reset-behavior
+│   │   ├── omitted-shorthand-components
+│   │   ├── repeated-declarations
+│   │   ├── important-annotation
+│   │   └── invalid-declaration-recovery
+│   ├── at-rule-families
+│   │   ├── imports-and-namespaces
+│   │   ├── conditional-rules
+│   │   ├── cascade-layers
+│   │   ├── font-resource-rules
+│   │   ├── animation-keyframes
+│   │   ├── page-rules
+│   │   ├── custom-property-registration
+│   │   └── scoped-and-nested-rules
+│   ├── stylesheet-imports
+│   │   ├── import-order-restrictions
+│   │   ├── relative-url-resolution
+│   │   ├── media-qualified-imports
+│   │   ├── supports-qualified-imports
+│   │   ├── layer-qualified-imports
+│   │   ├── import-dependency-graphs
+│   │   └── build-time-and-runtime-imports
+│   ├── parsing-and-error-recovery
+│   │   ├── unknown-properties
+│   │   ├── unsupported-values
+│   │   ├── malformed-selectors
+│   │   ├── invalid-selector-lists
+│   │   ├── forgiving-selector-lists
+│   │   ├── unsupported-at-rules
+│   │   ├── invalid-at-computed-value-time
+│   │   └── developer-tools-diagnostics
+│   ├── syntax-organization
+│   │   ├── formatting-and-indentation
+│   │   ├── declaration-order-conventions
+│   │   ├── grouping-related-rules
+│   │   ├── avoiding-magic-values
+│   │   ├── comments-and-section-boundaries
+│   │   ├── file-boundaries
+│   │   └── readable-selector-design
+│   └── syntax-boundaries
+│       ├── html-style-attribute-context
+│       ├── svg-presentation-attributes
+│       ├── xml-and-namespaces
+│       ├── css-versus-preprocessor-syntax
+│       ├── css-versus-framework-directives
+│       └── browser-parsing-versus-build-transforms
+├── selectors-and-pseudo-elements
+│   ├── selector-foundations
+│   │   ├── universal-selector
+│   │   ├── type-selector
+│   │   ├── class-selector
+│   │   ├── id-selector
+│   │   ├── compound-selectors
+│   │   ├── complex-selectors
+│   │   ├── selector-lists
+│   │   └── matching-and-document-context
+│   ├── combinators
+│   │   ├── descendant-combinator
+│   │   ├── child-combinator
+│   │   ├── next-sibling-combinator
+│   │   ├── subsequent-sibling-combinator
+│   │   ├── relative-selectors
+│   │   ├── combinator-whitespace
+│   │   └── scope-and-relative-matching
+│   ├── attribute-selectors
+│   │   ├── attribute-presence
+│   │   ├── exact-value-match
+│   │   ├── whitespace-list-match
+│   │   ├── language-prefix-match
+│   │   ├── prefix-suffix-and-substring
+│   │   ├── case-sensitivity-flags
+│   │   └── html-attribute-normalization
+│   ├── structural-pseudo-classes
+│   │   ├── root-and-empty
+│   │   ├── first-and-last-child
+│   │   ├── only-child
+│   │   ├── first-and-last-of-type
+│   │   ├── only-of-type
+│   │   ├── nth-child-and-nth-last-child
+│   │   ├── nth-of-type-and-nth-last-of-type
+│   │   └── nth-child-of-selector-list
+│   ├── selector-list-functions
+│   │   ├── is-selector-list
+│   │   ├── where-zero-specificity
+│   │   ├── not-negation
+│   │   ├── has-relational-selection
+│   │   ├── nested-selector-functions
+│   │   ├── forgiving-list-boundaries
+│   │   └── relative-selector-constraints
+│   ├── interaction-pseudo-classes
+│   │   ├── hover
+│   │   ├── active
+│   │   ├── focus
+│   │   ├── focus-visible
+│   │   ├── focus-within
+│   │   ├── target
+│   │   ├── any-link-and-link
+│   │   └── visited-and-privacy-restrictions
+│   ├── form-state-pseudo-classes
+│   │   ├── enabled-and-disabled
+│   │   ├── checked-and-indeterminate
+│   │   ├── required-and-optional
+│   │   ├── valid-and-invalid
+│   │   ├── user-valid-and-user-invalid
+│   │   ├── in-range-and-out-of-range
+│   │   ├── read-only-and-read-write
+│   │   ├── placeholder-shown
+│   │   └── autofill
+│   ├── document-and-platform-states
+│   │   ├── lang
+│   │   ├── dir
+│   │   ├── fullscreen
+│   │   ├── modal
+│   │   ├── popover-open
+│   │   ├── open
+│   │   ├── defined
+│   │   └── custom-state-pseudo-class
+│   ├── generated-and-typographic-pseudo-elements
+│   │   ├── before-and-after
+│   │   ├── marker
+│   │   ├── first-letter
+│   │   ├── first-line
+│   │   ├── selection
+│   │   ├── placeholder
+│   │   ├── file-selector-button
+│   │   └── backdrop
+│   ├── component-and-platform-pseudo-elements
+│   │   ├── shadow-parts
+│   │   ├── slotted-content
+│   │   ├── highlight-pseudo-elements
+│   │   ├── cue-and-media-captions
+│   │   ├── view-transition-pseudo-elements
+│   │   └── vendor-specific-pseudo-element-boundaries
+│   ├── selector-design
+│   │   ├── class-based-contracts
+│   │   ├── semantic-state-attributes
+│   │   ├── low-specificity-selectors
+│   │   ├── relationship-selectors-with-has
+│   │   ├── avoiding-dom-shape-coupling
+│   │   ├── dynamic-state-matching
+│   │   └── component-boundaries
+│   └── selector-diagnostics
+│       ├── match-versus-no-match
+│       ├── invalid-list-isolation
+│       ├── pseudo-element-limitations
+│       ├── inaccessible-state-assumptions
+│       ├── specificity-inspection
+│       ├── measured-selector-cost
+│       └── cross-browser-selector-tests
+├── cascade-specificity-and-inheritance
+│   ├── cascade-mental-model
+│   │   ├── competing-declarations
+│   │   ├── relevant-rules
+│   │   ├── cascade-origins
+│   │   ├── normal-and-important-declarations
+│   │   ├── cascade-order-versus-specificity
+│   │   ├── declaration-order
+│   │   └── winning-declaration-tracing
+│   ├── cascade-origins
+│   │   ├── user-agent-styles
+│   │   ├── author-styles
+│   │   ├── user-styles
+│   │   ├── inline-author-styles
+│   │   ├── animation-origin
+│   │   ├── transition-origin
+│   │   └── accessibility-user-overrides
+│   ├── cascade-layers
+│   │   ├── layer-declaration
+│   │   ├── layer-order-statement
+│   │   ├── named-and-anonymous-layers
+│   │   ├── nested-layers
+│   │   ├── layered-and-unlayered-rules
+│   │   ├── import-into-layer
+│   │   ├── normal-order-and-important-reversal
+│   │   └── third-party-layer-isolation
+│   ├── specificity
+│   │   ├── id-class-and-type-columns
+│   │   ├── pseudo-class-weight
+│   │   ├── pseudo-element-weight
+│   │   ├── zero-specificity-where
+│   │   ├── is-not-and-has-specificity
+│   │   ├── nesting-specificity
+│   │   ├── inline-style-precedence
+│   │   └── non-additive-specificity-comparison
+│   ├── inheritance
+│   │   ├── inherited-and-non-inherited-properties
+│   │   ├── parent-computed-values
+│   │   ├── inheritance-through-ancestors
+│   │   ├── inheritance-versus-direct-targeting
+│   │   ├── custom-property-inheritance
+│   │   ├── form-control-inheritance
+│   │   └── shadow-tree-inheritance-boundaries
+│   ├── css-wide-keywords
+│   │   ├── initial
+│   │   ├── inherit
+│   │   ├── unset
+│   │   ├── revert
+│   │   ├── revert-layer
+│   │   ├── all-shorthand
+│   │   └── keyword-selection-by-intent
+│   ├── value-processing
+│   │   ├── declared-values
+│   │   ├── cascaded-values
+│   │   ├── specified-values
+│   │   ├── computed-values
+│   │   ├── used-values
+│   │   ├── actual-values
+│   │   └── resolved-values-in-cssom
+│   ├── scoping-in-the-cascade
+│   │   ├── scope-root-and-limit
+│   │   ├── scoping-proximity
+│   │   ├── specificity-before-proximity
+│   │   ├── source-order-after-proximity
+│   │   ├── nested-scope-conflicts
+│   │   └── inheritance-across-scope-boundaries
+│   ├── conflict-resolution-patterns
+│   │   ├── reset-and-base-layering
+│   │   ├── component-layer-contracts
+│   │   ├── utility-layer-order
+│   │   ├── intentional-theme-overrides
+│   │   ├── third-party-overrides
+│   │   ├── avoiding-important-escalation
+│   │   └── removing-specificity-debt
+│   └── cascade-debugging-labs
+│       ├── inspect-matched-rules
+│       ├── identify-overridden-declarations
+│       ├── compare-origin-and-layer
+│       ├── trace-inherited-values
+│       ├── shorthand-longhand-conflicts
+│       ├── variable-substitution-failures
+│       └── reproducible-cascade-tests
+├── values-units-and-mathematical-functions
+│   ├── value-data-types
+│   │   ├── integer-and-number
+│   │   ├── percentage
+│   │   ├── length-and-length-percentage
+│   │   ├── angle
+│   │   ├── time
+│   │   ├── resolution
+│   │   ├── ratio
+│   │   └── color-and-image-data-types
+│   ├── absolute-and-reference-units
+│   │   ├── css-pixel
+│   │   ├── device-pixel-ratio
+│   │   ├── physical-units
+│   │   ├── reference-pixel
+│   │   ├── print-unit-behavior
+│   │   ├── screen-and-printer-differences
+│   │   └── absolute-unit-conversion
+│   ├── font-relative-units
+│   │   ├── em-and-inherited-font-size
+│   │   ├── rem-and-root-font-size
+│   │   ├── ex-and-ch
+│   │   ├── cap-and-ic
+│   │   ├── lh-and-rlh
+│   │   ├── font-metric-dependence
+│   │   └── fallback-font-effects
+│   ├── viewport-units
+│   │   ├── vw-and-vh
+│   │   ├── vi-and-vb
+│   │   ├── vmin-and-vmax
+│   │   ├── small-viewport-units
+│   │   ├── large-viewport-units
+│   │   ├── dynamic-viewport-units
+│   │   ├── mobile-browser-chrome
+│   │   └── virtual-keyboard-and-viewport-limits
+│   ├── container-relative-units
+│   │   ├── cqw-and-cqh
+│   │   ├── cqi-and-cqb
+│   │   ├── cqmin-and-cqmax
+│   │   ├── query-container-selection
+│   │   ├── missing-container-fallback
+│   │   ├── nested-container-units
+│   │   └── fluid-component-sizing
+│   ├── percentage-resolution
+│   │   ├── containing-block-dependence
+│   │   ├── inline-and-block-percentage-bases
+│   │   ├── indefinite-size-percentages
+│   │   ├── percentage-padding
+│   │   ├── percentage-transforms
+│   │   ├── percentage-gaps
+│   │   └── cyclic-percentage-resolution
+│   ├── arithmetic-and-comparison
+│   │   ├── calc
+│   │   ├── min
+│   │   ├── max
+│   │   ├── clamp
+│   │   ├── operator-precedence
+│   │   ├── whitespace-and-operator-rules
+│   │   ├── compatible-unit-arithmetic
+│   │   └── dimension-and-type-validation
+│   ├── advanced-math
+│   │   ├── round
+│   │   ├── mod-and-rem
+│   │   ├── abs-and-sign
+│   │   ├── trigonometric-functions
+│   │   ├── exponential-functions
+│   │   ├── hypot
+│   │   ├── constants-and-special-values
+│   │   └── browser-support-validation
+│   ├── contextual-values
+│   │   ├── env-and-safe-area-insets
+│   │   ├── attr-and-typed-attributes
+│   │   ├── var-substitution
+│   │   ├── currentcolor
+│   │   ├── inherit-and-initial-context
+│   │   ├── url-resolution-context
+│   │   └── runtime-dependent-values
+│   ├── practical-value-modeling
+│   │   ├── fluid-type-and-spacing
+│   │   ├── bounded-widths
+│   │   ├── aspect-ratio-calculations
+│   │   ├── grid-track-formulas
+│   │   ├── responsive-gutters
+│   │   ├── rounding-and-subpixel-layout
+│   │   ├── clamping-and-content-overflow
+│   │   └── zoom-safe-scaling
+│   └── value-debugging
+│       ├── invalid-unit-combinations
+│       ├── percentage-base-identification
+│       ├── unsupported-function-fallbacks
+│       ├── computed-value-inspection
+│       ├── used-size-measurement
+│       └── precision-and-rounding-tests
+├── custom-properties-nesting-and-scope
+│   ├── custom-property-foundations
+│   │   ├── double-hyphen-names
+│   │   ├── declaration-and-cascade
+│   │   ├── var-function
+│   │   ├── inheritance-and-scope
+│   │   ├── token-stream-values
+│   │   ├── case-sensitive-names
+│   │   └── runtime-resolution
+│   ├── variable-composition
+│   │   ├── nested-fallbacks
+│   │   ├── missing-variable-handling
+│   │   ├── invalid-value-fallback-limits
+│   │   ├── circular-references
+│   │   ├── fallback-token-lists
+│   │   ├── partial-value-composition
+│   │   └── alias-chains
+│   ├── registered-custom-properties
+│   │   ├── property-at-rule
+│   │   ├── syntax-descriptor
+│   │   ├── inherits-descriptor
+│   │   ├── initial-value-descriptor
+│   │   ├── computational-independence
+│   │   ├── registration-and-validation
+│   │   ├── typed-interpolation
+│   │   └── unregistered-versus-registered-properties
+│   ├── variable-contracts
+│   │   ├── primitive-and-semantic-variables
+│   │   ├── component-public-variables
+│   │   ├── component-private-conventions
+│   │   ├── defaults-and-overrides
+│   │   ├── state-specific-values
+│   │   ├── theme-boundaries
+│   │   └── avoiding-global-coupling
+│   ├── native-nesting
+│   │   ├── nesting-selector
+│   │   ├── parent-and-child-relationships
+│   │   ├── nested-combinators
+│   │   ├── nested-selector-lists
+│   │   ├── nested-pseudo-classes
+│   │   ├── nested-pseudo-elements
+│   │   ├── nested-grouping-rules
+│   │   └── declaration-order-in-nested-rules
+│   ├── nesting-design
+│   │   ├── browser-nesting-versus-sass
+│   │   ├── ampersand-and-selector-concatenation-limits
+│   │   ├── specificity-from-parent-lists
+│   │   ├── nesting-depth-control
+│   │   ├── component-root-patterns
+│   │   └── compiled-output-inspection
+│   ├── scoped-styles
+│   │   ├── scope-at-rule
+│   │   ├── scope-roots
+│   │   ├── scope-limits
+│   │   ├── donut-scoping
+│   │   ├── implicit-inline-scope
+│   │   ├── scope-pseudo-class
+│   │   ├── nested-scopes
+│   │   └── scoping-proximity
+│   ├── composition-boundaries
+│   │   ├── nesting-versus-scoping
+│   │   ├── scope-versus-shadow-dom
+│   │   ├── custom-properties-across-shadow-boundaries
+│   │   ├── css-modules-versus-native-scope
+│   │   └── runtime-tokens-versus-build-time-variables
+│   └── maintenance-and-validation
+│       ├── variable-naming-policy
+│       ├── unused-variable-detection
+│       ├── fallback-chain-review
+│       ├── scope-leak-tests
+│       ├── nested-selector-review
+│       └── registration-compatibility-tests
+├── box-model-and-intrinsic-sizing
+│   ├── box-model-foundations
+│   │   ├── content-box
+│   │   ├── padding-box
+│   │   ├── border-box
+│   │   ├── margin-box
+│   │   ├── box-dimensions
+│   │   ├── developer-tools-box-model
+│   │   └── box-versus-element
+│   ├── box-sizing
+│   │   ├── content-box-sizing
+│   │   ├── border-box-sizing
+│   │   ├── inherited-box-sizing
+│   │   ├── reset-strategies
+│   │   ├── form-control-sizing
+│   │   ├── borders-and-percentage-widths
+│   │   └── mixed-box-sizing-diagnostics
+│   ├── spacing
+│   │   ├── margin
+│   │   ├── padding
+│   │   ├── logical-spacing
+│   │   ├── negative-margins
+│   │   ├── auto-margins
+│   │   ├── percentage-spacing
+│   │   ├── gap-versus-margins
+│   │   └── spacing-ownership
+│   ├── dimensions-and-constraints
+│   │   ├── width-and-height
+│   │   ├── min-width-and-min-height
+│   │   ├── max-width-and-max-height
+│   │   ├── logical-inline-and-block-size
+│   │   ├── min-max-constraint-interactions
+│   │   ├── indefinite-and-definite-sizes
+│   │   └── stretching-and-auto-sizing
+│   ├── intrinsic-sizing
+│   │   ├── min-content
+│   │   ├── max-content
+│   │   ├── fit-content-keyword
+│   │   ├── fit-content-function
+│   │   ├── available-space
+│   │   ├── shrink-to-fit
+│   │   ├── intrinsic-size-contributions
+│   │   └── intrinsic-versus-extrinsic-sizing
+│   ├── aspect-ratio
+│   │   ├── preferred-aspect-ratio
+│   │   ├── automatic-and-explicit-ratios
+│   │   ├── replaced-element-intrinsic-ratio
+│   │   ├── width-height-and-ratio-interaction
+│   │   ├── min-max-constraints
+│   │   ├── ratio-box-placeholders
+│   │   └── responsive-media-ratios
+│   ├── replaced-elements
+│   │   ├── images
+│   │   ├── videos
+│   │   ├── iframes
+│   │   ├── form-controls
+│   │   ├── intrinsic-width-and-height
+│   │   ├── missing-intrinsic-dimensions
+│   │   └── object-fit-and-object-position
+│   ├── content-robustness
+│   │   ├── long-unbreakable-strings
+│   │   ├── oversized-images
+│   │   ├── nested-minimum-sizes
+│   │   ├── empty-content
+│   │   ├── variable-content-length
+│   │   ├── text-zoom-overflow
+│   │   └── dynamic-content-resizing
+│   └── sizing-diagnostics
+│       ├── content-versus-border-measurement
+│       ├── constraint-chain-tracing
+│       ├── percentage-height-failures
+│       ├── automatic-minimum-size-failures
+│       ├── unexpected-overflow
+│       └── subpixel-rounding-reproductions
+├── normal-flow-and-formatting-contexts
+│   ├── display-model
+│   │   ├── outer-and-inner-display
+│   │   ├── block-and-inline
+│   │   ├── flow-and-flow-root
+│   │   ├── inline-block
+│   │   ├── list-item
+│   │   ├── table-display
+│   │   ├── flex-and-grid-entry-points
+│   │   ├── display-contents
+│   │   └── display-none
+│   ├── block-formatting
+│   │   ├── block-flow
+│   │   ├── containing-blocks
+│   │   ├── available-inline-space
+│   │   ├── automatic-block-size
+│   │   ├── block-level-width-resolution
+│   │   ├── normal-flow-positioning
+│   │   └── anonymous-block-boxes
+│   ├── inline-formatting
+│   │   ├── inline-boxes
+│   │   ├── line-boxes
+│   │   ├── baseline-alignment
+│   │   ├── vertical-align
+│   │   ├── inline-replaced-elements
+│   │   ├── inline-block-baselines
+│   │   ├── whitespace-between-inline-blocks
+│   │   └── line-height-and-line-box-height
+│   ├── margin-collapsing
+│   │   ├── adjacent-block-margins
+│   │   ├── parent-and-first-child
+│   │   ├── parent-and-last-child
+│   │   ├── empty-block-margins
+│   │   ├── positive-and-negative-collapse
+│   │   ├── collapse-prevention
+│   │   └── flex-and-grid-non-collapsing-margins
+│   ├── formatting-context-boundaries
+│   │   ├── block-formatting-context-creation
+│   │   ├── flow-root
+│   │   ├── overflow-and-formatting-contexts
+│   │   ├── float-containment
+│   │   ├── inline-formatting-context
+│   │   ├── flex-formatting-context
+│   │   ├── grid-formatting-context
+│   │   └── independent-layout-boundaries
+│   ├── floats-and-text-wrapping
+│   │   ├── float-start-and-end
+│   │   ├── clear
+│   │   ├── float-placement
+│   │   ├── text-around-media
+│   │   ├── float-containing-blocks
+│   │   ├── float-and-shape-outside
+│   │   └── legacy-float-layout-migration
+│   ├── table-layout
+│   │   ├── table-wrapper-and-table-grid
+│   │   ├── rows-columns-and-cell-boxes
+│   │   ├── auto-table-layout
+│   │   ├── fixed-table-layout
+│   │   ├── border-collapse-and-border-spacing
+│   │   ├── caption-placement
+│   │   ├── empty-cells
+│   │   └── cell-vertical-alignment
+│   ├── multi-column-layout
+│   │   ├── column-count
+│   │   ├── column-width
+│   │   ├── columns-shorthand
+│   │   ├── column-gap
+│   │   ├── column-rule
+│   │   ├── column-span
+│   │   ├── column-fill
+│   │   └── column-break-control
+│   ├── lists-and-generated-content
+│   │   ├── list-style-type
+│   │   ├── list-style-position
+│   │   ├── list-style-image
+│   │   ├── marker-styling
+│   │   ├── counters-and-nested-counters
+│   │   ├── counter-style-at-rule
+│   │   ├── quotation-marks
+│   │   └── generated-content-semantics
+│   └── flow-diagnostics
+│       ├── unexpected-inline-spacing
+│       ├── baseline-gaps-around-images
+│       ├── margin-collapse-surprises
+│       ├── float-escape
+│       ├── display-contents-accessibility-checks
+│       ├── overflow-induced-formatting-changes
+│       └── content-order-versus-visual-order
+├── positioning-stacking-and-anchor-layout
+│   ├── positioning-foundations
+│   │   ├── static-position
+│   │   ├── relative-position
+│   │   ├── absolute-position
+│   │   ├── fixed-position
+│   │   ├── sticky-position
+│   │   ├── normal-flow-removal
+│   │   └── positioned-and-unpositioned-elements
+│   ├── containing-blocks
+│   │   ├── initial-containing-block
+│   │   ├── positioned-ancestor
+│   │   ├── transform-created-containing-block
+│   │   ├── containment-created-containing-block
+│   │   ├── filter-and-perspective-effects
+│   │   ├── percentage-insets
+│   │   └── fixed-position-ancestor-traps
+│   ├── insets-and-alignment
+│   │   ├── top-right-bottom-left
+│   │   ├── inset-shorthand
+│   │   ├── logical-insets
+│   │   ├── opposing-insets
+│   │   ├── absolute-auto-margins
+│   │   ├── static-position-fallback
+│   │   ├── replaced-element-positioning
+│   │   └── inset-sizing-interaction
+│   ├── sticky-positioning
+│   │   ├── scroll-container-selection
+│   │   ├── sticky-thresholds
+│   │   ├── containing-block-limits
+│   │   ├── sticky-start-and-end
+│   │   ├── multiple-sticky-elements
+│   │   ├── overflow-ancestor-interaction
+│   │   ├── sticky-table-headers
+│   │   └── sticky-debugging
+│   ├── stacking-contexts
+│   │   ├── root-stacking-context
+│   │   ├── stacking-context-triggers
+│   │   ├── nested-stacking-contexts
+│   │   ├── z-index-scope
+│   │   ├── negative-z-index
+│   │   ├── auto-versus-zero
+│   │   ├── flex-and-grid-item-stacking
+│   │   └── isolation
+│   ├── painting-and-overlap
+│   │   ├── background-and-border-paint-order
+│   │   ├── in-flow-and-positioned-painting
+│   │   ├── opacity-created-groups
+│   │   ├── transform-and-filter-groups
+│   │   ├── clipping-versus-stacking
+│   │   ├── pointer-hit-testing
+│   │   └── compositing-layer-versus-stacking-context
+│   ├── top-layer
+│   │   ├── dialog-top-layer
+│   │   ├── popover-top-layer
+│   │   ├── fullscreen-top-layer
+│   │   ├── backdrop-pseudo-element
+│   │   ├── top-layer-order
+│   │   ├── z-index-limitations
+│   │   └── focus-and-behavior-boundaries
+│   ├── anchor-positioning
+│   │   ├── anchors-and-targets
+│   │   │   ├── anchor-name
+│   │   │   ├── position-anchor
+│   │   │   ├── implicit-and-explicit-anchors
+│   │   │   ├── anchor-scope
+│   │   │   ├── multiple-anchor-relationships
+│   │   │   └── anchor-name-collisions
+│   │   ├── placement-and-sizing
+│   │   │   ├── position-area
+│   │   │   ├── anchor-function
+│   │   │   ├── anchor-size-function
+│   │   │   ├── logical-anchor-edges
+│   │   │   ├── anchor-relative-insets
+│   │   │   └── alignment-and-anchor-center
+│   │   └── overflow-and-fallbacks
+│   │       ├── position-try-fallbacks
+│   │       ├── position-try-at-rule
+│   │       ├── fallback-order
+│   │       ├── overflow-detection
+│   │       ├── position-visibility
+│   │       ├── viewport-edge-collision
+│   │       └── anchor-support-fallbacks
+│   ├── overlay-design
+│   │   ├── tooltips-and-popovers
+│   │   ├── dropdown-placement
+│   │   ├── menus-in-scroll-containers
+│   │   ├── modal-placement
+│   │   ├── toast-regions
+│   │   ├── portal-and-dom-location-effects
+│   │   └── accessible-overlay-integration
+│   └── positioning-diagnostics
+│       ├── identify-containing-block
+│       ├── inspect-stacking-context-chain
+│       ├── distinguish-clipping-and-overlap
+│       ├── fixed-inside-transformed-ancestor
+│       ├── sticky-not-sticking
+│       ├── anchor-fallback-tests
+│       └── zoom-and-viewport-edge-tests
+├── flexbox
+│   ├── flex-layout-mental-model
+│   │   ├── one-dimensional-layout
+│   │   ├── flex-container-and-items
+│   │   ├── main-and-cross-axes
+│   │   ├── main-start-and-cross-start
+│   │   ├── writing-mode-influence
+│   │   ├── available-free-space
+│   │   └── flex-versus-grid
+│   ├── container-configuration
+│   │   ├── display-flex-and-inline-flex
+│   │   ├── flex-direction
+│   │   ├── flex-wrap
+│   │   ├── flex-flow
+│   │   ├── row-and-column-gap
+│   │   ├── single-and-multiple-lines
+│   │   └── wrap-reverse
+│   ├── flex-item-sizing
+│   │   ├── flex-basis
+│   │   ├── flex-grow
+│   │   ├── flex-shrink
+│   │   ├── flex-shorthand
+│   │   ├── initial-auto-and-none
+│   │   ├── content-based-basis
+│   │   ├── definite-versus-indefinite-basis
+│   │   └── percentage-flex-basis
+│   ├── sizing-algorithm
+│   │   ├── flex-base-size
+│   │   ├── hypothetical-main-size
+│   │   ├── positive-free-space
+│   │   ├── negative-free-space
+│   │   ├── shrink-factors
+│   │   ├── min-max-clamping
+│   │   ├── freeze-and-redistribute
+│   │   └── rounding-and-fractional-space
+│   ├── automatic-minimum-size
+│   │   ├── min-width-auto
+│   │   ├── min-height-auto
+│   │   ├── min-inline-size-zero
+│   │   ├── min-block-size-zero
+│   │   ├── scroll-container-minimums
+│   │   ├── long-text-overflow
+│   │   └── nested-flex-overflow
+│   ├── main-axis-distribution
+│   │   ├── justify-content
+│   │   ├── start-end-and-center
+│   │   ├── space-between
+│   │   ├── space-around
+│   │   ├── space-evenly
+│   │   ├── auto-margins
+│   │   └── remaining-space-and-overflow
+│   ├── cross-axis-alignment
+│   │   ├── align-items
+│   │   ├── align-self
+│   │   ├── align-content
+│   │   ├── stretch
+│   │   ├── baseline-alignment
+│   │   ├── first-and-last-baseline
+│   │   ├── safe-and-unsafe-alignment
+│   │   └── line-packing-versus-item-alignment
+│   ├── ordering-and-accessibility
+│   │   ├── order-property
+│   │   ├── reverse-directions
+│   │   ├── source-order
+│   │   ├── tab-order
+│   │   ├── screen-reader-order
+│   │   ├── visual-only-reordering
+│   │   └── meaningful-sequence
+│   ├── nested-and-mixed-layouts
+│   │   ├── nested-flex-containers
+│   │   ├── flex-items-containing-grid
+│   │   ├── aspect-ratio-items
+│   │   ├── replaced-elements
+│   │   ├── absolute-children-in-flex
+│   │   ├── percentage-height-children
+│   │   └── intrinsic-width-flex-containers
+│   ├── flexbox-patterns
+│   │   ├── navigation-bars
+│   │   ├── media-object
+│   │   ├── split-layout
+│   │   ├── sticky-footer
+│   │   ├── equal-height-cards
+│   │   ├── wrapping-tag-list
+│   │   ├── action-toolbar
+│   │   └── input-and-button-group
+│   └── flexbox-debugging
+│       ├── flex-overlay
+│       ├── axis-identification
+│       ├── basis-versus-width
+│       ├── grow-and-shrink-experiments
+│       ├── overflow-and-minimum-sizes
+│       ├── wrapped-line-alignment
+│       └── gap-and-margin-interactions
+├── grid-and-subgrid
+│   ├── grid-layout-mental-model
+│   │   ├── two-dimensional-layout
+│   │   ├── grid-container-and-items
+│   │   ├── lines-tracks-cells-and-areas
+│   │   ├── explicit-and-implicit-grid
+│   │   ├── grid-versus-nested-flex
+│   │   ├── sizing-versus-placement
+│   │   └── source-order-and-layout-order
+│   ├── track-definition
+│   │   ├── grid-template-columns
+│   │   ├── grid-template-rows
+│   │   ├── fixed-and-flexible-tracks
+│   │   ├── fraction-unit
+│   │   ├── percentage-tracks
+│   │   ├── auto-tracks
+│   │   ├── repeat-function
+│   │   └── named-lines
+│   ├── intrinsic-track-sizing
+│   │   ├── min-content-tracks
+│   │   ├── max-content-tracks
+│   │   ├── minmax-function
+│   │   ├── fit-content-tracks
+│   │   ├── auto-minimums
+│   │   ├── minmax-zero-one-fraction
+│   │   ├── intrinsic-item-contributions
+│   │   └── indefinite-grid-dimensions
+│   ├── grid-placement
+│   │   ├── row-and-column-start-end
+│   │   ├── grid-row-and-grid-column
+│   │   ├── grid-area
+│   │   ├── line-numbers
+│   │   ├── negative-line-numbers
+│   │   ├── named-lines
+│   │   ├── line-spanning
+│   │   └── overlapping-items
+│   ├── template-areas
+│   │   ├── named-areas
+│   │   ├── rectangular-area-constraint
+│   │   ├── empty-cells
+│   │   ├── implicit-line-names
+│   │   ├── area-remapping
+│   │   ├── responsive-template-changes
+│   │   └── area-naming-contracts
+│   ├── auto-placement
+│   │   ├── grid-auto-flow
+│   │   ├── row-and-column-flow
+│   │   ├── sparse-and-dense-packing
+│   │   ├── grid-auto-rows
+│   │   ├── grid-auto-columns
+│   │   ├── implicit-track-growth
+│   │   ├── placement-cursor
+│   │   └── dense-packing-accessibility
+│   ├── auto-repeat-patterns
+│   │   ├── auto-fill
+│   │   ├── auto-fit
+│   │   ├── collapsed-empty-tracks
+│   │   ├── repeat-and-minmax
+│   │   ├── responsive-card-grids
+│   │   ├── track-minimum-selection
+│   │   └── fit-versus-fill-comparison
+│   ├── grid-alignment
+│   │   ├── justify-items-and-align-items
+│   │   ├── justify-self-and-align-self
+│   │   ├── justify-content-and-align-content
+│   │   ├── place-shorthands
+│   │   ├── gaps-and-track-spacing
+│   │   ├── baseline-alignment
+│   │   ├── auto-margins
+│   │   └── safe-overflow-alignment
+│   ├── subgrid
+│   │   ├── subgrid-columns
+│   │   ├── subgrid-rows
+│   │   ├── both-axis-subgrid
+│   │   ├── inherited-track-sizing
+│   │   ├── line-name-propagation
+│   │   ├── gap-inheritance-and-overrides
+│   │   ├── subgrid-item-contributions
+│   │   └── nested-subgrids
+│   ├── advanced-grid-composition
+│   │   ├── editorial-layouts
+│   │   ├── shared-card-alignment
+│   │   ├── overlapping-hero-content
+│   │   ├── full-bleed-layouts
+│   │   ├── responsive-sidebar
+│   │   ├── grid-and-writing-modes
+│   │   ├── grid-with-absolute-children
+│   │   └── nested-independent-grids
+│   └── grid-debugging
+│       ├── grid-overlay
+│       ├── line-and-area-labels
+│       ├── explicit-versus-implicit-track-inspection
+│       ├── overflow-from-auto-minimums
+│       ├── percentage-gap-resolution
+│       ├── track-sizing-experiments
+│       └── source-order-audit
+├── responsive-and-adaptive-design
+│   ├── responsive-mental-model
+│   │   ├── content-driven-adaptation
+│   │   ├── viewport-and-layout-viewport
+│   │   ├── fluid-versus-fixed-layout
+│   │   ├── intrinsic-responsiveness
+│   │   ├── progressive-enhancement
+│   │   ├── mobile-first-and-desktop-first
+│   │   └── component-versus-page-responsiveness
+│   ├── viewport-foundations
+│   │   ├── viewport-meta-in-html
+│   │   ├── css-pixels-and-device-pixels
+│   │   ├── layout-and-visual-viewport
+│   │   ├── browser-zoom
+│   │   ├── text-zoom
+│   │   ├── mobile-browser-controls
+│   │   ├── orientation-and-rotation
+│   │   └── virtual-keyboard-constraints
+│   ├── media-query-syntax
+│   │   ├── media-at-rule
+│   │   ├── media-types
+│   │   ├── feature-expressions
+│   │   ├── range-syntax
+│   │   ├── min-and-max-prefixes
+│   │   ├── and-or-not-logic
+│   │   ├── comma-separated-queries
+│   │   └── nested-media-rules
+│   ├── size-and-capability-queries
+│   │   ├── width-and-height
+│   │   ├── aspect-ratio
+│   │   ├── orientation
+│   │   ├── resolution
+│   │   ├── hover-and-any-hover
+│   │   ├── pointer-and-any-pointer
+│   │   ├── update-frequency
+│   │   └── screen-and-print
+│   ├── user-preference-queries
+│   │   ├── prefers-color-scheme
+│   │   ├── prefers-reduced-motion
+│   │   ├── prefers-contrast
+│   │   ├── forced-colors
+│   │   ├── reduced-transparency-support
+│   │   ├── preference-combinations
+│   │   └── fallback-behavior
+│   ├── breakpoint-design
+│   │   ├── content-breakpoints
+│   │   ├── layout-failure-points
+│   │   ├── component-breakpoints
+│   │   ├── breakpoint-scale
+│   │   ├── overlapping-and-gapped-ranges
+│   │   ├── unit-selection
+│   │   └── zoom-and-font-size-effects
+│   ├── fluid-layout-techniques
+│   │   ├── bounded-containers
+│   │   ├── fluid-gutters
+│   │   ├── responsive-grid-tracks
+│   │   ├── wrapping-flex-layouts
+│   │   ├── fluid-type-with-clamp
+│   │   ├── fluid-spacing-scale
+│   │   ├── responsive-aspect-ratios
+│   │   └── content-priority
+│   ├── device-and-environment-adaptation
+│   │   ├── touch-and-mouse-coexistence
+│   │   ├── safe-area-insets
+│   │   ├── notches-and-rounded-displays
+│   │   ├── dynamic-viewport-height
+│   │   ├── landscape-layouts
+│   │   ├── embedded-webviews
+│   │   └── large-screen-density
+│   ├── responsive-content-strategy
+│   │   ├── natural-content-wrapping
+│   │   ├── no-essential-content-hiding
+│   │   ├── resilient-navigation
+│   │   ├── responsive-tables
+│   │   ├── media-art-direction-boundaries
+│   │   ├── html-srcset-and-sizes-coordination
+│   │   └── long-localized-text
+│   └── responsive-testing
+│       ├── continuous-resize
+│       ├── narrow-and-wide-extremes
+│       ├── zoom-and-reflow
+│       ├── real-device-checks
+│       ├── mixed-input-devices
+│       ├── browser-chrome-changes
+│       ├── orientation-transitions
+│       └── content-stress-tests
+├── container-queries-and-containment
+│   ├── containment-foundations
+│   │   ├── containment-boundaries
+│   │   ├── layout-containment
+│   │   ├── paint-containment
+│   │   ├── size-containment
+│   │   ├── inline-size-containment
+│   │   ├── style-containment
+│   │   ├── contain-shorthands
+│   │   └── containment-side-effects
+│   ├── query-container-setup
+│   │   ├── container-type
+│   │   ├── container-name
+│   │   ├── container-shorthand
+│   │   ├── named-and-unnamed-containers
+│   │   ├── nearest-eligible-container
+│   │   ├── multiple-container-names
+│   │   └── nested-container-selection
+│   ├── size-queries
+│   │   ├── inline-size-and-block-size
+│   │   ├── width-and-height
+│   │   ├── aspect-ratio
+│   │   ├── orientation
+│   │   ├── range-conditions
+│   │   ├── logical-combinations
+│   │   ├── self-query-limitations
+│   │   └── container-sizing-preconditions
+│   ├── container-units
+│   │   ├── cqi-driven-typography
+│   │   ├── cqb-and-block-sizing
+│   │   ├── cqw-and-cqh
+│   │   ├── cqmin-and-cqmax
+│   │   ├── units-outside-query-blocks
+│   │   ├── missing-container-fallback
+│   │   └── nested-unit-reference
+│   ├── custom-property-style-queries
+│   │   ├── style-query-syntax
+│   │   ├── custom-property-value-comparison
+│   │   ├── theme-and-density-queries
+│   │   ├── registered-property-effects
+│   │   ├── nested-style-queries
+│   │   ├── boolean-combinations
+│   │   └── browser-support-checks
+│   ├── scroll-state-queries
+│   │   ├── scroll-state-container-setup
+│   │   ├── stuck-state
+│   │   ├── snapped-state
+│   │   ├── scrollable-state
+│   │   ├── descendant-styling-cycle-avoidance
+│   │   └── support-checks-and-fallbacks
+│   ├── content-visibility
+│   │   ├── visible-auto-and-hidden
+│   │   ├── skipped-rendering
+│   │   ├── contain-intrinsic-size
+│   │   ├── placeholder-size-estimation
+│   │   ├── remembered-intrinsic-sizes
+│   │   ├── accessibility-and-find-in-page
+│   │   └── focus-and-scroll-testing
+│   ├── component-adaptation
+│   │   ├── card-layout-switching
+│   │   ├── sidebar-versus-main-placement
+│   │   ├── responsive-toolbars
+│   │   ├── data-widget-density
+│   │   ├── embedded-component-sizing
+│   │   └── container-naming-contracts
+│   └── containment-and-query-diagnostics
+│       ├── missing-containment
+│       ├── unexpected-zero-size
+│       ├── wrong-container-selected
+│       ├── descendant-versus-self-targeting
+│       ├── overflow-and-clipping-interaction
+│       ├── unsupported-style-features
+│       └── nested-query-reproductions
+├── colors-backgrounds-and-borders
+│   ├── color-foundations
+│   │   ├── foreground-and-background
+│   │   ├── color-keywords
+│   │   ├── transparent
+│   │   ├── currentcolor
+│   │   ├── alpha-transparency
+│   │   ├── opacity-versus-color-alpha
+│   │   └── color-inheritance
+│   ├── color-spaces-and-notation
+│   │   ├── hexadecimal
+│   │   ├── rgb-and-rgba
+│   │   ├── hsl-and-hsla
+│   │   ├── hwb
+│   │   ├── lab-and-lch
+│   │   ├── oklab-and-oklch
+│   │   ├── color-function
+│   │   └── display-p3-and-wide-gamut
+│   ├── color-composition
+│   │   ├── color-mix
+│   │   ├── interpolation-color-space
+│   │   ├── hue-interpolation
+│   │   ├── relative-color-syntax
+│   │   ├── channel-adjustments
+│   │   ├── alpha-composition
+│   │   ├── gamut-mapping
+│   │   └── out-of-gamut-fallbacks
+│   ├── theme-aware-color
+│   │   ├── light-dark-function
+│   │   ├── color-scheme
+│   │   ├── system-colors
+│   │   ├── forced-colors-interaction
+│   │   ├── semantic-color-tokens
+│   │   ├── dark-surface-hierarchy
+│   │   └── accessible-theme-pairs
+│   ├── background-layers
+│   │   ├── background-color
+│   │   ├── background-image
+│   │   ├── multiple-backgrounds
+│   │   ├── layer-order
+│   │   ├── background-repeat
+│   │   ├── background-position
+│   │   ├── background-size
+│   │   ├── background-origin
+│   │   ├── background-clip
+│   │   └── background-attachment
+│   ├── gradient-design
+│   │   ├── linear-gradients
+│   │   ├── radial-gradients
+│   │   ├── conic-gradients
+│   │   ├── repeating-gradients
+│   │   ├── color-stops
+│   │   ├── color-hints
+│   │   ├── hard-stops
+│   │   ├── interpolation-space
+│   │   └── transparent-stop-behavior
+│   ├── borders-and-outlines
+│   │   ├── border-width-style-and-color
+│   │   ├── per-side-borders
+│   │   ├── border-radius
+│   │   ├── elliptical-radii
+│   │   ├── border-image
+│   │   ├── outline-and-outline-offset
+│   │   ├── border-versus-outline
+│   │   └── logical-border-properties
+│   ├── shadows-and-surface-depth
+│   │   ├── box-shadow
+│   │   ├── inset-shadow
+│   │   ├── multiple-shadows
+│   │   ├── shadow-clipping
+│   │   ├── elevation-tokens
+│   │   ├── shadow-versus-border
+│   │   ├── focus-ring-shadows
+│   │   └── dark-mode-shadow-adjustments
+│   ├── background-and-border-recipes
+│   │   ├── layered-hero-backgrounds
+│   │   ├── subtle-surface-gradients
+│   │   ├── gradient-borders
+│   │   ├── striped-patterns
+│   │   ├── translucent-surfaces
+│   │   ├── full-bleed-backgrounds
+│   │   ├── rounded-media-containers
+│   │   └── high-contrast-boundaries
+│   └── color-and-surface-validation
+│       ├── contrast-in-real-context
+│       ├── alpha-over-image-contrast
+│       ├── wide-gamut-fallback-testing
+│       ├── color-vision-simulation
+│       ├── forced-color-testing
+│       ├── gradient-banding
+│       ├── border-radius-clipping
+│       └── screen-and-print-color-differences
+├── typography-and-font-loading
+│   ├── typography-foundations
+│   │   ├── glyphs-and-fonts
+│   │   ├── typefaces-and-families
+│   │   ├── serif-sans-serif-and-monospace
+│   │   ├── readability-and-legibility
+│   │   ├── type-hierarchy
+│   │   ├── line-length
+│   │   ├── baseline-and-vertical-rhythm
+│   │   └── language-and-script-coverage
+│   ├── font-selection
+│   │   ├── font-family
+│   │   ├── fallback-stacks
+│   │   ├── generic-font-families
+│   │   ├── system-font-stacks
+│   │   ├── font-weight
+│   │   ├── font-style
+│   │   ├── font-stretch
+│   │   ├── font-synthesis
+│   │   └── missing-glyph-fallback
+│   ├── font-size-and-line-height
+│   │   ├── absolute-and-relative-size
+│   │   ├── root-font-size
+│   │   ├── user-font-preferences
+│   │   ├── unitless-line-height
+│   │   ├── inherited-line-height
+│   │   ├── font-size-adjust
+│   │   ├── line-box-effects
+│   │   └── zoom-resilient-type
+│   ├── text-flow-and-wrapping
+│   │   ├── white-space
+│   │   ├── white-space-collapse
+│   │   ├── text-wrap
+│   │   ├── wrap-balance
+│   │   ├── wrap-pretty
+│   │   ├── overflow-wrap
+│   │   ├── word-break
+│   │   ├── line-break
+│   │   ├── hyphens
+│   │   └── tab-size
+│   ├── text-alignment-and-spacing
+│   │   ├── text-align
+│   │   ├── text-align-last
+│   │   ├── text-indent
+│   │   ├── letter-spacing
+│   │   ├── word-spacing
+│   │   ├── text-transform
+│   │   ├── vertical-align
+│   │   └── alignment-in-writing-modes
+│   ├── text-decoration-and-emphasis
+│   │   ├── text-decoration-line
+│   │   ├── text-decoration-style
+│   │   ├── text-decoration-color
+│   │   ├── text-decoration-thickness
+│   │   ├── text-underline-offset
+│   │   ├── text-decoration-skip-ink
+│   │   ├── text-emphasis
+│   │   └── text-shadow
+│   ├── text-overflow-and-truncation
+│   │   ├── overflow-and-ellipsis
+│   │   ├── single-line-truncation
+│   │   ├── multi-line-clamping-support
+│   │   ├── hidden-essential-text
+│   │   ├── full-text-disclosure
+│   │   ├── long-identifier-handling
+│   │   └── truncation-in-flex-and-grid
+│   ├── web-font-loading
+│   │   ├── font-face
+│   │   ├── src-and-format
+│   │   ├── font-display
+│   │   ├── font-weight-and-style-descriptors
+│   │   ├── unicode-range
+│   │   ├── woff2-fonts
+│   │   ├── font-preload-coordination
+│   │   ├── cross-origin-font-loading
+│   │   └── font-cache-behavior
+│   ├── font-metrics-and-stability
+│   │   ├── ascent-override
+│   │   ├── descent-override
+│   │   ├── line-gap-override
+│   │   ├── size-adjust
+│   │   ├── fallback-metric-matching
+│   │   ├── font-swap-layout-shift
+│   │   ├── synthetic-weight-and-style
+│   │   └── font-loading-observation
+│   ├── variable-and-opentype-fonts
+│   │   ├── variation-axes
+│   │   ├── font-variation-settings
+│   │   ├── optical-sizing
+│   │   ├── font-feature-settings
+│   │   ├── font-variant-ligatures
+│   │   ├── font-variant-numeric
+│   │   ├── font-variant-caps
+│   │   ├── language-specific-forms
+│   │   └── font-palette-support
+│   ├── advanced-editorial-typography
+│   │   ├── drop-caps
+│   │   ├── first-letter-styling
+│   │   ├── initial-letter-support
+│   │   ├── hanging-punctuation-support
+│   │   ├── quotation-styling
+│   │   ├── ruby-layout
+│   │   ├── code-and-preformatted-text
+│   │   └── math-content-styling-boundaries
+│   └── typography-validation
+│       ├── long-content-tests
+│       ├── text-spacing-overrides
+│       ├── font-failure-simulation
+│       ├── slow-font-loading
+│       ├── multilingual-glyph-tests
+│       ├── high-zoom-reflow
+│       ├── small-screen-line-length
+│       └── browser-font-rendering-differences
+├── logical-properties-and-internationalization
+│   ├── flow-relative-mental-model
+│   │   ├── inline-axis
+│   │   ├── block-axis
+│   │   ├── start-and-end
+│   │   ├── physical-versus-logical-mapping
+│   │   ├── writing-mode-dependence
+│   │   ├── direction-dependence
+│   │   └── content-language-versus-direction
+│   ├── writing-modes
+│   │   ├── horizontal-tb
+│   │   ├── vertical-rl
+│   │   ├── vertical-lr
+│   │   ├── sideways-writing-support
+│   │   ├── text-orientation
+│   │   ├── mixed-orientation
+│   │   ├── text-combine-upright
+│   │   └── orthogonal-flows
+│   ├── bidirectional-text
+│   │   ├── direction-property
+│   │   ├── unicode-bidi
+│   │   ├── html-dir-coordination
+│   │   ├── bidi-isolation
+│   │   ├── mixed-numbers-and-text
+│   │   ├── embedded-identifiers
+│   │   ├── rtl-and-ltr-content
+│   │   └── language-aware-testing
+│   ├── logical-sizing-and-spacing
+│   │   ├── inline-size
+│   │   ├── block-size
+│   │   ├── min-and-max-logical-sizes
+│   │   ├── margin-inline-and-margin-block
+│   │   ├── padding-inline-and-padding-block
+│   │   ├── logical-overflow
+│   │   └── longhand-and-shorthand-interactions
+│   ├── logical-positioning-and-decoration
+│   │   ├── inset-inline-and-inset-block
+│   │   ├── logical-border-sides
+│   │   ├── logical-corner-radii
+│   │   ├── float-inline-start-and-end
+│   │   ├── clear-logical-values
+│   │   ├── text-align-start-and-end
+│   │   └── physical-property-exceptions
+│   ├── layout-in-writing-modes
+│   │   ├── flex-axes-in-rtl
+│   │   ├── grid-line-numbering-in-rtl
+│   │   ├── grid-in-vertical-writing
+│   │   ├── baseline-in-orthogonal-flows
+│   │   ├── logical-scroll-directions
+│   │   └── sticky-logical-insets
+│   ├── localized-component-design
+│   │   ├── mirrored-navigation
+│   │   ├── icon-mirroring-policy
+│   │   ├── mixed-direction-inputs
+│   │   ├── long-translations
+│   │   ├── vertical-script-components
+│   │   ├── locale-aware-fonts
+│   │   └── localized-numeric-alignment
+│   └── migration-and-validation
+│       ├── physical-property-inventory
+│       ├── logical-property-replacement
+│       ├── paired-ltr-rtl-screenshots
+│       ├── vertical-writing-fixtures
+│       ├── mixed-direction-test-content
+│       └── third-party-rtl-boundaries
+├── images-shapes-and-visual-effects
+│   ├── media-sizing
+│   │   ├── intrinsic-dimensions
+│   │   ├── responsive-image-sizing
+│   │   ├── object-fit
+│   │   ├── object-position
+│   │   ├── aspect-ratio-reservation
+│   │   ├── image-rendering
+│   │   ├── image-orientation
+│   │   └── broken-and-loading-image-states
+│   ├── css-image-sources
+│   │   ├── url-images
+│   │   ├── gradients-as-images
+│   │   ├── image-set
+│   │   ├── resolution-selection
+│   │   ├── multiple-image-fallbacks
+│   │   ├── generated-images-support
+│   │   └── content-images-versus-decoration
+│   ├── clipping
+│   │   ├── overflow-clipping
+│   │   ├── clip-path
+│   │   ├── inset-shapes
+│   │   ├── circle-and-ellipse
+│   │   ├── polygon
+│   │   ├── path
+│   │   ├── shape-function-support
+│   │   ├── geometry-boxes
+│   │   └── clip-path-hit-testing
+│   ├── masking
+│   │   ├── mask-image
+│   │   ├── mask-mode
+│   │   ├── mask-repeat
+│   │   ├── mask-position
+│   │   ├── mask-size
+│   │   ├── mask-origin-and-mask-clip
+│   │   ├── multiple-mask-layers
+│   │   ├── mask-composite
+│   │   └── svg-mask-integration
+│   ├── text-wrap-shapes
+│   │   ├── shape-outside
+│   │   ├── shape-margin
+│   │   ├── shape-image-threshold
+│   │   ├── basic-shape-wraps
+│   │   ├── image-alpha-wraps
+│   │   ├── float-and-shape-coordination
+│   │   └── shape-support-fallbacks
+│   ├── filter-effects
+│   │   ├── blur
+│   │   ├── brightness-and-contrast
+│   │   ├── grayscale-and-sepia
+│   │   ├── hue-rotate
+│   │   ├── invert-and-saturate
+│   │   ├── opacity-filter
+│   │   ├── drop-shadow
+│   │   ├── filter-order
+│   │   └── backdrop-filter
+│   ├── blending-and-isolation
+│   │   ├── mix-blend-mode
+│   │   ├── background-blend-mode
+│   │   ├── blend-mode-families
+│   │   ├── isolated-blending-groups
+│   │   ├── opacity-and-blending
+│   │   ├── stacking-context-side-effects
+│   │   └── contrast-and-readability
+│   ├── svg-styling
+│   │   ├── inline-svg-versus-external-svg
+│   │   ├── fill-and-stroke
+│   │   ├── stroke-width-and-dash-patterns
+│   │   ├── currentcolor-icons
+│   │   ├── svg-presentation-attributes
+│   │   ├── css-transform-box
+│   │   ├── svg-custom-properties
+│   │   ├── svg-text-styling
+│   │   └── vector-effect
+│   ├── visual-composition-patterns
+│   │   ├── image-overlays
+│   │   ├── masked-avatars
+│   │   ├── decorative-shapes
+│   │   ├── cutout-effects
+│   │   ├── duotone-images
+│   │   ├── clipped-cards
+│   │   ├── layered-illustrations
+│   │   └── glass-surfaces-with-fallbacks
+│   └── visual-effect-validation
+│       ├── clipping-and-focus-rings
+│       ├── filter-rendering-cost
+│       ├── external-svg-limitations
+│       ├── mask-resource-loading
+│       ├── reduced-transparency-fallbacks
+│       ├── forced-colors-fallbacks
+│       └── responsive-shape-scaling
+├── transforms-transitions-and-animation
+│   ├── motion-foundations
+│   │   ├── state-change-and-feedback
+│   │   ├── spatial-continuity
+│   │   ├── hierarchy-and-attention
+│   │   ├── motion-duration-and-distance
+│   │   ├── easing-and-timing
+│   │   ├── meaningful-versus-decorative-motion
+│   │   └── reduced-motion-alternatives
+│   ├── two-dimensional-transforms
+│   │   ├── translate
+│   │   ├── rotate
+│   │   ├── scale
+│   │   ├── skew
+│   │   ├── transform-matrix
+│   │   ├── transform-origin
+│   │   ├── individual-transform-properties
+│   │   ├── composition-order
+│   │   └── percentage-transform-reference
+│   ├── three-dimensional-transforms
+│   │   ├── translate3d
+│   │   ├── rotate3d
+│   │   ├── scale3d
+│   │   ├── perspective-property
+│   │   ├── perspective-function
+│   │   ├── perspective-origin
+│   │   ├── transform-style-preserve-3d
+│   │   ├── backface-visibility
+│   │   └── flattening-and-grouping-effects
+│   ├── transitions
+│   │   ├── transition-property
+│   │   ├── transition-duration
+│   │   ├── transition-delay
+│   │   ├── transition-timing-function
+│   │   ├── transition-shorthand
+│   │   ├── multiple-transitions
+│   │   ├── interruption-and-reversal
+│   │   └── animatable-and-discrete-values
+│   ├── easing-functions
+│   │   ├── linear
+│   │   ├── ease-family
+│   │   ├── cubic-bezier
+│   │   ├── steps
+│   │   ├── step-position
+│   │   ├── linear-function
+│   │   ├── piecewise-easing
+│   │   └── timing-curve-debugging
+│   ├── keyframe-animations
+│   │   ├── keyframes-at-rule
+│   │   ├── from-to-and-percentage-stops
+│   │   ├── animation-name
+│   │   ├── animation-duration
+│   │   ├── animation-delay
+│   │   ├── animation-iteration-count
+│   │   ├── animation-direction
+│   │   ├── animation-fill-mode
+│   │   └── animation-play-state
+│   ├── animation-composition
+│   │   ├── multiple-animations
+│   │   ├── animation-composition-property
+│   │   ├── replace-add-and-accumulate
+│   │   ├── animating-custom-properties
+│   │   ├── transform-composition
+│   │   ├── inherited-animation-effects
+│   │   └── animation-cascade-precedence
+│   ├── entry-and-exit-transitions
+│   │   ├── starting-style
+│   │   ├── transition-behavior-allow-discrete
+│   │   ├── display-transitions
+│   │   ├── content-visibility-transitions
+│   │   ├── overlay-transitions
+│   │   ├── dialog-and-popover-transitions
+│   │   └── exit-lifecycle-coordination
+│   ├── intrinsic-size-animation
+│   │   ├── interpolate-size
+│   │   ├── calc-size-support
+│   │   ├── numeric-to-intrinsic-interpolation
+│   │   ├── size-transition-scope
+│   │   ├── overflow-during-expansion
+│   │   └── layout-cost-and-fallbacks
+│   ├── motion-paths
+│   │   ├── offset-path
+│   │   ├── offset-distance
+│   │   ├── offset-rotate
+│   │   ├── offset-anchor
+│   │   ├── offset-position
+│   │   ├── path-geometry
+│   │   └── responsive-motion-paths
+│   ├── view-transitions
+│   │   ├── same-document-and-cross-document
+│   │   ├── view-transition-name
+│   │   ├── snapshot-pseudo-element-tree
+│   │   ├── old-and-new-snapshots
+│   │   ├── view-transition-class
+│   │   ├── view-transition-at-rule
+│   │   ├── duplicate-name-errors
+│   │   ├── transition-lifecycle-boundaries
+│   │   └── reduced-motion-behavior
+│   └── motion-validation
+│       ├── animation-inspector
+│       ├── reduced-motion-tests
+│       ├── pause-and-stop-controls
+│       ├── rapid-state-changes
+│       ├── compositor-eligibility
+│       ├── frame-time-measurement
+│       ├── focus-during-animation
+│       └── fallback-without-motion
+├── scrolling-and-scroll-driven-interfaces
+│   ├── overflow-model
+│   │   ├── overflow-visible-hidden-clip-scroll-auto
+│   │   ├── overflow-x-and-overflow-y
+│   │   ├── logical-overflow-directions
+│   │   ├── scroll-container
+│   │   ├── scrollport
+│   │   ├── overflow-clip-margin
+│   │   ├── clipping-versus-scrollability
+│   │   └── overflow-axis-interactions
+│   ├── scrollbar-styling
+│   │   ├── scrollbar-width
+│   │   ├── scrollbar-color
+│   │   ├── scrollbar-gutter
+│   │   ├── overlay-versus-classic-scrollbars
+│   │   ├── platform-scrollbar-differences
+│   │   ├── vendor-scrollbar-compatibility
+│   │   └── visible-scroll-affordances
+│   ├── scroll-behavior
+│   │   ├── scroll-behavior-smooth
+│   │   ├── scroll-padding
+│   │   ├── scroll-margin
+│   │   ├── anchor-target-offsets
+│   │   ├── nested-scroll-containers
+│   │   ├── overscroll-behavior
+│   │   ├── scroll-chaining
+│   │   ├── scroll-anchoring
+│   │   └── overflow-anchor
+│   ├── scroll-snap
+│   │   ├── scroll-snap-type
+│   │   ├── scroll-snap-align
+│   │   ├── scroll-snap-stop
+│   │   ├── mandatory-versus-proximity
+│   │   ├── snapport-and-snap-area
+│   │   ├── scroll-padding-and-snap
+│   │   ├── variable-size-content
+│   │   └── keyboard-and-touch-snap-navigation
+│   ├── scroll-driven-animation-foundations
+│   │   ├── time-based-versus-scroll-based
+│   │   ├── progress-timelines
+│   │   ├── scroll-progress-timelines
+│   │   ├── view-progress-timelines
+│   │   ├── scroll-function
+│   │   ├── view-function
+│   │   ├── animation-timeline
+│   │   └── fallback-without-timelines
+│   ├── named-timelines-and-ranges
+│   │   ├── scroll-timeline-name-and-axis
+│   │   ├── view-timeline-name-and-axis
+│   │   ├── view-timeline-inset
+│   │   ├── timeline-scope
+│   │   ├── animation-range-start-and-end
+│   │   ├── entry-exit-and-cover-ranges
+│   │   └── multiple-animation-timelines
+│   ├── scroll-driven-patterns
+│   │   ├── reading-progress-indicator
+│   │   ├── section-reveal
+│   │   ├── header-elevation-on-scroll
+│   │   ├── image-progress-effects
+│   │   ├── sticky-storytelling
+│   │   ├── bounded-parallax
+│   │   └── horizontal-gallery-progress
+│   ├── scroll-interaction-boundaries
+│   │   ├── css-versus-scroll-event-handlers
+│   │   ├── intersection-observer-coordination
+│   │   ├── sticky-and-scroll-timeline-composition
+│   │   ├── scroll-lock-with-behavior-support
+│   │   ├── touch-action-and-gesture-ownership
+│   │   └── keyboard-scroll-access
+│   ├── scrolling-accessibility
+│   │   ├── avoid-scroll-hijacking
+│   │   ├── respect-reduced-motion
+│   │   ├── visible-focus-in-scroll-regions
+│   │   ├── reachable-overflow-content
+│   │   ├── no-essential-scroll-only-reveal
+│   │   ├── sticky-content-obstruction
+│   │   └── scroll-restoration-coordination
+│   └── scrolling-diagnostics
+│       ├── unexpected-scroll-ancestor
+│       ├── document-horizontal-overflow
+│       ├── nested-scroll-traps
+│       ├── sticky-snap-interaction
+│       ├── scrollbar-layout-shift
+│       ├── timeline-inactivity
+│       └── mobile-scroll-testing
+├── forms-interaction-and-ui-states
+│   ├── interaction-styling-foundations
+│   │   ├── native-semantics-first
+│   │   ├── visual-and-behavioral-state
+│   │   ├── state-transition-consistency
+│   │   ├── keyboard-and-pointer-parity
+│   │   ├── touch-and-hover-differences
+│   │   ├── disabled-versus-readonly
+│   │   └── interaction-density
+│   ├── interactive-affordances
+│   │   ├── cursor
+│   │   ├── pointer-events
+│   │   ├── user-select
+│   │   ├── touch-action
+│   │   ├── resize
+│   │   ├── caret-color
+│   │   ├── accent-color
+│   │   ├── appearance
+│   │   └── color-scheme-native-controls
+│   ├── focus-design
+│   │   ├── focus-indicator
+│   │   ├── visibility-and-contrast
+│   │   ├── focus-visible-strategy
+│   │   ├── focus-within-groups
+│   │   ├── outline-offset
+│   │   ├── focus-ring-clipping
+│   │   ├── focus-on-dark-and-light-surfaces
+│   │   └── sticky-overlay-obstruction
+│   ├── text-inputs-and-textareas
+│   │   ├── inherited-fonts
+│   │   ├── padding-and-line-height
+│   │   ├── border-and-background
+│   │   ├── placeholder-styling
+│   │   ├── textarea-resizing
+│   │   ├── autofill-styling
+│   │   ├── field-sizing-support
+│   │   └── browser-native-decorations
+│   ├── choice-and-specialized-controls
+│   │   ├── checkboxes-and-radio-buttons
+│   │   ├── switches-and-semantic-checkboxes
+│   │   ├── select-controls
+│   │   ├── range-inputs
+│   │   ├── file-input-buttons
+│   │   ├── date-and-time-inputs
+│   │   ├── progress-and-meter
+│   │   └── cross-engine-control-pseudo-elements
+│   ├── customizable-select-enhancement
+│   │   ├── appearance-base-select
+│   │   ├── picker-pseudo-elements
+│   │   ├── selected-content-coordination
+│   │   ├── picker-icon-and-checkmark
+│   │   ├── open-state-styling
+│   │   ├── option-layout
+│   │   ├── native-select-fallback
+│   │   └── browser-support-gates
+│   ├── validation-and-feedback
+│   │   ├── valid-and-invalid-states
+│   │   ├── user-valid-and-user-invalid
+│   │   ├── required-and-optional-states
+│   │   ├── aria-invalid-integration
+│   │   ├── helper-and-error-text
+│   │   ├── error-summary-styling
+│   │   ├── success-and-warning-feedback
+│   │   └── no-color-only-validation
+│   ├── disclosure-and-overlay-states
+│   │   ├── details-and-summary
+│   │   ├── open-state-styling
+│   │   ├── dialog-modal-state
+│   │   ├── popover-open-state
+│   │   ├── backdrop-styling
+│   │   ├── menu-state-contracts
+│   │   ├── focus-management-boundary
+│   │   └── escape-and-dismissal-boundary
+│   ├── loading-and-async-states
+│   │   ├── loading-buttons
+│   │   ├── progress-indicators
+│   │   ├── skeleton-layouts
+│   │   ├── empty-states
+│   │   ├── optimistic-and-pending-states
+│   │   ├── disabled-action-feedback
+│   │   └── reduced-motion-loading-feedback
+│   └── interaction-testing
+│       ├── keyboard-only-flow
+│       ├── touch-target-spacing
+│       ├── coarse-pointer-tests
+│       ├── hover-capability-tests
+│       ├── native-control-appearance-tests
+│       ├── autofill-and-password-manager-tests
+│       └── error-and-disabled-state-tests
+├── component-patterns-and-layout-recipes
+│   ├── layout-primitives
+│   │   ├── stack
+│   │   ├── cluster
+│   │   ├── center
+│   │   ├── container
+│   │   ├── sidebar
+│   │   ├── switcher
+│   │   ├── cover
+│   │   ├── frame
+│   │   └── full-bleed-region
+│   ├── page-shells
+│   │   ├── header-main-footer
+│   │   ├── sticky-footer-shell
+│   │   ├── fixed-sidebar-shell
+│   │   ├── responsive-dashboard
+│   │   ├── split-screen-layout
+│   │   ├── editorial-page
+│   │   ├── documentation-layout
+│   │   └── application-shell
+│   ├── navigation-patterns
+│   │   ├── responsive-header
+│   │   ├── horizontal-navigation
+│   │   ├── vertical-navigation
+│   │   ├── breadcrumbs
+│   │   ├── pagination
+│   │   ├── tabs-visual-layer
+│   │   ├── stepper
+│   │   ├── table-of-contents
+│   │   └── skip-link
+│   ├── card-patterns
+│   │   ├── media-card
+│   │   ├── product-card
+│   │   ├── profile-card
+│   │   ├── stat-card
+│   │   ├── equal-height-card-grid
+│   │   ├── subgrid-card-alignment
+│   │   ├── interactive-card-boundaries
+│   │   └── nested-card-actions
+│   ├── hero-and-marketing-sections
+│   │   ├── split-hero
+│   │   ├── overlapping-hero
+│   │   ├── text-over-image
+│   │   ├── logo-cloud
+│   │   ├── feature-grid
+│   │   ├── pricing-comparison
+│   │   ├── testimonial-section
+│   │   └── call-to-action-banner
+│   ├── content-layouts
+│   │   ├── rich-text-prose
+│   │   ├── article-and-aside
+│   │   ├── pull-quote
+│   │   ├── code-block
+│   │   ├── image-and-caption
+│   │   ├── definition-list
+│   │   ├── timeline
+│   │   └── nested-list-navigation
+│   ├── data-display
+│   │   ├── responsive-data-table
+│   │   ├── sticky-table-header
+│   │   ├── sticky-first-column
+│   │   ├── dense-and-comfortable-density
+│   │   ├── key-value-list
+│   │   ├── status-badges
+│   │   ├── comparison-matrix
+│   │   └── overflow-and-empty-state
+│   ├── input-and-action-groups
+│   │   ├── label-input-helper
+│   │   ├── fieldset-and-legend
+│   │   ├── search-box
+│   │   ├── segmented-control-visuals
+│   │   ├── button-group
+│   │   ├── toolbar
+│   │   ├── filter-panel
+│   │   └── responsive-form-columns
+│   ├── feedback-components
+│   │   ├── alert-banner
+│   │   ├── toast
+│   │   ├── progress-bar
+│   │   ├── skeleton-screen
+│   │   ├── loading-placeholder
+│   │   ├── empty-state
+│   │   ├── validation-summary
+│   │   └── inline-notification
+│   ├── overlay-components
+│   │   ├── modal-shell
+│   │   ├── drawer
+│   │   ├── dropdown-menu
+│   │   ├── tooltip
+│   │   ├── popover
+│   │   ├── command-palette-visuals
+│   │   ├── backdrop-and-scroll-region
+│   │   └── stacked-overlay-policy
+│   ├── media-and-gallery-patterns
+│   │   ├── responsive-image-grid
+│   │   ├── aspect-ratio-gallery
+│   │   ├── horizontal-snap-gallery
+│   │   ├── video-frame
+│   │   ├── avatar-group
+│   │   ├── image-comparison-layout
+│   │   └── thumbnail-strip
+│   └── component-resilience
+│       ├── long-text-fixtures
+│       ├── missing-media
+│       ├── variable-action-count
+│       ├── empty-and-loading-content
+│       ├── narrow-container-tests
+│       ├── rtl-variants
+│       ├── keyboard-focus-states
+│       └── print-variants
+├── architecture-tokens-and-design-systems
+│   ├── architecture-foundations
+│   │   ├── design-and-implementation-boundaries
+│   │   ├── global-and-local-responsibilities
+│   │   ├── style-ownership
+│   │   ├── dependency-direction
+│   │   ├── predictable-overrides
+│   │   ├── reuse-versus-abstraction
+│   │   └── documentation-and-discoverability
+│   ├── architecture-methodologies
+│   │   ├── bem
+│   │   ├── object-oriented-css
+│   │   ├── smacss
+│   │   ├── itcss
+│   │   ├── cube-css
+│   │   ├── utility-first-css
+│   │   ├── methodology-tradeoffs
+│   │   └── mixed-methodology-boundaries
+│   ├── stylesheet-layering
+│   │   ├── reset-layer
+│   │   ├── token-layer
+│   │   ├── base-layer
+│   │   ├── layout-layer
+│   │   ├── component-layer
+│   │   ├── utility-layer
+│   │   ├── override-layer
+│   │   └── third-party-layer
+│   ├── naming-and-organization
+│   │   ├── block-element-modifier-naming
+│   │   ├── state-class-conventions
+│   │   ├── data-attribute-contracts
+│   │   ├── utility-names
+│   │   ├── semantic-versus-visual-names
+│   │   ├── file-and-folder-layout
+│   │   └── public-and-private-selectors
+│   ├── design-token-model
+│   │   ├── primitive-tokens
+│   │   ├── semantic-tokens
+│   │   ├── component-tokens
+│   │   ├── token-aliases
+│   │   ├── naming-and-namespaces
+│   │   ├── token-types
+│   │   ├── fallback-and-default-policy
+│   │   └── token-lifecycle
+│   ├── token-categories
+│   │   ├── color-system
+│   │   ├── typography-scale
+│   │   ├── spacing-scale
+│   │   ├── sizing-scale
+│   │   ├── radius-and-border-scale
+│   │   ├── elevation-scale
+│   │   ├── motion-scale
+│   │   ├── stacking-scale
+│   │   └── breakpoint-and-container-tokens
+│   ├── theme-architecture
+│   │   ├── light-and-dark-themes
+│   │   ├── system-preference-and-user-choice
+│   │   ├── brand-themes
+│   │   ├── high-contrast-themes
+│   │   ├── density-variants
+│   │   ├── nested-theme-islands
+│   │   ├── theme-persistence-coordination
+│   │   └── no-flash-theme-application
+│   ├── component-contracts
+│   │   ├── root-and-slot-structure
+│   │   ├── variants-and-sizes
+│   │   ├── state-model
+│   │   ├── public-custom-properties
+│   │   ├── responsive-contracts
+│   │   ├── content-constraints
+│   │   ├── focus-and-accessibility-contracts
+│   │   └── extension-points
+│   ├── library-delivery
+│   │   ├── component-stylesheet-packaging
+│   │   ├── css-entry-points
+│   │   ├── layer-order-contract
+│   │   ├── asset-and-font-distribution
+│   │   ├── consumer-override-strategy
+│   │   ├── optional-style-bundles
+│   │   ├── side-effect-metadata
+│   │   └── documentation-examples
+│   └── governance-and-evolution
+│       ├── design-review
+│       ├── contribution-guidelines
+│       ├── ownership-and-maintainers
+│       ├── visual-change-review
+│       ├── versioning-and-breaking-changes
+│       ├── deprecation-and-migration
+│       ├── token-audits
+│       └── usage-and-adoption-tracking
+├── component-isolation-and-framework-integration
+│   ├── isolation-models
+│   │   ├── global-css
+│   │   ├── naming-based-isolation
+│   │   ├── build-time-class-scoping
+│   │   ├── shadow-dom-boundaries
+│   │   ├── native-scope
+│   │   ├── cascade-layer-isolation
+│   │   └── isolation-versus-inheritance
+│   ├── css-modules
+│   │   ├── local-class-names
+│   │   ├── exported-class-maps
+│   │   ├── composition
+│   │   ├── global-escape-hatches
+│   │   ├── deterministic-class-generation
+│   │   ├── type-safe-class-maps
+│   │   ├── bundler-integration
+│   │   └── stylesheet-ordering
+│   ├── shadow-dom-styling
+│   │   ├── host-selector
+│   │   ├── host-state-styling
+│   │   ├── slotted-selector
+│   │   ├── part-pseudo-element
+│   │   ├── exportparts
+│   │   ├── inherited-custom-properties
+│   │   ├── shadow-and-light-dom-cascade
+│   │   └── adopted-stylesheets
+│   ├── custom-element-styling
+│   │   ├── element-default-display
+│   │   ├── public-parts-and-tokens
+│   │   ├── state-pseudo-class
+│   │   ├── theme-adoption
+│   │   ├── slot-layout
+│   │   ├── fallback-slot-content
+│   │   └── cross-document-reuse
+│   ├── react-styling-integration
+│   │   ├── class-name-composition
+│   │   ├── conditional-state-classes
+│   │   ├── css-modules-in-react
+│   │   ├── dynamic-inline-values
+│   │   ├── custom-properties-from-props
+│   │   ├── style-order-with-code-splitting
+│   │   └── server-rendered-style-consistency
+│   ├── vue-and-svelte-integration
+│   │   ├── scoped-component-styles
+│   │   ├── component-style-boundaries
+│   │   ├── global-and-deep-escape-hatches
+│   │   ├── parent-child-style-contracts
+│   │   ├── dynamic-css-variables
+│   │   └── compiled-selector-inspection
+│   ├── angular-styling-integration
+│   │   ├── component-style-encapsulation
+│   │   ├── host-styling
+│   │   ├── shadow-dom-encapsulation
+│   │   ├── global-theme-styles
+│   │   ├── component-library-overrides
+│   │   └── deprecated-deep-selector-migration
+│   ├── css-in-js-and-extraction
+│   │   ├── runtime-style-generation
+│   │   ├── build-time-css-extraction
+│   │   ├── generated-class-stability
+│   │   ├── dynamic-value-cost
+│   │   ├── server-rendering-and-hydration
+│   │   ├── content-security-policy-interaction
+│   │   └── static-versus-runtime-tradeoffs
+│   ├── cross-component-boundaries
+│   │   ├── portals-and-teleports
+│   │   ├── overlay-theme-inheritance
+│   │   ├── third-party-widgets
+│   │   ├── microfrontend-style-boundaries
+│   │   ├── iframe-isolation
+│   │   ├── shared-reset-collisions
+│   │   └── component-package-layer-order
+│   └── framework-integration-tests
+│       ├── dynamic-component-loading
+│       ├── server-and-client-parity
+│       ├── theme-propagation
+│       ├── selector-leakage
+│       ├── isolated-component-preview
+│       ├── production-css-order
+│       └── shadow-boundary-tests
+├── preprocessors-frameworks-and-build-tooling
+│   ├── native-css-first-workflow
+│   │   ├── plain-css-entry-points
+│   │   ├── native-variables
+│   │   ├── native-nesting
+│   │   ├── native-layers
+│   │   ├── browser-supported-features
+│   │   ├── no-build-prototypes
+│   │   └── tool-adoption-criteria
+│   ├── sass-language
+│   │   ├── scss-and-indented-syntax
+│   │   ├── variables-and-scope
+│   │   ├── lists-and-maps
+│   │   ├── interpolation
+│   │   ├── mixins-and-includes
+│   │   ├── functions
+│   │   ├── control-directives
+│   │   └── built-in-modules
+│   ├── sass-module-system
+│   │   ├── use-and-forward
+│   │   ├── namespaces
+│   │   ├── private-members
+│   │   ├── module-configuration
+│   │   ├── dependency-graphs
+│   │   ├── duplicate-output-prevention
+│   │   ├── legacy-import-migration
+│   │   └── css-import-versus-sass-import
+│   ├── sass-maintainability
+│   │   ├── mixin-versus-custom-property
+│   │   ├── extend-and-selector-growth
+│   │   ├── nesting-depth-policy
+│   │   ├── compile-time-versus-runtime-theming
+│   │   ├── source-maps
+│   │   ├── deprecation-warning-review
+│   │   └── emitted-css-inspection
+│   ├── postcss
+│   │   ├── parsing-and-ast
+│   │   ├── plugin-pipeline
+│   │   ├── plugin-order
+│   │   ├── import-processing
+│   │   ├── nesting-transforms
+│   │   ├── custom-media-transforms
+│   │   ├── source-maps
+│   │   └── target-browser-transforms
+│   ├── lightning-css-and-css-processing
+│   │   ├── syntax-transforms
+│   │   ├── prefix-handling
+│   │   ├── minification
+│   │   ├── bundling
+│   │   ├── target-configuration
+│   │   ├── css-modules-processing
+│   │   └── transformation-compatibility
+│   ├── tailwindcss
+│   │   ├── utility-first-model
+│   │   ├── theme-variables
+│   │   ├── css-first-configuration
+│   │   ├── responsive-variants
+│   │   ├── state-variants
+│   │   ├── container-query-variants
+│   │   ├── custom-utilities-and-variants
+│   │   ├── source-detection-and-dynamic-class-limits
+│   │   └── component-extraction-tradeoffs
+│   ├── bootstrap-and-component-frameworks
+│   │   ├── grid-system
+│   │   ├── spacing-and-display-utilities
+│   │   ├── component-css
+│   │   ├── theme-customization
+│   │   ├── sass-and-css-variable-boundaries
+│   │   ├── framework-layer-isolation
+│   │   ├── unused-framework-css
+│   │   └── migration-and-version-boundaries
+│   ├── build-tool-integration
+│   │   ├── vite-css-pipeline
+│   │   ├── webpack-css-loaders
+│   │   ├── parcel-css-pipeline
+│   │   ├── css-code-splitting
+│   │   ├── style-injection-versus-extraction
+│   │   ├── asset-url-rewriting
+│   │   └── development-and-production-parity
+│   ├── compatibility-transforms
+│   │   ├── browserslist-targets
+│   │   ├── autoprefixer
+│   │   ├── prefix-lifecycle
+│   │   ├── syntax-transpilation-limits
+│   │   ├── semantic-polyfill-limits
+│   │   └── source-and-output-support-matrix
+│   ├── linting-and-formatting
+│   │   ├── stylelint
+│   │   ├── configuration-and-rule-selection
+│   │   ├── shared-configurations
+│   │   ├── custom-rule-policies
+│   │   ├── formatter-integration
+│   │   ├── editor-diagnostics
+│   │   ├── pre-commit-checks
+│   │   └── ci-quality-gates
+│   ├── asset-and-output-pipeline
+│   │   ├── font-and-image-resolution
+│   │   ├── content-hashed-filenames
+│   │   ├── compression
+│   │   ├── source-map-publication
+│   │   ├── cache-invalidation
+│   │   ├── critical-css-extraction
+│   │   ├── unused-css-removal-safety
+│   │   └── build-output-inspection
+│   └── tooling-evaluation
+│       ├── project-size-and-needs
+│       ├── maintenance-cost
+│       ├── runtime-versus-build-cost
+│       ├── vendor-lock-in
+│       ├── browser-target-fit
+│       ├── generated-css-size
+│       └── migration-exit-strategy
+├── cssom-javascript-and-platform-interop
+│   ├── cssom-foundations
+│   │   ├── stylesheet-objects
+│   │   ├── rule-lists
+│   │   ├── style-declarations
+│   │   ├── inline-style-interface
+│   │   ├── computed-style-interface
+│   │   ├── resolved-versus-used-values
+│   │   └── same-origin-access-restrictions
+│   ├── style-and-class-updates
+│   │   ├── classlist-operations
+│   │   ├── state-attribute-updates
+│   │   ├── style-set-property
+│   │   ├── style-remove-property
+│   │   ├── custom-property-updates
+│   │   ├── inline-versus-stylesheet-precedence
+│   │   └── batching-dom-writes
+│   ├── stylesheet-manipulation
+│   │   ├── document-stylesheets
+│   │   ├── css-rules
+│   │   ├── insert-rule
+│   │   ├── delete-rule
+│   │   ├── stylesheet-disabled-state
+│   │   ├── media-list
+│   │   └── dynamic-style-element-lifecycle
+│   ├── constructed-stylesheets
+│   │   ├── cssstylesheet-constructor
+│   │   ├── replace-and-replace-sync
+│   │   ├── document-adopted-stylesheets
+│   │   ├── shadowroot-adopted-stylesheets
+│   │   ├── shared-stylesheet-instances
+│   │   ├── ownership-and-document-boundaries
+│   │   └── support-and-fallbacks
+│   ├── css-typed-om
+│   │   ├── style-value-objects
+│   │   ├── unit-values
+│   │   ├── numeric-values
+│   │   ├── attribute-style-map
+│   │   ├── computed-style-map
+│   │   ├── transform-values
+│   │   └── typed-om-support-boundaries
+│   ├── feature-and-preference-detection
+│   │   ├── css-supports
+│   │   ├── match-media
+│   │   ├── media-query-change-events
+│   │   ├── reduced-motion-preference
+│   │   ├── color-scheme-preference
+│   │   └── preference-listener-cleanup
+│   ├── layout-and-observation-apis
+│   │   ├── bounding-client-rect
+│   │   ├── client-offset-and-scroll-dimensions
+│   │   ├── resize-observer
+│   │   ├── intersection-observer
+│   │   ├── read-write-layout-boundaries
+│   │   ├── observer-feedback-loops
+│   │   └── mutation-driven-style-changes
+│   ├── animation-and-highlight-interop
+│   │   ├── web-animations-api
+│   │   ├── css-animation-events
+│   │   ├── transition-events
+│   │   ├── view-transition-api
+│   │   ├── font-loading-api
+│   │   ├── custom-highlight-api
+│   │   └── registered-properties-api
+│   └── interop-design-principles
+│       ├── declarative-css-before-imperative-measurement
+│       ├── state-not-pixel-coordinates
+│       ├── progressive-enhancement
+│       ├── cleanup-and-lifecycle
+│       ├── css-contracts-for-javascript
+│       ├── resize-loop-prevention
+│       └── no-js-fallbacks
+├── accessibility-and-user-preferences
+│   ├── accessibility-foundations
+│   │   ├── semantic-html-and-css-boundaries
+│   │   ├── visual-and-accessibility-trees
+│   │   ├── meaningful-content-order
+│   │   ├── keyboard-navigation
+│   │   ├── native-control-preservation
+│   │   ├── assistive-technology-testing
+│   │   └── user-stylesheet-respect
+│   ├── contrast-and-perception
+│   │   ├── text-contrast
+│   │   ├── non-text-contrast
+│   │   ├── focus-indicator-contrast
+│   │   ├── color-independent-information
+│   │   ├── transparency-and-background-images
+│   │   ├── dark-mode-contrast
+│   │   ├── link-distinguishability
+│   │   └── disabled-control-interpretation
+│   ├── focus-and-navigation
+│   │   ├── visible-focus
+│   │   ├── no-outline-removal-without-replacement
+│   │   ├── focus-ring-obstruction
+│   │   ├── focus-on-scroll-targets
+│   │   ├── skip-link-styling
+│   │   ├── source-and-tab-order
+│   │   └── sticky-and-fixed-obstructions
+│   ├── zoom-reflow-and-text-spacing
+│   │   ├── browser-zoom
+│   │   ├── text-only-zoom
+│   │   ├── narrow-viewport-reflow
+│   │   ├── line-height-overrides
+│   │   ├── letter-and-word-spacing-overrides
+│   │   ├── paragraph-spacing-overrides
+│   │   ├── long-word-wrapping
+│   │   └── two-dimensional-content-exceptions
+│   ├── motion-and-flashing
+│   │   ├── prefers-reduced-motion
+│   │   ├── removing-nonessential-motion
+│   │   ├── pause-and-stop-coordination
+│   │   ├── avoid-flashing-content
+│   │   ├── no-motion-dependent-information
+│   │   ├── reduced-motion-loading
+│   │   └── scroll-animation-alternatives
+│   ├── color-and-transparency-preferences
+│   │   ├── prefers-color-scheme
+│   │   ├── prefers-contrast
+│   │   ├── forced-colors
+│   │   ├── system-color-keywords
+│   │   ├── forced-color-adjust
+│   │   ├── reduced-transparency-fallbacks
+│   │   └── custom-theme-override-priority
+│   ├── visibility-and-hidden-content
+│   │   ├── display-none
+│   │   ├── visibility-hidden
+│   │   ├── visually-hidden-pattern
+│   │   ├── opacity-zero-risks
+│   │   ├── hidden-and-inert-coordination
+│   │   ├── offscreen-content-focusability
+│   │   ├── generated-content-limitations
+│   │   └── display-contents-testing
+│   ├── input-and-target-design
+│   │   ├── target-size-and-spacing
+│   │   ├── coarse-pointer-layouts
+│   │   ├── non-hover-access
+│   │   ├── touch-and-keyboard-parity
+│   │   ├── visible-disabled-state
+│   │   ├── error-state-accessibility
+│   │   └── form-label-legibility
+│   └── accessibility-validation
+│       ├── keyboard-walkthrough
+│       ├── screen-reader-smoke-tests
+│       ├── high-contrast-mode-tests
+│       ├── zoom-and-text-spacing-tests
+│       ├── reduced-motion-tests
+│       ├── user-stylesheet-tests
+│       └── automated-and-manual-coverage
+├── performance-and-rendering
+│   ├── browser-rendering-pipeline
+│   │   ├── stylesheet-fetch-and-parse
+│   │   ├── dom-and-cssom-dependencies
+│   │   ├── style-resolution
+│   │   ├── layout
+│   │   ├── paint
+│   │   ├── rasterization
+│   │   ├── compositing
+│   │   └── rendering-opportunity
+│   ├── stylesheet-delivery
+│   │   ├── render-blocking-css
+│   │   ├── critical-rendering-path
+│   │   ├── preload-and-priority-coordination
+│   │   ├── import-request-chains
+│   │   ├── route-level-css-splitting
+│   │   ├── compression-and-caching
+│   │   ├── unused-css-budget
+│   │   └── first-paint-styling-consistency
+│   ├── selector-and-style-cost
+│   │   ├── style-invalidation
+│   │   ├── selector-matching-profiles
+│   │   ├── broad-state-changes
+│   │   ├── relational-selector-measurement
+│   │   ├── inherited-property-updates
+│   │   ├── custom-property-update-scope
+│   │   ├── large-dom-style-cost
+│   │   └── evidence-before-micro-optimization
+│   ├── layout-cost
+│   │   ├── layout-invalidation
+│   │   ├── intrinsic-size-calculation
+│   │   ├── forced-synchronous-layout
+│   │   ├── read-write-thrashing
+│   │   ├── complex-grid-and-table-layout
+│   │   ├── containment-opportunities
+│   │   └── offscreen-content-skipping
+│   ├── paint-and-compositing-cost
+│   │   ├── paint-invalidation
+│   │   ├── paint-rectangles
+│   │   ├── large-blur-regions
+│   │   ├── backdrop-filter-cost
+│   │   ├── expensive-shadows
+│   │   ├── blend-and-mask-cost
+│   │   ├── layer-promotion
+│   │   ├── gpu-memory
+│   │   └── tradeoffs-of-will-change
+│   ├── animation-performance
+│   │   ├── transform-and-opacity-candidates
+│   │   ├── compositor-versus-main-thread
+│   │   ├── layout-triggering-animation
+│   │   ├── paint-triggering-animation
+│   │   ├── animation-frame-budget
+│   │   ├── offscreen-animation-control
+│   │   └── reduced-motion-and-energy
+│   ├── layout-stability
+│   │   ├── media-dimension-reservation
+│   │   ├── font-metric-matching
+│   │   ├── asynchronous-content-space
+│   │   ├── scrollbar-gutter
+│   │   ├── late-stylesheet-arrival
+│   │   ├── responsive-resize-shifts
+│   │   └── cumulative-layout-shift-investigation
+│   ├── responsive-performance
+│   │   ├── low-end-device-testing
+│   │   ├── high-dpi-raster-cost
+│   │   ├── large-viewport-paint-area
+│   │   ├── mobile-browser-memory
+│   │   ├── theme-switch-cost
+│   │   ├── long-page-rendering
+│   │   └── component-scale-benchmarks
+│   ├── measurement-and-budgets
+│   │   ├── performance-panel
+│   │   ├── rendering-overlays
+│   │   ├── style-recalculation-time
+│   │   ├── layout-duration
+│   │   ├── paint-and-layer-inspection
+│   │   ├── real-user-metrics
+│   │   ├── lab-versus-field-data
+│   │   ├── before-and-after-benchmarks
+│   │   └── performance-regression-budgets
+│   └── performance-refactoring
+│       ├── identify-bottleneck
+│       ├── minimal-change-experiments
+│       ├── simplify-without-changing-semantics
+│       ├── replace-expensive-effects
+│       ├── reduce-delivery-size
+│       ├── contain-proven-hotspots
+│       └── verify-accessibility-and-visual-parity
+├── testing-debugging-and-quality
+│   ├── debugging-workflow
+│   │   ├── reproduce
+│   │   ├── observe-computed-state
+│   │   ├── isolate-rule-or-container
+│   │   ├── form-hypothesis
+│   │   ├── change-one-variable
+│   │   ├── verify-across-states
+│   │   └── document-root-cause
+│   ├── developer-tools
+│   │   ├── styles-panel
+│   │   ├── computed-panel
+│   │   ├── box-model-panel
+│   │   ├── flexbox-overlay
+│   │   ├── grid-overlay
+│   │   ├── animation-panel
+│   │   ├── rendering-panel
+│   │   ├── accessibility-inspection
+│   │   └── css-coverage
+│   ├── cascade-and-selector-debugging
+│   │   ├── unmatched-selectors
+│   │   ├── overridden-declarations
+│   │   ├── inherited-value-tracing
+│   │   ├── layer-order-inspection
+│   │   ├── specificity-conflicts
+│   │   ├── invalid-custom-property-substitution
+│   │   └── pseudo-class-state-forcing
+│   ├── layout-debugging
+│   │   ├── overflowing-element-isolation
+│   │   ├── containing-block-tracing
+│   │   ├── stacking-context-inspection
+│   │   ├── scroll-container-tracing
+│   │   ├── intrinsic-size-investigation
+│   │   ├── flex-minimum-size
+│   │   ├── grid-track-sizing
+│   │   └── sticky-and-fixed-failures
+│   ├── visual-regression-testing
+│   │   ├── deterministic-fixtures
+│   │   ├── reference-screenshots
+│   │   ├── viewport-matrix
+│   │   ├── theme-matrix
+│   │   ├── state-matrix
+│   │   ├── image-diff-review
+│   │   ├── anti-aliasing-noise
+│   │   └── intentional-change-approval
+│   ├── browser-test-automation
+│   │   ├── playwright
+│   │   ├── cypress
+│   │   ├── webdriver
+│   │   ├── screenshot-assertions
+│   │   ├── computed-style-assertions
+│   │   ├── bounding-box-assertions
+│   │   ├── interaction-state-setup
+│   │   └── animation-disable-controls
+│   ├── component-test-cases
+│   │   ├── default-hover-focus-active
+│   │   ├── disabled-and-readonly
+│   │   ├── loading-empty-error
+│   │   ├── long-and-short-content
+│   │   ├── narrow-and-wide-containers
+│   │   ├── rtl-and-ltr
+│   │   └── light-dark-and-forced-colors
+│   ├── environment-stability
+│   │   ├── pinned-browser-versions
+│   │   ├── font-loading-synchronization
+│   │   ├── image-loading-synchronization
+│   │   ├── locale-and-timezone
+│   │   ├── device-pixel-ratio
+│   │   ├── reduced-motion-setting
+│   │   └── deterministic-data
+│   ├── accessibility-and-compatibility-tests
+│   │   ├── keyboard-and-focus-tests
+│   │   ├── reflow-tests
+│   │   ├── text-spacing-tests
+│   │   ├── reduced-motion-tests
+│   │   ├── screen-reader-smoke-tests
+│   │   ├── browser-support-matrix
+│   │   └── real-mobile-device-tests
+│   ├── static-quality-checks
+│   │   ├── css-syntax-validation
+│   │   ├── stylelint-rules
+│   │   ├── invalid-property-detection
+│   │   ├── duplicate-and-conflicting-declarations
+│   │   ├── selector-complexity-review
+│   │   ├── token-contract-checks
+│   │   └── unsupported-feature-detection
+│   └── test-maintenance
+│       ├── flaky-test-triage
+│       ├── screenshot-baseline-governance
+│       ├── failure-artifacts
+│       ├── minimal-reproduction-library
+│       ├── component-coverage-inventory
+│       ├── regression-test-after-fix
+│       └── ci-acceptance-gates
+├── print-paged-media-and-email
+│   ├── print-styling-foundations
+│   │   ├── screen-versus-print
+│   │   ├── print-media-query
+│   │   ├── print-stylesheet-loading
+│   │   ├── browser-print-preview
+│   │   ├── physical-units
+│   │   ├── printable-content-scope
+│   │   └── interactive-control-hiding
+│   ├── page-layout
+│   │   ├── page-at-rule
+│   │   ├── page-size
+│   │   ├── page-margins
+│   │   ├── orientation
+│   │   ├── named-pages
+│   │   ├── first-left-and-right-pages
+│   │   ├── page-margin-box-support
+│   │   └── printable-area-constraints
+│   ├── fragmentation
+│   │   ├── break-before
+│   │   ├── break-after
+│   │   ├── break-inside
+│   │   ├── page-and-column-breaks
+│   │   ├── orphans-and-widows
+│   │   ├── avoid-splitting-components
+│   │   ├── table-header-repetition
+│   │   └── fragmentation-contexts
+│   ├── print-content-treatment
+│   │   ├── readable-print-typography
+│   │   ├── link-destination-display
+│   │   ├── background-and-color-printing
+│   │   ├── print-color-adjust
+│   │   ├── image-resolution
+│   │   ├── svg-in-print
+│   │   ├── form-value-printing
+│   │   └── overflow-and-fixed-content
+│   ├── paged-publishing-enhancements
+│   │   ├── page-counters
+│   │   ├── running-header-support
+│   │   ├── generated-content-for-pages
+│   │   ├── footnote-support-boundaries
+│   │   ├── browser-versus-paged-engine
+│   │   ├── support-matrix
+│   │   └── fallback-to-simple-print
+│   ├── pdf-output-validation
+│   │   ├── browser-print-to-pdf
+│   │   ├── page-clipping
+│   │   ├── page-break-review
+│   │   ├── font-embedding-observation
+│   │   ├── long-table-review
+│   │   ├── selectable-text-checks
+│   │   └── output-engine-comparison
+│   ├── email-css-foundations
+│   │   ├── email-client-rendering-differences
+│   │   ├── inline-and-embedded-styles
+│   │   ├── restricted-selector-support
+│   │   ├── table-based-email-layout
+│   │   ├── email-width-constraints
+│   │   ├── image-blocking-fallbacks
+│   │   └── minimal-progressive-enhancement
+│   ├── responsive-email-patterns
+│   │   ├── fluid-email-containers
+│   │   ├── stackable-columns
+│   │   ├── hybrid-layouts
+│   │   ├── media-query-fallbacks
+│   │   ├── readable-mobile-text
+│   │   ├── email-button-styling
+│   │   └── dark-mode-client-adjustments
+│   ├── email-build-and-testing
+│   │   ├── css-inlining
+│   │   ├── compatibility-processing
+│   │   ├── client-specific-fallbacks
+│   │   ├── email-template-tools
+│   │   ├── asset-hosting
+│   │   ├── text-and-image-fallbacks
+│   │   ├── client-preview-matrix
+│   │   └── received-message-validation
+│   └── document-style-governance
+│       ├── print-specific-overrides
+│       ├── email-specific-style-boundaries
+│       ├── shared-token-adaptation
+│       ├── content-not-decoration-priority
+│       ├── engine-specific-feature-isolation
+│       └── output-regression-fixtures
+├── compatibility-migration-and-emerging-css
+│   ├── standards-and-support-model
+│   │   ├── independently-versioned-css-modules
+│   │   ├── working-drafts-and-recommendations
+│   │   ├── specification-versus-implementation
+│   │   ├── interoperability-and-browser-support
+│   │   ├── baseline-and-support-timelines
+│   │   ├── progressive-rollout
+│   │   └── audience-specific-browser-policy
+│   ├── compatibility-research
+│   │   ├── mdn-browser-compatibility-data
+│   │   ├── browser-release-notes
+│   │   ├── w3c-css-working-group
+│   │   ├── browser-engine-issue-trackers
+│   │   ├── reproducible-support-tests
+│   │   ├── embedded-webview-versions
+│   │   └── real-device-verification
+│   ├── feature-detection-and-fallbacks
+│   │   ├── supports-at-rule
+│   │   ├── declaration-feature-queries
+│   │   ├── selector-feature-queries
+│   │   ├── css-supports-api
+│   │   ├── fallback-declaration-order
+│   │   ├── conditional-enhancement
+│   │   ├── semantic-versus-syntactic-support
+│   │   └── no-user-agent-sniffing-by-default
+│   ├── legacy-style-modernization
+│   │   ├── float-layout-to-flex-or-grid
+│   │   ├── clearfix-to-flow-root
+│   │   ├── physical-to-logical-properties
+│   │   ├── fixed-layout-to-intrinsic-layout
+│   │   ├── manual-spacing-to-gap
+│   │   ├── specificity-escalation-to-layers
+│   │   └── preprocessor-only-nesting-to-native-nesting
+│   ├── dependency-and-framework-migration
+│   │   ├── sass-import-to-modules
+│   │   ├── framework-version-migration
+│   │   ├── css-in-js-to-static-extraction
+│   │   ├── old-prefix-review
+│   │   ├── reset-and-normalize-review
+│   │   ├── deprecated-selector-removal
+│   │   └── generated-output-diff
+│   ├── emerging-layout-labs
+│   │   ├── grid-lanes
+│   │   │   ├── masonry-style-layout-model
+│   │   │   ├── grid-lanes-and-inline-grid-lanes
+│   │   │   ├── lane-definition
+│   │   │   ├── placement-and-packing
+│   │   │   ├── visual-and-source-order
+│   │   │   ├── grid-or-multicol-fallback
+│   │   │   └── experimental-support-checks
+│   │   └── anchored-container-queries
+│   │       ├── anchored-query-container
+│   │       ├── position-try-state-selection
+│   │       ├── fallback-dependent-descendant-styles
+│   │       ├── anchor-query-cycle-boundaries
+│   │       └── support-and-polyfill-evaluation
+│   ├── emerging-function-labs
+│   │   ├── custom-functions
+│   │   │   ├── function-at-rule
+│   │   │   ├── dashed-function-names
+│   │   │   ├── parameters-and-defaults
+│   │   │   ├── return-values
+│   │   │   ├── local-variables
+│   │   │   ├── conditional-function-rules
+│   │   │   ├── native-versus-sass-functions
+│   │   │   └── support-gated-experiments
+│   │   ├── conditional-values
+│   │   │   ├── if-function
+│   │   │   ├── style-conditions
+│   │   │   ├── media-conditions
+│   │   │   ├── supports-conditions
+│   │   │   ├── branch-fallbacks
+│   │   │   └── computed-value-interactions
+│   │   └── contextual-and-random-values
+│   │       ├── sibling-index-and-sibling-count
+│   │       ├── progress-function
+│   │       ├── random-value-functions
+│   │       ├── deterministic-testing-concerns
+│   │       └── support-by-individual-feature
+│   ├── emerging-visual-and-ui-labs
+│   │   ├── corner-shape-and-superellipse
+│   │   ├── text-box-trimming
+│   │   ├── shape-function-geometry
+│   │   ├── scroll-button-and-scroll-marker-pseudo-elements
+│   │   ├── animation-triggers
+│   │   ├── generalized-style-query-support
+│   │   └── feature-specific-fallback-design
+│   ├── experimental-api-boundaries
+│   │   ├── css-paint-api
+│   │   ├── worklet-styling-experiments
+│   │   ├── typed-om-implementation-coverage
+│   │   ├── draft-layout-and-animation-apis
+│   │   ├── vendor-flags-and-origin-trials
+│   │   └── no-production-dependency-without-review
+│   ├── migration-validation
+│   │   ├── before-and-after-screenshots
+│   │   ├── computed-style-comparison
+│   │   ├── accessibility-parity
+│   │   ├── browser-matrix-checks
+│   │   ├── bundle-size-comparison
+│   │   ├── incremental-rollout
+│   │   └── rollback-plan
+│   └── continuous-learning
+│       ├── specification-diff-reading
+│       ├── feature-status-refresh
+│       ├── browser-interop-reports
+│       ├── minimal-feature-demos
+│       ├── proposal-versus-shipped-feature-identification
+│       └── obsolete-guidance-audits
+├── security-and-stylesheet-governance
+│   ├── styling-trust-boundaries
+│   │   ├── trusted-and-untrusted-style-input
+│   │   ├── selector-input-boundaries
+│   │   ├── declaration-input-boundaries
+│   │   ├── external-stylesheet-trust
+│   │   ├── user-theme-scope
+│   │   └── third-party-widget-isolation
+│   ├── injection-prevention
+│   │   ├── css-context-aware-validation
+│   │   ├── allowlisted-property-values
+│   │   ├── safe-theme-token-input
+│   │   ├── url-value-restrictions
+│   │   ├── html-style-context-boundaries
+│   │   ├── avoid-untrusted-raw-stylesheet-concatenation
+│   │   └── security-review-test-cases
+│   ├── resource-and-policy-controls
+│   │   ├── content-security-policy-style-sources
+│   │   ├── nonce-and-hash-strategies
+│   │   ├── external-resource-allowlists
+│   │   ├── font-and-image-origin-policy
+│   │   ├── subresource-integrity-for-stylesheets
+│   │   ├── mixed-content-avoidance
+│   │   └── stylesheet-loading-failure-handling
+│   ├── privacy-aware-styling
+│   │   ├── external-font-request-privacy
+│   │   ├── third-party-style-requests
+│   │   ├── visited-link-restrictions
+│   │   ├── sensitive-state-styling-review
+│   │   ├── css-resource-fetch-surfaces
+│   │   └── reduced-external-dependencies
+│   ├── safe-ui-presentation
+│   │   ├── visible-trust-indicators
+│   │   ├── no-deceptive-overlays
+│   │   ├── no-focus-concealment
+│   │   ├── transparent-disabled-states
+│   │   ├── protect-essential-content-from-theming
+│   │   └── user-style-preference-respect
+│   ├── supply-chain-and-licensing
+│   │   ├── stylesheet-package-provenance
+│   │   ├── dependency-lockfiles
+│   │   ├── build-plugin-review
+│   │   ├── font-licensing
+│   │   ├── icon-and-image-licensing
+│   │   ├── third-party-theme-audit
+│   │   └── dependency-update-policy
+│   ├── stylesheet-governance
+│   │   ├── component-ownership
+│   │   ├── public-style-contracts
+│   │   ├── design-token-change-review
+│   │   ├── compatibility-budget
+│   │   ├── accessibility-gates
+│   │   ├── performance-budgets
+│   │   └── release-notes-and-migration-guides
+│   └── change-management
+│       ├── scoped-css-patches
+│       ├── visual-impact-analysis
+│       ├── change-approval
+│       ├── preview-environments
+│       ├── canary-theme-rollouts
+│       ├── rollback-ready-assets
+│       └── regression-incident-retrospectives
+└── practice-projects
+    ├── css-foundations-lab
+    │   ├── semantic-html-fixtures
+    │   ├── stylesheet-linking
+    │   ├── selector-experiments
+    │   ├── cascade-conflicts
+    │   ├── box-model-measurements
+    │   ├── devtools-observation
+    │   ├── browser-comparison
+    │   └── result-notes
+    ├── responsive-personal-site
+    │   ├── content-and-page-structure
+    │   ├── typography-and-spacing-system
+    │   ├── flexible-page-shell
+    │   ├── responsive-navigation
+    │   ├── adaptive-media
+    │   ├── keyboard-focus-states
+    │   ├── mobile-and-zoom-tests
+    │   └── production-style-bundle
+    ├── cascade-and-scope-playground
+    │   ├── competing-origin-examples
+    │   ├── specificity-cases
+    │   ├── layer-order-cases
+    │   ├── inheritance-cases
+    │   ├── custom-property-failures
+    │   ├── scoped-component-boundaries
+    │   ├── automated-assertions
+    │   └── debugging-guide
+    ├── flexbox-component-gallery
+    │   ├── navigation-bar
+    │   ├── media-object
+    │   ├── wrapping-tag-list
+    │   ├── action-toolbar
+    │   ├── equal-height-card-list
+    │   ├── nested-scroll-panel
+    │   ├── content-stress-tests
+    │   └── flex-overlay-analysis
+    ├── grid-and-subgrid-dashboard
+    │   ├── dashboard-shell
+    │   ├── explicit-and-implicit-tracks
+    │   ├── responsive-widget-grid
+    │   ├── subgrid-card-alignment
+    │   ├── sticky-sidebar
+    │   ├── long-data-fixtures
+    │   ├── source-order-review
+    │   └── layout-regression-tests
+    ├── editorial-typography-site
+    │   ├── article-content-model
+    │   ├── font-loading-plan
+    │   ├── fluid-type-scale
+    │   ├── readable-prose-layout
+    │   ├── quotes-lists-and-code
+    │   ├── multilingual-content
+    │   ├── text-spacing-and-zoom-tests
+    │   └── print-styles
+    ├── container-aware-component-library
+    │   ├── named-query-containers
+    │   ├── adaptive-card-variants
+    │   ├── responsive-toolbar
+    │   ├── density-style-queries
+    │   ├── nested-component-tests
+    │   ├── public-token-contracts
+    │   ├── embedding-demo-pages
+    │   └── support-fallback-tests
+    ├── accessible-form-kit
+    │   ├── semantic-control-markup
+    │   ├── shared-control-tokens
+    │   ├── label-and-helper-layout
+    │   ├── validation-states
+    │   ├── keyboard-focus-system
+    │   ├── native-control-fallbacks
+    │   ├── high-contrast-variants
+    │   └── interaction-regression-tests
+    ├── multi-theme-design-system
+    │   ├── primitive-token-inventory
+    │   ├── semantic-token-map
+    │   ├── component-token-contracts
+    │   ├── cascade-layer-contract
+    │   ├── light-and-dark-themes
+    │   ├── brand-and-density-variants
+    │   ├── documentation-gallery
+    │   └── visual-and-accessibility-validation
+    ├── rtl-and-vertical-writing-site
+    │   ├── logical-property-audit
+    │   ├── ltr-and-rtl-layouts
+    │   ├── mixed-direction-content
+    │   ├── vertical-writing-demo
+    │   ├── locale-aware-fonts
+    │   ├── icon-mirroring-policy
+    │   ├── localized-content-stress-tests
+    │   └── paired-visual-snapshots
+    ├── ecommerce-product-interface
+    │   ├── product-listing-grid
+    │   ├── adaptive-filter-panel
+    │   ├── product-media-gallery
+    │   ├── variant-and-stock-states
+    │   ├── price-and-action-layout
+    │   ├── long-localized-content
+    │   ├── mobile-and-touch-layouts
+    │   └── component-state-snapshots
+    ├── anchor-positioned-overlay-lab
+    │   ├── native-popover-markup
+    │   ├── named-anchor-contracts
+    │   ├── tooltip-and-menu-placement
+    │   ├── viewport-edge-fallbacks
+    │   ├── nested-scroll-contexts
+    │   ├── focus-and-dismissal-integration
+    │   ├── no-anchor-support-fallback
+    │   └── keyboard-and-zoom-tests
+    ├── motion-and-view-transition-gallery
+    │   ├── motion-token-system
+    │   ├── transition-and-keyframe-examples
+    │   ├── entry-and-exit-states
+    │   ├── shared-element-view-transitions
+    │   ├── animation-interruption
+    │   ├── reduced-motion-variants
+    │   ├── performance-traces
+    │   └── browser-support-fallbacks
+    ├── scroll-interaction-lab
+    │   ├── scroll-region-layout
+    │   ├── scroll-snap-gallery
+    │   ├── reading-progress-timeline
+    │   ├── sticky-section-navigation
+    │   ├── scroll-driven-reveals
+    │   ├── reduced-motion-alternatives
+    │   ├── keyboard-scroll-validation
+    │   └── mobile-scroll-diagnostics
+    ├── svg-and-visual-effects-gallery
+    │   ├── theme-aware-svg-icons
+    │   ├── responsive-clipping-shapes
+    │   ├── layered-gradients
+    │   ├── masking-experiments
+    │   ├── filters-and-blending
+    │   ├── forced-colors-fallbacks
+    │   ├── effect-performance-comparison
+    │   └── accessible-text-alternatives
+    ├── shadow-dom-style-library
+    │   ├── custom-element-shell
+    │   ├── public-parts
+    │   ├── public-custom-properties
+    │   ├── adopted-stylesheet-sharing
+    │   ├── state-and-slot-styling
+    │   ├── theme-inheritance
+    │   ├── isolation-regression-tests
+    │   └── consumer-integration-demo
+    ├── print-and-email-template-kit
+    │   ├── printable-report-layout
+    │   ├── named-page-experiments
+    │   ├── long-table-pagination
+    │   ├── invoice-print-styles
+    │   ├── responsive-email-template
+    │   ├── css-inlining-pipeline
+    │   ├── client-and-print-preview-tests
+    │   └── output-regression-review
+    ├── css-performance-and-quality-lab
+    │   ├── delivery-size-baseline
+    │   ├── expensive-style-reproductions
+    │   ├── layout-and-paint-profiling
+    │   ├── font-shift-remediation
+    │   ├── containment-experiments
+    │   ├── visual-parity-checks
+    │   ├── accessibility-regression-checks
+    │   └── performance-budget-report
+    ├── legacy-css-modernization
+    │   ├── selector-and-dependency-inventory
+    │   ├── baseline-screenshot-suite
+    │   ├── layer-and-token-introduction
+    │   ├── float-and-fixed-layout-migration
+    │   ├── logical-property-adoption
+    │   ├── sass-module-migration
+    │   ├── staged-component-refactoring
+    │   └── rollback-and-parity-validation
+    └── end-to-end-css-capstone
+        ├── requirements-and-design-reference
+        ├── semantic-page-structure
+        ├── token-and-theme-architecture
+        ├── responsive-layout-system
+        ├── accessible-component-library
+        ├── motion-and-scroll-enhancements
+        ├── print-and-rtl-support
+        ├── build-and-delivery-pipeline
+        ├── browser-and-visual-test-matrix
+        ├── performance-and-accessibility-review
+        └── documentation-and-retrospective

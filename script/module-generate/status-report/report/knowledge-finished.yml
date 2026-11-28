@@ -2,99 +2,99 @@ finishedKnowledge:
 - location: learning-platform-data/module/infrastructure/cloud/architecture
   CURRENT_STEP: '4'
   SERVICE_NAME: CLOUD_ARCHITECTURE
-  totalFiles: 329
+  totalFiles: 658
   blankFiles: 0
-  filledFiles: 329
+  filledFiles: 658
 - location: learning-platform-data/module/infrastructure/cloud/core-services/compute
   CURRENT_STEP: '3'
   SERVICE_NAME: CLOUD_CORE_SERVICES_COMPUTE
-  totalFiles: 310
+  totalFiles: 620
   blankFiles: 0
-  filledFiles: 310
+  filledFiles: 620
 - location: learning-platform-data/module/infrastructure/cloud/providers/aws
   CURRENT_STEP: '3'
   SERVICE_NAME: CLOUD_PROVIDERS_AWS
-  totalFiles: 477
+  totalFiles: 954
   blankFiles: 0
-  filledFiles: 477
+  filledFiles: 954
 - location: learning-platform-data/module/infrastructure/cloud/providers/azure
   CURRENT_STEP: '4'
   SERVICE_NAME: CLOUD_PROVIDERS_AZURE
-  totalFiles: 434
+  totalFiles: 868
   blankFiles: 0
-  filledFiles: 434
+  filledFiles: 868
 - location: learning-platform-data/module/infrastructure/cloud/providers/gcp
   CURRENT_STEP: '4'
   SERVICE_NAME: CLOUD_PROVIDERS_GCP
-  totalFiles: 586
+  totalFiles: 1172
   blankFiles: 0
-  filledFiles: 586
+  filledFiles: 1172
 - location: learning-platform-data/module/infrastructure/cloud/providers/oracle
   CURRENT_STEP: '3'
   SERVICE_NAME: CLOUD_PROVIDERS_ORACLE
-  totalFiles: 374
+  totalFiles: 748
   blankFiles: 0
-  filledFiles: 374
+  filledFiles: 748
 - location: learning-platform-data/module/infrastructure/cloud/serverless
   CURRENT_STEP: '3'
   SERVICE_NAME: CLOUD_SERVERLESS
-  totalFiles: 311
+  totalFiles: 622
   blankFiles: 0
-  filledFiles: 311
+  filledFiles: 622
 - location: learning-platform-data/module/infrastructure/devops/delivery-automation/ci-cd/fundamentals
   CURRENT_STEP: '4'
   SERVICE_NAME: DEVOPS_CI_CD_FUNDAMENTALS
-  totalFiles: 264
+  totalFiles: 528
   blankFiles: 0
-  filledFiles: 264
+  filledFiles: 528
 - location: learning-platform-data/module/infrastructure/devops/source-management/source-control/git
   CURRENT_STEP: '3'
   SERVICE_NAME: SOURCE_CONTROL_GIT
-  totalFiles: 313
+  totalFiles: 626
   blankFiles: 0
-  filledFiles: 313
+  filledFiles: 626
 - location: learning-platform-data/module/infrastructure/system/database/data-modeling
   CURRENT_STEP: '4'
   SERVICE_NAME: DATABASE_DATA_MODELING
-  totalFiles: 327
+  totalFiles: 654
   blankFiles: 0
-  filledFiles: 327
+  filledFiles: 654
 - location: learning-platform-data/module/infrastructure/system/database/engine/document/mongodb
   CURRENT_STEP: '4'
   SERVICE_NAME: DATABASE_MONGODB
-  totalFiles: 412
+  totalFiles: 824
   blankFiles: 0
-  filledFiles: 412
+  filledFiles: 824
 - location: learning-platform-data/module/infrastructure/system/database/engine/graph/neo4j
   CURRENT_STEP: '4'
   SERVICE_NAME: DATABASE_ENGINE_GRAPH_NEO4J
-  totalFiles: 339
+  totalFiles: 678
   blankFiles: 0
-  filledFiles: 339
+  filledFiles: 678
 - location: learning-platform-data/module/infrastructure/system/database/engine/relational/mysql
   CURRENT_STEP: '3'
   SERVICE_NAME: DATABASE_MYSQL
-  totalFiles: 674
+  totalFiles: 1348
   blankFiles: 0
-  filledFiles: 674
+  filledFiles: 1348
 - location: learning-platform-data/module/infrastructure/system/database/engine/relational/oracle
   CURRENT_STEP: '4'
   SERVICE_NAME: DATABASE_ORACLE
-  totalFiles: 594
+  totalFiles: 1188
   blankFiles: 0
-  filledFiles: 594
+  filledFiles: 1188
 - location: learning-platform-data/module/infrastructure/system/database/engine/relational/postgresql
   CURRENT_STEP: '4'
   SERVICE_NAME: DATABASE_POSTGRESQL
-  totalFiles: 586
+  totalFiles: 1172
   blankFiles: 0
-  filledFiles: 586
+  filledFiles: 1172
 - location: learning-platform-data/module/infrastructure/system/database/engine/wide-column/cassandra
   CURRENT_STEP: '4'
   SERVICE_NAME: DATABASE_ENGINE_WIDE_COLUMN_CASSANDRA
-  totalFiles: 624
+  totalFiles: 1248
   blankFiles: 0
-  filledFiles: 624
+  filledFiles: 1248
 - location: learning-platform-data/module/infrastructure/system/database/no-sql
   CURRENT_STEP: '4'
   SERVICE_NAME: DATABASE_NO_SQL
@@ -161,6 +161,12 @@ finishedKnowledge:
   totalFiles: 434
   blankFiles: 0
   filledFiles: 434
+- location: learning-platform-data/module/infrastructure/system/security/authentication/hmac-request-authentication
+  CURRENT_STEP: '4'
+  SERVICE_NAME: SECURITY_AUTHENTICATION_HMAC_REQUEST_AUTHENTICATION
+  totalFiles: 487
+  blankFiles: 0
+  filledFiles: 487
 - location: learning-platform-data/module/infrastructure/system/security/identity-access-management/fundamentals
   CURRENT_STEP: '3'
   SERVICE_NAME: SECURITY_IDENTITY_ACCESS_MANAGEMENT_FUNDAMENTALS
@@ -173,6 +179,36 @@ finishedKnowledge:
   totalFiles: 546
   blankFiles: 0
   filledFiles: 546
+- location: learning-platform-data/module/infrastructure/system/security/identity-access-management/privileged-access-management
+  CURRENT_STEP: '3'
+  SERVICE_NAME: SECURITY_IDENTITY_ACCESS_MANAGEMENT_PRIVILEGED_ACCESS_MANAGEMENT
+  totalFiles: 500
+  blankFiles: 0
+  filledFiles: 500
+- location: learning-platform-data/module/infrastructure/system/security/key-management/fundamentals
+  CURRENT_STEP: '3'
+  SERVICE_NAME: SECURITY_KEY_MANAGEMENT_FUNDAMENTALS
+  totalFiles: 488
+  blankFiles: 0
+  filledFiles: 488
+- location: learning-platform-data/module/infrastructure/system/security/network-security
+  CURRENT_STEP: '4'
+  SERVICE_NAME: SECURITY_NETWORK_SECURITY
+  totalFiles: 494
+  blankFiles: 0
+  filledFiles: 494
+- location: learning-platform-data/module/infrastructure/system/security/security-assurance
+  CURRENT_STEP: '4'
+  SERVICE_NAME: SECURITY_SECURITY_ASSURANCE
+  totalFiles: 487
+  blankFiles: 0
+  filledFiles: 487
+- location: learning-platform-data/module/infrastructure/system/security/security-design/security-requirements
+  CURRENT_STEP: '3'
+  SERVICE_NAME: SECURITY_SECURITY_DESIGN_SECURITY_REQUIREMENTS
+  totalFiles: 499
+  blankFiles: 0
+  filledFiles: 499
 - location: learning-platform-data/module/infrastructure/system/security/token-security/fundamentals
   CURRENT_STEP: '4'
   SERVICE_NAME: SECURITY_TOKEN_SECURITY_FUNDAMENTALS
@@ -287,6 +323,18 @@ finishedKnowledge:
   totalFiles: 317
   blankFiles: 0
   filledFiles: 317
+- location: learning-platform-data/module/platform/development/programming/framework/spring-ai/evaluation-observability
+  CURRENT_STEP: '4'
+  SERVICE_NAME: SPRING_AI_EVALUATION_OBSERVABILITY
+  totalFiles: 285
+  blankFiles: 0
+  filledFiles: 285
+- location: learning-platform-data/module/platform/development/programming/framework/spring-ai/tool-calling
+  CURRENT_STEP: '3'
+  SERVICE_NAME: SPRING_AI_TOOL_CALLING
+  totalFiles: 278
+  blankFiles: 0
+  filledFiles: 278
 - location: learning-platform-data/module/platform/development/programming/framework/spring-amqp
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_AMQP
@@ -350,15 +398,15 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-boot/native-image
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_BOOT_NATIVE_IMAGE
-  totalFiles: 331
+  totalFiles: 662
   blankFiles: 0
-  filledFiles: 331
+  filledFiles: 662
 - location: learning-platform-data/module/platform/development/programming/framework/spring-boot/observability
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_BOOT_OBSERVABILITY
-  totalFiles: 430
+  totalFiles: 860
   blankFiles: 0
-  filledFiles: 430
+  filledFiles: 860
 - location: learning-platform-data/module/platform/development/programming/framework/spring-boot/testing
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_BOOT_TESTING
@@ -374,33 +422,39 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/circuit-breaker
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_CLOUD_CIRCUIT_BREAKER
-  totalFiles: 237
+  totalFiles: 474
   blankFiles: 0
-  filledFiles: 237
+  filledFiles: 474
+- location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/configuration
+  CURRENT_STEP: '3'
+  SERVICE_NAME: SPRING_CLOUD_CONFIGURATION
+  totalFiles: 261
+  blankFiles: 0
+  filledFiles: 261
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/contract
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_CLOUD_CONTRACT
-  totalFiles: 380
+  totalFiles: 760
   blankFiles: 0
-  filledFiles: 380
+  filledFiles: 760
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/core
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_CLOUD_CORE
-  totalFiles: 292
+  totalFiles: 584
   blankFiles: 0
-  filledFiles: 292
+  filledFiles: 584
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/function
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_CLOUD_FUNCTION
-  totalFiles: 283
+  totalFiles: 566
   blankFiles: 0
-  filledFiles: 283
+  filledFiles: 566
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/gateway
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_CLOUD_GATEWAY
-  totalFiles: 380
+  totalFiles: 760
   blankFiles: 0
-  filledFiles: 380
+  filledFiles: 760
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/kubernetes
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_CLOUD_KUBERNETES
@@ -410,33 +464,39 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/provider-integration
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_CLOUD_PROVIDER_INTEGRATION
-  totalFiles: 315
+  totalFiles: 630
   blankFiles: 0
-  filledFiles: 315
+  filledFiles: 630
+- location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/service-broker
+  CURRENT_STEP: '3'
+  SERVICE_NAME: SPRING_CLOUD_SERVICE_BROKER
+  totalFiles: 268
+  blankFiles: 0
+  filledFiles: 268
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/service-communication/load-balancing
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_CLOUD_SERVICE_COMMUNICATION_LOAD_BALANCING
-  totalFiles: 302
+  totalFiles: 604
   blankFiles: 0
-  filledFiles: 302
+  filledFiles: 604
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/service-discovery
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_CLOUD_SERVICE_DISCOVERY
-  totalFiles: 234
+  totalFiles: 468
   blankFiles: 0
-  filledFiles: 234
+  filledFiles: 468
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/stream
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_CLOUD_STREAM
-  totalFiles: 389
+  totalFiles: 778
   blankFiles: 0
-  filledFiles: 389
+  filledFiles: 778
 - location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/task
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_CLOUD_TASK
-  totalFiles: 221
+  totalFiles: 442
   blankFiles: 0
-  filledFiles: 221
+  filledFiles: 442
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/cassandra
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_DATA_CASSANDRA
@@ -458,15 +518,15 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/elasticsearch
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_DATA_ELASTICSEARCH
-  totalFiles: 434
+  totalFiles: 868
   blankFiles: 0
-  filledFiles: 434
+  filledFiles: 868
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/jpa
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_DATA_JPA
-  totalFiles: 424
+  totalFiles: 848
   blankFiles: 0
-  filledFiles: 424
+  filledFiles: 848
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/ldap
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_DATA_LDAP
@@ -476,9 +536,9 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/mongodb
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_DATA_MONGODB
-  totalFiles: 510
+  totalFiles: 1020
   blankFiles: 0
-  filledFiles: 510
+  filledFiles: 1020
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/neo4j
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_DATA_NEO4J
@@ -488,27 +548,27 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/redis
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_DATA_REDIS
-  totalFiles: 415
+  totalFiles: 830
   blankFiles: 0
-  filledFiles: 415
+  filledFiles: 830
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/relational/jdbc
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_DATA_RELATIONAL_JDBC
-  totalFiles: 333
+  totalFiles: 666
   blankFiles: 0
-  filledFiles: 333
+  filledFiles: 666
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/relational/r2dbc
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_DATA_RELATIONAL_R2DBC
-  totalFiles: 343
+  totalFiles: 686
   blankFiles: 0
-  filledFiles: 343
+  filledFiles: 686
 - location: learning-platform-data/module/platform/development/programming/framework/spring-data/rest
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_DATA_REST
-  totalFiles: 292
+  totalFiles: 584
   blankFiles: 0
-  filledFiles: 292
+  filledFiles: 584
 - location: learning-platform-data/module/platform/development/programming/framework/spring-framework/application-events
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_FRAMEWORK_APPLICATION_EVENTS
@@ -608,15 +668,15 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-graphql
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_GRAPHQL
-  totalFiles: 457
+  totalFiles: 914
   blankFiles: 0
-  filledFiles: 457
+  filledFiles: 914
 - location: learning-platform-data/module/platform/development/programming/framework/spring-grpc
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_GRPC
-  totalFiles: 607
+  totalFiles: 1214
   blankFiles: 0
-  filledFiles: 607
+  filledFiles: 1214
 - location: learning-platform-data/module/platform/development/programming/framework/spring-hateoas
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_HATEOAS
@@ -626,27 +686,27 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-integration/adapters
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_INTEGRATION_ADAPTERS
-  totalFiles: 529
+  totalFiles: 1058
   blankFiles: 0
-  filledFiles: 529
+  filledFiles: 1058
 - location: learning-platform-data/module/platform/development/programming/framework/spring-integration/core
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_INTEGRATION_CORE
-  totalFiles: 476
+  totalFiles: 952
   blankFiles: 0
-  filledFiles: 476
+  filledFiles: 952
 - location: learning-platform-data/module/platform/development/programming/framework/spring-integration/pattern
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_INTEGRATION_PATTERN
-  totalFiles: 575
+  totalFiles: 1150
   blankFiles: 0
-  filledFiles: 575
+  filledFiles: 1150
 - location: learning-platform-data/module/platform/development/programming/framework/spring-integration/runtime
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_INTEGRATION_RUNTIME
-  totalFiles: 326
+  totalFiles: 652
   blankFiles: 0
-  filledFiles: 326
+  filledFiles: 652
 - location: learning-platform-data/module/platform/development/programming/framework/spring-kafka/messaging
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_KAFKA_MESSAGING
@@ -659,12 +719,30 @@ finishedKnowledge:
   totalFiles: 866
   blankFiles: 0
   filledFiles: 866
+- location: learning-platform-data/module/platform/development/programming/framework/spring-ldap
+  CURRENT_STEP: '4'
+  SERVICE_NAME: SPRING_LDAP
+  totalFiles: 298
+  blankFiles: 0
+  filledFiles: 298
 - location: learning-platform-data/module/platform/development/programming/framework/spring-modulith/application-events
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_MODULITH_APPLICATION_EVENTS
   totalFiles: 430
   blankFiles: 0
   filledFiles: 430
+- location: learning-platform-data/module/platform/development/programming/framework/spring-modulith/documentation-observability
+  CURRENT_STEP: '4'
+  SERVICE_NAME: SPRING_MODULITH_DOCUMENTATION_OBSERVABILITY
+  totalFiles: 318
+  blankFiles: 0
+  filledFiles: 318
+- location: learning-platform-data/module/platform/development/programming/framework/spring-modulith/module-model
+  CURRENT_STEP: '3'
+  SERVICE_NAME: SPRING_MODULITH_MODULE_MODEL
+  totalFiles: 305
+  blankFiles: 0
+  filledFiles: 305
 - location: learning-platform-data/module/platform/development/programming/framework/spring-modulith/verification-testing
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_MODULITH_VERIFICATION_TESTING
@@ -674,9 +752,9 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-rest-docs
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_REST_DOCS
-  totalFiles: 373
+  totalFiles: 746
   blankFiles: 0
-  filledFiles: 373
+  filledFiles: 746
 - location: learning-platform-data/module/platform/development/programming/framework/spring-security/authentication
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_SECURITY_AUTHENTICATION
@@ -704,21 +782,21 @@ finishedKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-security/oauth2-oidc/authorization-server
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_SECURITY_OAUTH2_OIDC_AUTHORIZATION_SERVER
-  totalFiles: 399
+  totalFiles: 798
   blankFiles: 0
-  filledFiles: 399
+  filledFiles: 798
 - location: learning-platform-data/module/platform/development/programming/framework/spring-security/oauth2-oidc/oauth2-client
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_SECURITY_OAUTH2_OIDC_CLIENT
-  totalFiles: 391
+  totalFiles: 782
   blankFiles: 0
-  filledFiles: 391
+  filledFiles: 782
 - location: learning-platform-data/module/platform/development/programming/framework/spring-security/oauth2-oidc/resource-server
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_SECURITY_OAUTH2_RESOURCE_SERVER
-  totalFiles: 377
+  totalFiles: 754
   blankFiles: 0
-  filledFiles: 377
+  filledFiles: 754
 - location: learning-platform-data/module/platform/development/programming/framework/spring-security/protection
   CURRENT_STEP: '4'
   SERVICE_NAME: SPRING_SECURITY_HTTP_PROTECTION
@@ -767,6 +845,12 @@ finishedKnowledge:
   totalFiles: 420
   blankFiles: 0
   filledFiles: 420
+- location: learning-platform-data/module/platform/development/programming/framework/spring-web-services
+  CURRENT_STEP: '4'
+  SERVICE_NAME: SPRING_WEB_SERVICES
+  totalFiles: 364
+  blankFiles: 0
+  filledFiles: 364
 - location: learning-platform-data/module/platform/development/programming/framework/springdoc/openapi
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRINGDOC_OPENAPI
@@ -995,12 +1079,24 @@ finishedKnowledge:
   totalFiles: 281
   blankFiles: 0
   filledFiles: 281
+- location: learning-platform-data/module/platform/development/programming/language/java/version/java16
+  CURRENT_STEP: '4'
+  SERVICE_NAME: JAVA_VERSION_JAVA16
+  totalFiles: 348
+  blankFiles: 0
+  filledFiles: 348
 - location: learning-platform-data/module/platform/development/programming/language/java/version/java17
   CURRENT_STEP: '3'
   SERVICE_NAME: JAVA_VERSION_JAVA17
-  totalFiles: 234
+  totalFiles: 468
   blankFiles: 0
-  filledFiles: 234
+  filledFiles: 468
+- location: learning-platform-data/module/platform/development/programming/language/java/version/java18
+  CURRENT_STEP: '3'
+  SERVICE_NAME: JAVA_VERSION_JAVA18
+  totalFiles: 287
+  blankFiles: 0
+  filledFiles: 287
 - location: learning-platform-data/module/platform/development/programming/language/java/version/java21
   CURRENT_STEP: '4'
   SERVICE_NAME: JAVA_VERSION_JAVA21
@@ -1013,6 +1109,24 @@ finishedKnowledge:
   totalFiles: 160
   blankFiles: 0
   filledFiles: 160
+- location: learning-platform-data/module/platform/development/programming/language/java/version/java25
+  CURRENT_STEP: '4'
+  SERVICE_NAME: JAVA_VERSION_JAVA25
+  totalFiles: 190
+  blankFiles: 0
+  filledFiles: 190
+- location: learning-platform-data/module/platform/development/programming/language/java/version/java26
+  CURRENT_STEP: '3'
+  SERVICE_NAME: JAVA_VERSION_JAVA26
+  totalFiles: 229
+  blankFiles: 0
+  filledFiles: 229
+- location: learning-platform-data/module/platform/development/programming/language/java/version/java27
+  CURRENT_STEP: '3'
+  SERVICE_NAME: JAVA_VERSION_JAVA27
+  totalFiles: 256
+  blankFiles: 0
+  filledFiles: 256
 - location: learning-platform-data/module/platform/development/programming/language/java/version/java5
   CURRENT_STEP: '4'
   SERVICE_NAME: JAVA_VERSION_JAVA5
@@ -1106,11 +1220,11 @@ finishedKnowledge:
 summary:
   totalModules: 569
   unfinishedModules: 1
-  blankModules: 384
-  finishedModules: 184
+  blankModules: 365
+  finishedModules: 203
   modulesWithoutMarkdown: 0
   missingMetadataModules: 0
-  totalMarkdownFiles: 200517
-  blankMarkdownFiles: 116279
-  filledMarkdownFiles: 84238
-  generatedAt: '2026-11-27T00:11:02+07:00'
+  totalMarkdownFiles: 218760
+  blankMarkdownFiles: 109679
+  filledMarkdownFiles: 109081
+  generatedAt: '2026-11-28T15:17:24+07:00'

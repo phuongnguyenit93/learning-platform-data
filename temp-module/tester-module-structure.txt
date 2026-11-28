@@ -1,0 +1,1076 @@
+tester-module
+├── foundations
+│   ├── software-testing-overview
+│   │   ├── purpose-and-value-of-testing
+│   │   ├── testing-versus-debugging
+│   │   ├── quality-assurance-and-quality-control
+│   │   ├── verification-and-validation
+│   │   ├── defect-error-and-failure
+│   │   ├── testing-principles
+│   │   ├── test-levels-and-test-types
+│   │   ├── testing-mindset-and-skeptical-thinking
+│   │   └── software-tester-learning-path
+│   ├── software-development-lifecycle
+│   │   ├── requirements-and-discovery
+│   │   ├── analysis-and-design
+│   │   ├── implementation
+│   │   ├── verification-and-validation
+│   │   ├── release-and-deployment
+│   │   ├── maintenance-and-operations
+│   │   ├── sequential-and-waterfall-model
+│   │   ├── iterative-and-incremental-model
+│   │   └── agile-and-continuous-delivery
+│   ├── testing-process-and-workflow
+│   │   ├── test-planning
+│   │   ├── test-analysis
+│   │   ├── test-design
+│   │   ├── test-implementation
+│   │   ├── test-execution
+│   │   ├── defect-reporting
+│   │   ├── test-monitoring-and-control
+│   │   ├── test-completion-and-retrospective
+│   │   └── evidence-and-result-management
+│   ├── tester-roles-and-responsibilities
+│   │   ├── manual-tester
+│   │   ├── qa-engineer
+│   │   ├── test-automation-engineer
+│   │   ├── software-development-engineer-in-test
+│   │   ├── performance-test-engineer
+│   │   ├── security-test-specialist
+│   │   ├── test-lead-and-test-manager
+│   │   ├── quality-engineer
+│   │   └── developer-and-tester-collaboration
+│   ├── technical-prerequisites
+│   │   ├── computer-and-operating-system-basics
+│   │   ├── command-line-and-shell-basics
+│   │   ├── files-paths-and-permissions
+│   │   ├── browser-and-developer-tools
+│   │   ├── networking-and-http-basics
+│   │   ├── database-and-sql-basics
+│   │   ├── programming-logic-and-data-structures
+│   │   ├── git-and-version-control
+│   │   └── test-environment-setup
+│   └── professional-mindset-and-ethics
+│       ├── risk-based-thinking
+│       ├── user-and-business-impact
+│       ├── reproducibility-and-evidence
+│       ├── curiosity-and-negative-thinking
+│       ├── objective-defect-communication
+│       ├── independence-and-collaboration
+│       ├── confidentiality-and-data-protection
+│       └── continuous-learning
+├── requirements-analysis-and-test-planning
+│   ├── requirements-understanding
+│   │   ├── business-requirements
+│   │   ├── functional-requirements
+│   │   ├── nonfunctional-requirements
+│   │   ├── user-stories-and-acceptance-criteria
+│   │   ├── use-cases-and-workflows
+│   │   ├── business-rules-and-constraints
+│   │   ├── interface-and-integration-requirements
+│   │   ├── ambiguous-and-conflicting-requirements
+│   │   └── requirements-testability-review
+│   ├── testability-and-quality-attributes
+│   │   ├── completeness-and-consistency
+│   │   ├── correctness-and-feasibility
+│   │   ├── measurability-and-verifiability
+│   │   ├── performance-and-scalability
+│   │   ├── reliability-and-availability
+│   │   ├── usability-and-accessibility
+│   │   ├── security-and-privacy
+│   │   ├── compatibility-and-portability
+│   │   └── maintainability-and-observability
+│   ├── test-strategy-and-planning
+│   │   ├── test-objectives-and-scope
+│   │   ├── in-scope-and-out-of-scope
+│   │   ├── test-levels-and-test-types-selection
+│   │   ├── test-approach-and-techniques
+│   │   ├── test-environment-and-data-needs
+│   │   ├── tools-and-automation-strategy
+│   │   ├── resource-and-schedule-estimation
+│   │   ├── entry-and-exit-criteria
+│   │   └── test-plan-and-test-strategy-document
+│   ├── risk-based-testing
+│   │   ├── product-risk-and-project-risk
+│   │   ├── risk-identification
+│   │   ├── likelihood-and-impact-assessment
+│   │   ├── risk-prioritization
+│   │   ├── risk-mitigation-and-contingency
+│   │   ├── coverage-based-on-risk
+│   │   ├── residual-risk-communication
+│   │   └── risk-review-through-delivery
+│   ├── estimation-and-resource-planning
+│   │   ├── expert-based-estimation
+│   │   ├── analogy-based-estimation
+│   │   ├── three-point-estimation
+│   │   ├── task-breakdown-and-sizing
+│   │   ├── test-data-and-environment-effort
+│   │   ├── automation-investment-estimation
+│   │   ├── uncertainty-and-buffers
+│   │   └── estimate-versus-actual-review
+│   └── test-monitoring-and-reporting
+│       ├── test-progress-and-status
+│       ├── planned-versus-executed-tests
+│       ├── pass-fail-blocked-and-not-run
+│       ├── defect-trend-and-severity
+│       ├── coverage-and-risk-status
+│       ├── test-execution-burndown
+│       ├── release-readiness-report
+│       └── test-summary-report
+├── test-design-techniques
+│   ├── black-box-test-techniques
+│   │   ├── equivalence-partitioning
+│   │   ├── boundary-value-analysis
+│   │   ├── decision-table-testing
+│   │   ├── state-transition-testing
+│   │   ├── use-case-testing
+│   │   ├── cause-effect-graphing
+│   │   ├── pairwise-and-combinatorial-testing
+│   │   └── domain-testing
+│   ├── white-box-test-techniques
+│   │   ├── statement-coverage
+│   │   ├── branch-and-decision-coverage
+│   │   ├── condition-coverage
+│   │   ├── multiple-condition-coverage
+│   │   ├── modified-condition-decision-coverage
+│   │   ├── path-coverage
+│   │   ├── loop-testing
+│   │   └── control-flow-and-data-flow-testing
+│   ├── experience-based-techniques
+│   │   ├── exploratory-testing
+│   │   ├── error-guessing
+│   │   ├── checklist-based-testing
+│   │   ├── bug-bash
+│   │   ├── tours-and-charters
+│   │   ├── heuristic-test-strategy
+│   │   ├── session-based-test-management
+│   │   └── production-feedback-informed-testing
+│   ├── test-case-design
+│   │   ├── test-scenario-identification
+│   │   ├── test-condition-and-coverage-item
+│   │   ├── preconditions-and-test-data
+│   │   ├── test-steps-and-expected-results
+│   │   ├── positive-and-negative-cases
+│   │   ├── alternate-and-exception-flows
+│   │   ├── edge-cases-and-invalid-inputs
+│   │   ├── test-case-independence
+│   │   └── reusable-test-case-design
+│   ├── test-coverage-and-traceability
+│   │   ├── requirements-traceability-matrix
+│   │   ├── requirement-to-test-mapping
+│   │   ├── risk-to-test-mapping
+│   │   ├── feature-and-code-coverage
+│   │   ├── coverage-gaps-and-orphan-tests
+│   │   ├── bidirectional-traceability
+│   │   ├── coverage-criteria-and-thresholds
+│   │   └── traceability-maintenance
+│   └── test-data-design
+│       ├── valid-invalid-and-boundary-data
+│       ├── equivalence-class-data
+│       ├── combinatorial-data
+│       ├── date-time-and-timezone-data
+│       ├── numeric-precision-and-currency-data
+│       ├── unicode-and-localized-data
+│       ├── large-volume-and-long-string-data
+│       ├── null-empty-and-duplicate-data
+│       └── privacy-safe-synthetic-data
+├── manual-testing-and-execution
+│   ├── manual-test-execution
+│   │   ├── test-environment-verification
+│   │   ├── test-data-preparation
+│   │   ├── test-step-execution
+│   │   ├── actual-versus-expected-results
+│   │   ├── evidence-capture
+│   │   ├── blocked-and-dependency-handling
+│   │   ├── retest-and-re-execution
+│   │   └── execution-result-recording
+│   ├── exploratory-testing-practice
+│   │   ├── charter-and-mission
+│   │   ├── time-boxed-test-sessions
+│   │   ├── note-taking-and-observations
+│   │   ├── coverage-and-oracle-heuristics
+│   │   ├── investigate-surprising-behavior
+│   │   ├── session-debrief
+│   │   └── exploratory-testing-report
+│   ├── web-application-manual-testing
+│   │   ├── navigation-and-routing
+│   │   ├── forms-and-input-validation
+│   │   ├── tables-search-and-filtering
+│   │   ├── sorting-pagination-and-export
+│   │   ├── authentication-and-session
+│   │   ├── browser-storage-and-cookies
+│   │   ├── file-upload-and-download
+│   │   ├── responsive-layout
+│   │   └── browser-compatibility
+│   ├── mobile-application-manual-testing
+│   │   ├── installation-and-upgrade
+│   │   ├── permissions-and-device-settings
+│   │   ├── app-lifecycle-and-interruptions
+│   │   ├── calls-and-notifications
+│   │   ├── network-switching-and-offline-mode
+│   │   ├── screen-size-and-orientation
+│   │   ├── battery-and-resource-behavior
+│   │   ├── touch-and-gesture-interactions
+│   │   └── device-and-os-compatibility
+│   ├── usability-and-ux-testing
+│   │   ├── task-completion-and-user-flow
+│   │   ├── navigation-and-information-architecture
+│   │   ├── consistency-and-feedback
+│   │   ├── error-prevention-and-recovery
+│   │   ├── cognitive-load-and-learnability
+│   │   ├── visual-hierarchy-and-readability
+│   │   ├── heuristic-evaluation
+│   │   └── usability-study-observation
+│   └── regression-and-smoke-testing
+│       ├── build-verification-testing
+│       ├── smoke-test-suite
+│       ├── sanity-testing
+│       ├── regression-scope-selection
+│       ├── impact-analysis-for-changes
+│       ├── risk-based-regression
+│       ├── release-candidate-checklist
+│       └── regression-result-comparison
+├── defect-management-and-quality-communication
+│   ├── defect-fundamentals
+│   │   ├── defect-versus-enhancement
+│   │   ├── defect-lifecycle
+│   │   ├── severity-and-priority
+│   │   ├── impact-and-reproducibility
+│   │   ├── duplicate-and-related-defects
+│   │   ├── rejected-and-not-a-bug
+│   │   ├── deferred-and-wont-fix
+│   │   └── defect-aging-and-reopen
+│   ├── defect-report-writing
+│   │   ├── concise-and-specific-title
+│   │   ├── environment-and-build-information
+│   │   ├── preconditions-and-test-data
+│   │   ├── reproducible-steps
+│   │   ├── expected-and-actual-results
+│   │   ├── screenshots-video-and-logs
+│   │   ├── frequency-and-impact
+│   │   └── privacy-safe-evidence
+│   ├── defect-triage-and-investigation
+│   │   ├── reproduction-and-isolation
+│   │   ├── environment-versus-product-failure
+│   │   ├── regression-range-identification
+│   │   ├── log-and-network-evidence
+│   │   ├── severity-priority-alignment
+│   │   ├── ownership-and-assignment
+│   │   ├── fix-verification
+│   │   └── root-cause-and-prevention
+│   ├── defect-communication
+│   │   ├── developer-handoff
+│   │   ├── stakeholder-impact-summary
+│   │   ├── escalation-and-blocker-reporting
+│   │   ├── release-risk-communication
+│   │   ├── disagreement-resolution
+│   │   └── evidence-based-quality-assessment
+│   └── defect-metrics-and-analysis
+│       ├── defect-density
+│       ├── defect-detection-and-removal-efficiency
+│       ├── defect-leakage-and-escape-rate
+│       ├── reopen-rate
+│       ├── mean-time-to-detect-and-resolve
+│       ├── defect-distribution-by-component
+│       ├── escaped-defect-root-cause
+│       └── metric-limitations-and-goodharts-law
+├── web-frontend-testing
+│   ├── browser-platform-fundamentals
+│   │   ├── dom-and-rendering-basics
+│   │   ├── browser-event-model
+│   │   ├── cookies-localstorage-and-sessionstorage
+│   │   ├── cache-and-service-workers
+│   │   ├── browser-security-boundaries
+│   │   ├── viewport-and-device-emulation
+│   │   └── browser-console-and-devtools
+│   ├── cross-browser-and-responsive-testing
+│   │   ├── chromium-firefox-and-webkit
+│   │   ├── browser-version-coverage
+│   │   ├── desktop-and-mobile-browser
+│   │   ├── viewport-and-breakpoint-matrix
+│   │   ├── touch-versus-pointer-input
+│   │   ├── font-and-rendering-differences
+│   │   ├── browser-specific-defects
+│   │   └── compatibility-matrix
+│   ├── frontend-functional-testing
+│   │   ├── component-state-and-interactions
+│   │   ├── form-validation-and-submission
+│   │   ├── client-side-routing
+│   │   ├── asynchronous-ui-and-loading-states
+│   │   ├── error-boundaries-and-fallbacks
+│   │   ├── optimistic-updates
+│   │   ├── file-and-media-interactions
+│   │   └── client-cache-and-state-consistency
+│   ├── visual-testing
+│   │   ├── screenshot-comparison
+│   │   ├── visual-baseline-management
+│   │   ├── dynamic-content-masking
+│   │   ├── layout-shift-and-overflow
+│   │   ├── typography-and-image-rendering
+│   │   ├── theme-and-dark-mode
+│   │   └── visual-regression-triage
+│   └── accessibility-testing
+│       ├── semantic-structure
+│       ├── keyboard-navigation
+│       ├── focus-order-and-visible-focus
+│       ├── screen-reader-and-aria
+│       ├── contrast-and-color-independence
+│       ├── forms-and-error-announcements
+│       ├── wcag-principles-and-conformance
+│       ├── automated-accessibility-scans
+│       └── manual-assistive-technology-testing
+├── api-and-backend-testing
+│   ├── http-and-api-fundamentals
+│   │   ├── http-methods-and-semantics
+│   │   ├── status-codes-and-headers
+│   │   ├── request-and-response-body
+│   │   ├── content-types-and-encoding
+│   │   ├── cookies-and-authentication
+│   │   ├── idempotency-and-retries
+│   │   ├── pagination-and-filtering
+│   │   └── rate-limits-and-timeouts
+│   ├── api-testing-techniques
+│   │   ├── endpoint-and-contract-testing
+│   │   ├── positive-and-negative-api-tests
+│   │   ├── schema-and-type-validation
+│   │   ├── boundary-and-equivalence-testing
+│   │   ├── authentication-and-authorization
+│   │   ├── error-response-validation
+│   │   ├── data-persistence-and-side-effects
+│   │   ├── idempotency-and-concurrency
+│   │   └── backward-compatibility
+│   ├── api-testing-tools
+│   │   ├── postman-collections-and-environments
+│   │   ├── postman-tests-and-scripts
+│   │   ├── newman-cli-and-ci
+│   │   ├── insomnia
+│   │   ├── curl-and-httpie
+│   │   ├── swagger-and-openapi
+│   │   ├── pact-and-consumer-driven-contracts
+│   │   └── mockoon-and-mock-servers
+│   ├── service-and-integration-testing
+│   │   ├── service-boundaries-and-dependencies
+│   │   ├── database-integration
+│   │   ├── message-queue-and-event-testing
+│   │   ├── webhook-testing
+│   │   ├── third-party-service-mocking
+│   │   ├── eventual-consistency
+│   │   ├── distributed-transaction-and-saga
+│   │   └── integration-failure-recovery
+│   ├── graphql-and-rpc-testing
+│   │   ├── graphql-query-and-mutation-testing
+│   │   ├── schema-and-type-validation
+│   │   ├── resolver-and-authorization-testing
+│   │   ├── grpc-service-contracts
+│   │   ├── protobuf-validation
+│   │   ├── streaming-rpc-tests
+│   │   └── rpc-error-and-timeout-handling
+│   └── api-security-and-abuse-testing
+│       ├── object-level-authorization-checks
+│       ├── function-level-authorization-checks
+│       ├── input-validation-and-injection-checks
+│       ├── mass-assignment-and-data-exposure
+│       ├── rate-limit-and-resource-consumption
+│       ├── authentication-flow-testing
+│       ├── file-upload-security-checks
+│       └── safe-and-authorized-security-testing
+├── database-and-data-testing
+│   ├── database-fundamentals
+│   │   ├── relational-model-and-schema
+│   │   ├── primary-and-foreign-keys
+│   │   ├── constraints-and-indexes
+│   │   ├── joins-and-cardinality
+│   │   ├── transactions-and-acid
+│   │   ├── isolation-levels-and-locks
+│   │   └── database-clients-and-read-only-access
+│   ├── sql-for-testers
+│   │   ├── select-where-and-order-by
+│   │   ├── joins-and-subqueries
+│   │   ├── group-by-and-having
+│   │   ├── aggregate-and-window-functions
+│   │   ├── null-and-three-valued-logic
+│   │   ├── date-time-and-timezone-queries
+│   │   ├── insert-update-and-delete-in-test-environments
+│   │   └── query-result-validation
+│   ├── database-functional-testing
+│   │   ├── data-integrity-and-constraints
+│   │   ├── stored-procedure-and-trigger-testing
+│   │   ├── transaction-rollback-and-commit
+│   │   ├── concurrent-update-and-locking
+│   │   ├── cascade-and-referential-behavior
+│   │   ├── schema-migration-testing
+│   │   ├── backup-and-restore-validation
+│   │   └── database-compatibility
+│   ├── data-migration-and-etl-testing
+│   │   ├── source-to-target-mapping
+│   │   ├── record-count-reconciliation
+│   │   ├── field-and-type-transformation
+│   │   ├── null-default-and-lookup-rules
+│   │   ├── duplicate-and-orphan-detection
+│   │   ├── aggregate-control-totals
+│   │   ├── incremental-load-and-reprocessing
+│   │   └── migration-cutover-validation
+│   └── data-quality-testing
+│       ├── completeness-and-validity
+│       ├── uniqueness-and-consistency
+│       ├── accuracy-and-reconciliation
+│       ├── freshness-and-timeliness
+│       ├── distribution-and-anomaly-checks
+│       ├── referential-integrity
+│       ├── data-lineage-and-provenance
+│       └── privacy-safe-test-data
+├── test-automation-engineering
+│   ├── automation-fundamentals
+│   │   ├── automation-benefits-and-limitations
+│   │   ├── automation-candidate-selection
+│   │   ├── return-on-investment
+│   │   ├── test-pyramid-and-test-trophy
+│   │   ├── automation-scope-and-maintenance-cost
+│   │   ├── manual-exploratory-versus-automated-checks
+│   │   ├── flaky-test-cost
+│   │   └── automation-strategy
+│   ├── programming-for-test-automation
+│   │   ├── programming-language-fundamentals
+│   │   ├── variables-types-and-control-flow
+│   │   ├── functions-and-modules
+│   │   ├── arrays-objects-and-collections
+│   │   ├── asynchronous-programming
+│   │   ├── exceptions-and-error-handling
+│   │   ├── file-and-json-processing
+│   │   ├── http-client-and-database-access
+│   │   └── clean-code-and-design-principles
+│   ├── automation-framework-architecture
+│   │   ├── test-runner-and-assertion-library
+│   │   ├── test-fixtures-and-hooks
+│   │   ├── page-object-model
+│   │   ├── screenplay-pattern
+│   │   ├── component-and-screen-abstractions
+│   │   ├── test-data-builders
+│   │   ├── configuration-and-environments
+│   │   ├── logging-and-reporting
+│   │   └── framework-maintainability
+│   ├── web-ui-automation
+│   │   ├── playwright
+│   │   ├── selenium-webdriver
+│   │   ├── cypress
+│   │   ├── webdriverio
+│   │   ├── browser-contexts-and-isolation
+│   │   ├── locator-strategy
+│   │   ├── auto-waiting-and-synchronization
+│   │   ├── dialogs-downloads-and-uploads
+│   │   ├── iframe-and-multiple-tabs
+│   │   ├── network-interception-and-mocking
+│   │   └── screenshot-and-trace-debugging
+│   ├── api-automation
+│   │   ├── playwright-api-request
+│   │   ├── supertest
+│   │   ├── rest-assured
+│   │   ├── pytest-and-requests
+│   │   ├── schema-and-contract-assertions
+│   │   ├── authentication-fixtures
+│   │   ├── data-setup-and-cleanup
+│   │   └── service-virtualization
+│   ├── mobile-test-automation
+│   │   ├── appium
+│   │   ├── maestro
+│   │   ├── detox
+│   │   ├── espresso-overview
+│   │   ├── xctest-and-xcuitest-overview
+│   │   ├── emulator-and-real-device-management
+│   │   ├── native-element-identification
+│   │   ├── gestures-and-permission-dialogs
+│   │   ├── device-farm-integration
+│   │   └── mobile-automation-stability
+│   ├── unit-and-component-test-automation
+│   │   ├── jest
+│   │   ├── vitest
+│   │   ├── pytest
+│   │   ├── junit-and-testng
+│   │   ├── mocking-stubbing-and-spying
+│   │   ├── parameterized-and-data-driven-tests
+│   │   ├── fixtures-and-test-lifecycle
+│   │   └── coverage-and-mutation-testing
+│   ├── automation-design-patterns
+│   │   ├── page-object-and-screenplay
+│   │   ├── factory-and-builder
+│   │   ├── adapter-and-facade
+│   │   ├── dependency-injection
+│   │   ├── reusable-assertions
+│   │   ├── data-driven-and-keyword-driven-testing
+│   │   ├── behavior-driven-development
+│   │   └── avoid-over-abstraction
+│   └── automation-maintenance
+│       ├── locator-resilience
+│       ├── test-isolation-and-determinism
+│       ├── flaky-test-detection
+│       ├── retry-policy-and-failure-classification
+│       ├── parallel-execution-and-resource-contention
+│       ├── test-suite-runtime-optimization
+│       ├── dependency-and-browser-version-upgrades
+│       └── automation-code-review
+├── programming-language-testing-tracks
+│   ├── javascript-and-typescript-testing
+│   │   ├── nodejs-test-runner
+│   │   ├── jest-and-vitest
+│   │   ├── playwright-and-cypress
+│   │   ├── async-test-and-promise-handling
+│   │   ├── fixtures-and-mocking
+│   │   ├── typescript-test-configuration
+│   │   └── npm-scripts-and-test-coverage
+│   ├── python-testing
+│   │   ├── pytest-fundamentals
+│   │   ├── unittest-and-test-discovery
+│   │   ├── fixtures-and-parametrize
+│   │   ├── mock-and-patch
+│   │   ├── requests-and-api-testing
+│   │   ├── selenium-and-playwright-python
+│   │   ├── coverage-and-tox
+│   │   └── type-checking-and-linting
+│   ├── java-testing
+│   │   ├── junit-5
+│   │   ├── testng
+│   │   ├── maven-and-gradle-test-lifecycle
+│   │   ├── mockito
+│   │   ├── rest-assured
+│   │   ├── selenium-java
+│   │   ├── assertj-and-hamcrest
+│   │   └── jacoco-and-coverage
+│   ├── csharp-dotnet-testing
+│   │   ├── xunit-nunit-and-mstest
+│   │   ├── fixtures-and-test-collections
+│   │   ├── moq-and-substitutes
+│   │   ├── playwright-dotnet
+│   │   ├── rest-api-integration-tests
+│   │   └── coverlet-and-coverage
+│   └── language-and-framework-selection
+│       ├── team-language-and-stack-fit
+│       ├── ecosystem-and-library-maturity
+│       ├── execution-speed-and-maintenance
+│       ├── cross-platform-support
+│       └── migration-and-interoperability
+├── nonfunctional-testing
+│   ├── performance-testing-fundamentals
+│   │   ├── performance-versus-load-and-stress
+│   │   ├── response-time-and-latency
+│   │   ├── throughput-and-concurrency
+│   │   ├── resource-utilization
+│   │   ├── percentile-and-tail-latency
+│   │   ├── workload-modeling
+│   │   ├── baseline-and-performance-budgets
+│   │   └── bottleneck-analysis
+│   ├── performance-test-types
+│   │   ├── load-testing
+│   │   ├── stress-testing
+│   │   ├── spike-testing
+│   │   ├── endurance-and-soak-testing
+│   │   ├── scalability-testing
+│   │   ├── capacity-testing
+│   │   ├── volume-testing
+│   │   └── failover-and-resilience-testing
+│   ├── performance-tools
+│   │   ├── k6
+│   │   ├── jmeter
+│   │   ├── gatling
+│   │   ├── locust
+│   │   ├── artillery
+│   │   ├── autocannon
+│   │   ├── browser-performance-tools
+│   │   └── tool-selection-and-scripting
+│   ├── performance-test-analysis
+│   │   ├── workload-and-user-model
+│   │   ├── ramp-up-and-steady-state
+│   │   ├── think-time-and-pacing
+│   │   ├── test-data-and-cache-state
+│   │   ├── server-and-client-resource-metrics
+│   │   ├── saturation-and-queueing
+│   │   ├── percentile-and-error-analysis
+│   │   └── performance-report-and-recommendations
+│   ├── reliability-and-resilience-testing
+│   │   ├── availability-and-recovery
+│   │   ├── timeout-and-retry-behavior
+│   │   ├── dependency-failure
+│   │   ├── graceful-degradation
+│   │   ├── failover-and-recovery
+│   │   ├── chaos-engineering-fundamentals
+│   │   ├── backup-and-restore-testing
+│   │   └── resilience-game-days
+│   ├── compatibility-and-installation-testing
+│   │   ├── operating-system-compatibility
+│   │   ├── browser-and-device-compatibility
+│   │   ├── hardware-and-screen-variation
+│   │   ├── network-condition-compatibility
+│   │   ├── installation-upgrade-and-uninstall
+│   │   ├── backward-and-forward-compatibility
+│   │   └── localization-and-timezone-compatibility
+│   └── accessibility-and-usability-quality
+│       ├── wcag-and-platform-guidelines
+│       ├── assistive-technology-compatibility
+│       ├── keyboard-and-switch-access
+│       ├── text-scaling-and-reflow
+│       ├── cognitive-and-interaction-usability
+│       ├── accessibility-automation-limitations
+│       └── accessibility-defect-reporting
+├── security-testing-and-application-safety
+│   ├── security-testing-foundations
+│   │   ├── security-objectives-and-threat-model
+│   │   ├── attack-surface-and-trust-boundaries
+│   │   ├── authentication-versus-authorization
+│   │   ├── confidentiality-integrity-and-availability
+│   │   ├── secure-development-lifecycle
+│   │   ├── risk-and-severity-assessment
+│   │   └── rules-of-engagement-and-authorization
+│   ├── web-application-security-testing
+│   │   ├── owasp-top-ten-awareness
+│   │   ├── access-control-and-idor
+│   │   ├── input-validation-and-injection
+│   │   ├── cross-site-scripting
+│   │   ├── cross-site-request-forgery
+│   │   ├── session-and-cookie-security
+│   │   ├── file-upload-and-download-controls
+│   │   ├── security-header-and-tls-review
+│   │   └── safe-security-test-documentation
+│   ├── api-security-testing
+│   │   ├── object-and-function-level-authorization
+│   │   ├── authentication-and-token-validation
+│   │   ├── excessive-data-exposure
+│   │   ├── mass-assignment-and-property-authorization
+│   │   ├── input-and-schema-validation
+│   │   ├── rate-limit-and-resource-controls
+│   │   ├── business-logic-abuse-cases
+│   │   └── api-security-regression
+│   ├── mobile-security-testing
+│   │   ├── local-data-storage
+│   │   ├── transport-security
+│   │   ├── platform-permissions
+│   │   ├── deep-link-and-intent-security
+│   │   ├── biometric-and-session-boundaries
+│   │   ├── backup-and-data-leakage
+│   │   └── mobile-security-standard-awareness
+│   ├── security-testing-tools-and-methods
+│   │   ├── burp-suite
+│   │   ├── owasp-zap
+│   │   ├── dependency-and-software-composition-analysis
+│   │   ├── static-application-security-testing
+│   │   ├── dynamic-application-security-testing
+│   │   ├── software-composition-analysis
+│   │   ├── container-and-image-scanning
+│   │   └── authorized-scan-scope-and-rate-controls
+│   └── security-findings-and-remediation
+│       ├── vulnerability-reproduction
+│       ├── impact-and-exploitability-description
+│       ├── severity-and-prioritization
+│       ├── evidence-without-sensitive-data
+│       ├── remediation-verification
+│       ├── retest-and-regression
+│       └── responsible-disclosure
+├── test-environments-and-test-data-management
+│   ├── test-environment-design
+│   │   ├── development-test-staging-and-production
+│   │   ├── environment-parity
+│   │   ├── configuration-and-secrets
+│   │   ├── service-dependencies-and-test-doubles
+│   │   ├── environment-access-and-permissions
+│   │   ├── environment-health-checks
+│   │   ├── infrastructure-as-code-for-test-environments
+│   │   └── environment-refresh-and-cleanup
+│   ├── test-data-management
+│   │   ├── test-data-strategy
+│   │   ├── synthetic-and-anonymized-data
+│   │   ├── data-masking-and-tokenization
+│   │   ├── test-data-generation
+│   │   ├── data-seeding-and-fixtures
+│   │   ├── data-reset-and-isolation
+│   │   ├── referential-integrity-in-test-data
+│   │   └── retention-and-secure-disposal
+│   ├── service-virtualization-and-mocking
+│   │   ├── mock-stub-and-fake-differences
+│   │   ├── api-mocking
+│   │   ├── third-party-service-virtualization
+│   │   ├── deterministic-failure-simulation
+│   │   ├── contract-and-behavior-fidelity
+│   │   └── mock-drift-and-maintenance
+│   ├── containerized-test-environments
+│   │   ├── docker-and-compose-for-testing
+│   │   ├── disposable-databases
+│   │   ├── testcontainers
+│   │   ├── service-dependency-orchestration
+│   │   ├── network-and-volume-isolation
+│   │   └── cleanup-and-resource-limits
+│   └── environment-and-data-troubleshooting
+│       ├── configuration-drift
+│       ├── stale-test-data
+│       ├── dependency-unavailability
+│       ├── clock-and-timezone-mismatch
+│       ├── network-and-certificate-issues
+│       ├── permission-and-account-issues
+│       └── environment-incident-escalation
+├── agile-devops-and-continuous-testing
+│   ├── agile-testing
+│   │   ├── testing-in-scrum
+│   │   ├── testing-in-kanban
+│   │   ├── three-amigos-collaboration
+│   │   ├── example-mapping
+│   │   ├── behavior-driven-development
+│   │   ├── acceptance-test-driven-development
+│   │   ├── definition-of-done-and-quality-gates
+│   │   └── shift-left-and-shift-right
+│   ├── devops-and-continuous-testing
+│   │   ├── continuous-integration-quality-gates
+│   │   ├── continuous-delivery-and-deployment
+│   │   ├── automated-test-stages
+│   │   ├── test-selection-and-impact-analysis
+│   │   ├── parallel-and-distributed-testing
+│   │   ├── deployment-smoke-and-verification
+│   │   ├── canary-and-progressive-delivery-validation
+│   │   └── production-monitoring-feedback
+│   ├── ci-cd-platforms
+│   │   ├── github-actions
+│   │   ├── gitlab-ci
+│   │   ├── jenkins
+│   │   ├── azure-devops-pipelines
+│   │   ├── buildkite-and-other-runners
+│   │   ├── pipeline-secrets-and-permissions
+│   │   ├── artifact-and-test-report-retention
+│   │   └── pipeline-failure-diagnostics
+│   ├── quality-engineering
+│   │   ├── quality-ownership-across-team
+│   │   ├── prevention-versus-detection
+│   │   ├── quality-engineering-practices
+│   │   ├── engineering-feedback-loops
+│   │   ├── testability-in-design-and-code
+│   │   ├── observability-for-testability
+│   │   ├── defect-prevention-and-learning
+│   │   └── continuous-quality-improvement
+│   └── release-and-production-testing
+│       ├── release-candidate-validation
+│       ├── deployment-verification
+│       ├── feature-flag-validation
+│       ├── canary-and-smoke-monitoring
+│       ├── production-synthetic-monitoring
+│       ├── rollback-validation
+│       ├── incident-reproduction
+│       └── post-release-quality-review
+├── test-management-tools-and-documentation
+│   ├── test-management-platforms
+│   │   ├── jira-and-xray
+│   │   ├── zephyr
+│   │   ├── azure-test-plans
+│   │   ├── testlink-and-alternatives
+│   │   ├── qtest-and-enterprise-tools
+│   │   ├── test-case-and-suite-organization
+│   │   ├── execution-cycles-and-runs
+│   │   └── integration-with-defect-tracking
+│   ├── issue-and-project-management
+│   │   ├── jira-issue-types-and-workflows
+│   │   ├── backlog-and-sprint-management
+│   │   ├── defect-fields-and-custom-workflows
+│   │   ├── dashboards-and-filters
+│   │   ├── azure-boards
+│   │   └── reporting-and-permission-design
+│   ├── test-documentation
+│   │   ├── test-policy-and-strategy
+│   │   ├── test-plan
+│   │   ├── test-scenario-and-test-case
+│   │   ├── test-data-specification
+│   │   ├── test-environment-documentation
+│   │   ├── defect-report
+│   │   ├── test-execution-report
+│   │   ├── traceability-matrix
+│   │   └── test-summary-and-signoff
+│   ├── test-reporting-and-metrics
+│   │   ├── execution-progress-dashboard
+│   │   ├── requirements-and-risk-coverage
+│   │   ├── automation-coverage-and-stability
+│   │   ├── escaped-defect-and-leakage
+│   │   ├── cycle-time-and-resolution-time
+│   │   ├── release-quality-trend
+│   │   ├── metric-context-and-limitations
+│   │   └── executive-quality-summary
+│   └── knowledge-management
+│       ├── test-case-repository
+│       ├── reusable-checklists
+│       ├── domain-and-system-glossary
+│       ├── known-issues-and-workarounds
+│       ├── test-environment-runbooks
+│       ├── onboarding-and-team-guides
+│       └── lessons-learned-and-retrospectives
+├── specialized-domain-testing
+│   ├── ecommerce-testing
+│   │   ├── product-catalog-and-search
+│   │   ├── cart-and-checkout
+│   │   ├── pricing-promotion-and-tax
+│   │   ├── inventory-and-stock-reservation
+│   │   ├── payment-and-refund
+│   │   ├── order-and-fulfillment
+│   │   ├── shipping-and-tracking
+│   │   └── marketplace-and-seller-workflows
+│   ├── banking-and-financial-testing
+│   │   ├── account-and-customer-onboarding
+│   │   ├── authentication-and-transaction-security
+│   │   ├── transfers-and-payment-processing
+│   │   ├── balances-and-ledger-reconciliation
+│   │   ├── interest-fees-and-rounding
+│   │   ├── limits-and-approval-rules
+│   │   ├── audit-and-regulatory-controls
+│   │   └── financial-data-integrity
+│   ├── erp-and-enterprise-system-testing
+│   │   ├── procure-to-pay
+│   │   ├── order-to-cash
+│   │   ├── record-to-report
+│   │   ├── inventory-and-warehouse
+│   │   ├── master-data-and-configuration
+│   │   ├── role-and-authorization
+│   │   ├── integration-and-batch-jobs
+│   │   └── end-to-end-business-process
+│   ├── healthcare-and-public-sector-testing
+│   │   ├── identity-and-record-management
+│   │   ├── consent-and-privacy
+│   │   ├── appointment-and-case-workflows
+│   │   ├── eligibility-and-rules
+│   │   ├── auditability-and-access
+│   │   └── accessibility-and-service-continuity
+│   ├── embedded-and-iot-testing
+│   │   ├── hardware-software-integration
+│   │   ├── device-protocol-and-connectivity
+│   │   ├── sensor-data-and-calibration
+│   │   ├── firmware-upgrade-and-recovery
+│   │   ├── power-and-resource-constraints
+│   │   ├── environmental-and-endurance-testing
+│   │   └── device-interoperability
+│   └── data-and-ai-system-testing
+│       ├── etl-and-data-pipeline-validation
+│       ├── schema-and-contract-drift
+│       ├── data-quality-and-reconciliation
+│       ├── model-input-and-output-validation
+│       ├── statistical-and-performance-drift
+│       ├── ai-output-quality-and-consistency
+│       ├── bias-and-fairness-evaluation
+│       ├── prompt-and-tool-boundary-testing
+│       └── human-review-and-risk-controls
+├── advanced-testing-engineering
+│   ├── testability-and-observability-engineering
+│   │   ├── testability-requirements
+│   │   ├── structured-logs-and-correlation-ids
+│   │   ├── metrics-and-traces
+│   │   ├── deterministic-clock-and-randomness
+│   │   ├── controllable-dependencies
+│   │   ├── health-and-diagnostic-endpoints
+│   │   └── production-debugging-readiness
+│   ├── advanced-test-architecture
+│   │   ├── test-portfolio-and-suite-boundaries
+│   │   ├── contract-and-component-testing
+│   │   ├── consumer-driven-contracts
+│   │   ├── model-based-testing
+│   │   ├── property-based-testing
+│   │   ├── mutation-testing
+│   │   ├── metamorphic-testing
+│   │   └── test-architecture-evolution
+│   ├── distributed-systems-testing
+│   │   ├── eventual-consistency-and-ordering
+│   │   ├── duplicate-and-at-least-once-delivery
+│   │   ├── idempotency-and-deduplication
+│   │   ├── timeout-and-partial-failure
+│   │   ├── queue-backpressure-and-retry
+│   │   ├── partition-and-network-faults
+│   │   ├── clock-skew-and-time-dependencies
+│   │   └── recovery-and-reconciliation
+│   ├── test-automation-at-scale
+│   │   ├── distributed-test-execution
+│   │   ├── browser-and-device-farms
+│   │   ├── test-sharding-and-balancing
+│   │   ├── shared-resource-contention
+│   │   ├── flaky-test-quarantine-policy
+│   │   ├── test-impact-analysis
+│   │   ├── selective-regression
+│   │   └── test-infrastructure-cost-management
+│   └── quality-strategy-and-governance
+│       ├── organization-wide-test-strategy
+│       ├── quality-standards-and-policies
+│       ├── release-risk-acceptance
+│       ├── quality-gates-and-exceptions
+│       ├── test-maturity-assessment
+│       ├── audit-and-compliance-evidence
+│       ├── vendor-and-outsourced-testing
+│       └── continuous-quality-roadmap
+├── professional-practice-and-career
+│   ├── tester-work-management
+│   │   ├── test-task-intake-and-triage
+│   │   ├── sprint-and-release-planning
+│   │   ├── estimation-and-prioritization
+│   │   ├── dependency-and-blocker-management
+│   │   ├── daily-test-status
+│   │   ├── review-and-signoff-checkpoints
+│   │   └── retrospective-and-improvement
+│   ├── collaboration-and-leadership
+│   │   ├── developer-and-tester-partnership
+│   │   ├── product-owner-and-business-collaboration
+│   │   ├── business-analyst-requirement-review
+│   │   ├── qa-pairing-and-three-amigos
+│   │   ├── defect-negotiation-and-escalation
+│   │   ├── mentoring-and-knowledge-sharing
+│   │   └── test-team-leadership
+│   ├── career-levels-and-specializations
+│   │   ├── junior-manual-tester
+│   │   ├── software-tester
+│   │   ├── senior-qa-engineer
+│   │   ├── test-automation-engineer
+│   │   ├── software-development-engineer-in-test
+│   │   ├── performance-test-engineer
+│   │   ├── security-test-engineer
+│   │   ├── qa-lead-and-test-manager
+│   │   └── quality-engineering-architect
+│   ├── certifications-and-learning
+│   │   ├── istqb-foundation-level
+│   │   ├── istqb-agile-and-specialist-tracks
+│   │   ├── automation-certification-options
+│   │   ├── performance-and-security-learning
+│   │   ├── certification-versus-practical-skill
+│   │   └── continuing-professional-development
+│   ├── portfolio-and-interview-preparation
+│   │   ├── test-plan-and-test-strategy-sample
+│   │   ├── test-case-and-checklist-examples
+│   │   ├── high-quality-defect-reports
+│   │   ├── api-and-ui-automation-repository
+│   │   ├── ci-pipeline-and-test-report
+│   │   ├── performance-test-analysis
+│   │   ├── exploratory-testing-session-report
+│   │   └── practical-and-scenario-interviews
+│   └── professional-quality-rubric
+│       ├── requirement-understanding
+│       ├── risk-and-coverage
+│       ├── test-design-quality
+│       ├── reproducibility-and-evidence
+│       ├── defect-communication
+│       ├── automation-maintainability
+│       ├── technical-and-business-awareness
+│       └── measurable-quality-outcomes
+└── practice-projects
+    ├── manual-web-testing-project
+    │   ├── application-and-requirement-study
+    │   ├── test-scope-and-risk-analysis
+    │   ├── test-scenario-and-case-design
+    │   ├── positive-negative-and-boundary-tests
+    │   ├── exploratory-testing-charters
+    │   ├── defect-reporting-with-evidence
+    │   ├── regression-checklist
+    │   └── test-summary-report
+    ├── ecommerce-checkout-test-suite
+    │   ├── catalog-and-cart-requirements
+    │   ├── pricing-promotion-and-tax-rules
+    │   ├── checkout-and-address-validation
+    │   ├── payment-success-failure-and-timeout
+    │   ├── inventory-and-order-consistency
+    │   ├── negative-and-concurrency-scenarios
+    │   ├── api-and-ui-test-cases
+    │   └── release-quality-assessment
+    ├── api-testing-and-contract-project
+    │   ├── openapi-contract-review
+    │   ├── postman-collection-and-environments
+    │   ├── authentication-and-authorization-cases
+    │   ├── schema-and-boundary-validation
+    │   ├── error-and-idempotency-tests
+    │   ├── database-side-effect-validation
+    │   ├── newman-ci-execution
+    │   └── api-test-report
+    ├── database-and-data-validation-project
+    │   ├── relational-schema-understanding
+    │   ├── sql-test-query-library
+    │   ├── referential-integrity-checks
+    │   ├── business-rule-and-aggregate-validation
+    │   ├── migration-source-target-reconciliation
+    │   ├── duplicate-and-null-analysis
+    │   ├── test-data-generation
+    │   └── data-quality-report
+    ├── playwright-web-automation-framework
+    │   ├── typescript-and-playwright-setup
+    │   ├── fixture-and-environment-design
+    │   ├── page-object-or-screenplay-structure
+    │   ├── login-and-session-tests
+    │   ├── form-and-table-interaction-tests
+    │   ├── api-setup-and-cleanup
+    │   ├── trace-and-screenshot-on-failure
+    │   ├── parallel-and-retry-policy
+    │   └── html-report-and-ci-integration
+    ├── mobile-application-testing-project
+    │   ├── device-and-os-test-matrix
+    │   ├── installation-and-upgrade-tests
+    │   ├── permissions-and-interruption-tests
+    │   ├── offline-and-network-transition-tests
+    │   ├── navigation-and-form-tests
+    │   ├── accessibility-and-font-scaling
+    │   ├── appium-or-maestro-automation
+    │   └── real-device-test-report
+    ├── performance-testing-project
+    │   ├── workload-and-performance-objectives
+    │   ├── baseline-and-test-data
+    │   ├── k6-or-jmeter-script
+    │   ├── load-and-stress-scenarios
+    │   ├── latency-throughput-and-error-analysis
+    │   ├── server-resource-correlation
+    │   ├── bottleneck-and-capacity-assessment
+    │   └── performance-recommendation-report
+    ├── accessibility-testing-project
+    │   ├── wcag-based-test-scope
+    │   ├── automated-accessibility-scan
+    │   ├── keyboard-only-navigation
+    │   ├── screen-reader-test-session
+    │   ├── contrast-and-text-scaling
+    │   ├── form-error-and-focus-validation
+    │   ├── accessibility-defect-reports
+    │   └── conformance-summary
+    ├── security-testing-awareness-project
+    │   ├── authorized-test-scope-and-rules
+    │   ├── application-threat-model
+    │   ├── authentication-and-access-control-review
+    │   ├── input-validation-and-upload-checks
+    │   ├── security-header-and-transport-review
+    │   ├── dependency-scan-and-triage
+    │   ├── safe-evidence-and-remediation-retest
+    │   └── security-findings-report
+    ├── ci-cd-quality-gate-project
+    │   ├── repository-and-pipeline-setup
+    │   ├── lint-and-static-checks
+    │   ├── unit-and-api-test-stages
+    │   ├── browser-automation-stage
+    │   ├── test-report-and-artifact-publishing
+    │   ├── quality-gate-and-failure-policy
+    │   ├── parallel-execution-and-caching
+    │   └── release-candidate-validation
+    ├── exploratory-testing-investigation
+    │   ├── product-risk-and-test-charters
+    │   ├── time-boxed-exploration
+    │   ├── boundary-and-state-investigation
+    │   ├── observation-and-evidence-log
+    │   ├── defect-reproduction-and-isolation
+    │   ├── debrief-and-coverage-review
+    │   └── exploratory-test-report
+    ├── distributed-system-reliability-tests
+    │   ├── service-and-event-flow-map
+    │   ├── duplicate-and-out-of-order-events
+    │   ├── timeout-and-partial-failure
+    │   ├── retry-and-idempotency-validation
+    │   ├── queue-backpressure-and-recovery
+    │   ├── eventual-consistency-checks
+    │   └── resilience-test-report
+    ├── test-automation-framework-library
+    │   ├── framework-requirements-and-conventions
+    │   ├── shared-fixtures-and-test-data-builders
+    │   ├── reusable-api-and-ui-clients
+    │   ├── assertion-and-reporting-helpers
+    │   ├── configuration-and-secret-handling
+    │   ├── consumer-example-project
+    │   ├── framework-unit-tests
+    │   └── versioning-and-maintenance-guide
+    └── end-to-end-quality-engineering-capstone
+        ├── product-context-and-quality-objectives
+        ├── requirement-review-and-risk-assessment
+        ├── test-strategy-and-estimation
+        ├── test-design-and-traceability
+        ├── manual-and-exploratory-testing
+        ├── api-database-and-integration-testing
+        ├── ui-and-mobile-automation
+        ├── performance-accessibility-and-security-review
+        ├── ci-cd-quality-gates
+        ├── defect-triage-and-release-readiness
+        ├── test-metrics-and-quality-report
+        └── retrospective-and-portfolio-presentation

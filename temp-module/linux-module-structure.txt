@@ -1,0 +1,935 @@
+linux-module
+├── foundations
+│   ├── linux-overview
+│   │   ├── what-linux-is
+│   │   ├── unix-and-linux-history
+│   │   ├── linux-kernel-and-user-space
+│   │   ├── distributions-and-release-models
+│   │   ├── linux-use-cases-and-server-ecosystem
+│   │   ├── linux-versus-bsd-and-other-operating-systems
+│   │   ├── open-source-and-gnu-userland
+│   │   └── linux-learning-path
+│   ├── linux-distributions-and-installation
+│   │   ├── debian-and-ubuntu
+│   │   ├── red-hat-enterprise-linux-and-rocky-linux
+│   │   ├── fedora
+│   │   ├── alpine-linux
+│   │   ├── arch-linux-and-derivatives
+│   │   ├── suse-and-opensuse
+│   │   ├── distribution-package-and-release-models
+│   │   ├── iso-installation-and-boot-media
+│   │   ├── virtual-machine-installation
+│   │   └── wsl-and-linux-on-windows
+│   ├── operating-system-fundamentals
+│   │   ├── kernel-and-system-calls
+│   │   ├── user-mode-and-kernel-mode
+│   │   ├── processes-and-threads
+│   │   ├── memory-and-virtual-memory
+│   │   ├── filesystems-and-storage
+│   │   ├── devices-and-device-drivers
+│   │   ├── interrupts-and-signals
+│   │   ├── scheduling-and-resource-management
+│   │   └── system-initialization-and-shutdown
+│   ├── command-line-and-terminal
+│   │   ├── terminal-console-and-tty
+│   │   ├── shell-versus-terminal
+│   │   ├── command-structure-and-arguments
+│   │   ├── command-options-and-flags
+│   │   ├── command-history-and-recall
+│   │   ├── man-pages-and-help
+│   │   ├── standard-input-output-and-error
+│   │   ├── exit-status-and-return-codes
+│   │   └── terminal-emulators-and-multiplexers
+│   └── development-and-lab-environment
+│       ├── bare-metal-and-virtual-machine-labs
+│       ├── virtualbox-and-vmware
+│       ├── qemu-and-kvm-overview
+│       ├── cloud-linux-instances
+│       ├── wsl2-development
+│       ├── ssh-lab-access
+│       ├── snapshots-and-revertible-labs
+│       └── safe-practice-and-data-backups
+├── shell-and-command-line-essentials
+│   ├── shell-fundamentals
+│   │   ├── sh-and-posix-shell
+│   │   ├── bash-and-zsh
+│   │   ├── login-and-interactive-shells
+│   │   ├── shell-startup-files
+│   │   ├── environment-and-shell-variables
+│   │   ├── aliases-and-functions
+│   │   ├── command-resolution-and-path
+│   │   └── shell-configuration-and-dotfiles
+│   ├── navigation-and-file-operations
+│   │   ├── pwd-cd-and-directory-navigation
+│   │   ├── ls-and-file-listing
+│   │   ├── mkdir-rmdir-and-touch
+│   │   ├── cp-mv-and-rm
+│   │   ├── file-stat-and-file-types
+│   │   ├── basename-dirname-and-realpath
+│   │   ├── links-and-shortcuts
+│   │   └── safe-file-operation-practices
+│   ├── text-viewing-and-editing
+│   │   ├── cat-less-and-more
+│   │   ├── head-and-tail
+│   │   ├── nano-and-basic-editors
+│   │   ├── vim-and-neovim-fundamentals
+│   │   ├── command-line-text-editing
+│   │   ├── file-encoding-and-line-endings
+│   │   └── editing-system-configuration-safely
+│   ├── pipes-redirection-and-command-composition
+│   │   ├── stdin-stdout-and-stderr-redirection
+│   │   ├── append-and-overwrite-redirection
+│   │   ├── pipelines-and-pipe-status
+│   │   ├── tee-and-process-substitution
+│   │   ├── command-chaining-and-conditionals
+│   │   ├── here-documents
+│   │   └── file-descriptors
+│   ├── text-processing-utilities
+│   │   ├── grep-and-regular-expressions
+│   │   ├── sed-and-stream-editing
+│   │   ├── awk-and-field-processing
+│   │   ├── cut-paste-and-tr
+│   │   ├── sort-uniq-and-comm
+│   │   ├── wc-and-text-counting
+│   │   ├── find-and-xargs
+│   │   └── jq-and-structured-json-processing
+│   └── shell-scripting
+│       ├── script-structure-and-shebang
+│       ├── variables-and-quoting
+│       ├── positional-parameters-and-arguments
+│       ├── conditionals-and-test-expressions
+│       ├── loops-and-iteration
+│       ├── functions-and-reuse
+│       ├── exit-codes-and-error-handling
+│       ├── traps-and-cleanup
+│       ├── logging-and-debugging
+│       ├── shellcheck-and-shfmt
+│       └── safe-and-idempotent-automation
+├── filesystem-and-storage-management
+│   ├── filesystem-hierarchy
+│   │   ├── root-and-home-directories
+│   │   ├── etc-var-usr-and-opt
+│   │   ├── tmp-and-run-directories
+│   │   ├── proc-sys-and-dev-filesystems
+│   │   ├── filesystem-hierarchy-standard
+│   │   └── distribution-specific-layouts
+│   ├── files-directories-and-metadata
+│   │   ├── regular-files-directories-and-special-files
+│   │   ├── inode-and-directory-entries
+│   │   ├── timestamps-and-file-metadata
+│   │   ├── hard-links-and-symbolic-links
+│   │   ├── hidden-files-and-dotfiles
+│   │   ├── file-attributes-and-extended-attributes
+│   │   └── file-descriptor-and-open-file-concepts
+│   ├── permissions-and-ownership
+│   │   ├── user-group-and-other-permissions
+│   │   ├── chmod-symbolic-and-numeric-modes
+│   │   ├── chown-and-chgrp
+│   │   ├── umask-and-default-permissions
+│   │   ├── setuid-setgid-and-sticky-bit
+│   │   ├── access-control-lists
+│   │   ├── capabilities-and-file-permissions
+│   │   └── permission-troubleshooting
+│   ├── disks-partitions-and-volumes
+│   │   ├── block-devices-and-device-names
+│   │   ├── sata-scsi-and-nvme-overview
+│   │   ├── partition-tables-mbr-and-gpt
+│   │   ├── fdisk-parted-and-gdisk
+│   │   ├── lsblk-blkid-and-udev
+│   │   ├── filesystem-creation-and-formatting
+│   │   ├── mount-and-unmount
+│   │   ├── fstab-and-persistent-mounts
+│   │   └── disk-expansion-and-resizing
+│   ├── linux-filesystems
+│   │   ├── ext4
+│   │   ├── xfs
+│   │   ├── btrfs
+│   │   ├── zfs-overview
+│   │   ├── vfat-and-exfat
+│   │   ├── overlayfs
+│   │   ├── network-filesystems-nfs-and-smb
+│   │   └── filesystem-selection-and-tradeoffs
+│   ├── logical-volume-and-software-raid
+│   │   ├── lvm-physical-volumes-and-volume-groups
+│   │   ├── logical-volumes-and-filesystems
+│   │   ├── lvm-snapshots-and-thin-provisioning
+│   │   ├── mdadm-and-software-raid
+│   │   ├── raid-levels-and-failure-modes
+│   │   ├── array-monitoring-and-rebuild
+│   │   └── lvm-and-raid-recovery
+│   ├── disk-capacity-and-performance
+│   │   ├── df-and-du
+│   │   ├── inode-exhaustion
+│   │   ├── iostat-and-iotop
+│   │   ├── iops-throughput-and-latency
+│   │   ├── disk-queue-and-saturation
+│   │   ├── fio-and-storage-benchmarking
+│   │   └── disk-full-investigation
+│   └── backup-and-recovery
+│       ├── tar-and-compression
+│       ├── rsync-and-incremental-copy
+│       ├── dd-and-block-level-imaging
+│       ├── filesystem-and-volume-snapshots
+│       ├── backup-retention-and-rotation
+│       ├── restore-validation
+│       └── recovery-planning-and-runbooks
+├── users-groups-and-access-control
+│   ├── user-and-group-management
+│   │   ├── passwd-shadow-and-group-files
+│   │   ├── useradd-usermod-and-userdel
+│   │   ├── groupadd-groupmod-and-groupdel
+│   │   ├── id-whoami-and-groups
+│   │   ├── login-shell-and-home-directory
+│   │   ├── system-and-service-accounts
+│   │   ├── password-aging-and-policy
+│   │   └── account-locking-and-expiration
+│   ├── authentication
+│   │   ├── pam-architecture
+│   │   ├── password-authentication
+│   │   ├── ssh-public-key-authentication
+│   │   ├── multi-factor-authentication-overview
+│   │   ├── ldap-and-directory-services
+│   │   ├── sssd-and-centralized-identity
+│   │   └── authentication-logs-and-failures
+│   ├── privilege-and-administration
+│   │   ├── root-account-and-superuser
+│   │   ├── sudoers-and-visudo
+│   │   ├── least-privilege-administration
+│   │   ├── sudo-command-logging
+│   │   ├── privilege-escalation-risks
+│   │   └── emergency-root-access
+│   ├── access-control-models
+│   │   ├── discretionary-access-control
+│   │   ├── acl-based-access
+│   │   ├── linux-capabilities
+│   │   ├── selinux-overview
+│   │   ├── apparmor-overview
+│   │   ├── namespaces-and-isolation
+│   │   └── access-control-auditing
+│   └── enterprise-identity-integration
+│       ├── ldap-and-active-directory-integration
+│       ├── kerberos-and-ticket-authentication
+│       ├── sssd-domain-joining
+│       ├── centralized-account-lifecycle
+│       ├── sudo-policy-management
+│       └── identity-failure-troubleshooting
+├── process-management-and-system-internals
+│   ├── process-fundamentals
+│   │   ├── process-id-and-parent-process-id
+│   │   ├── process-states-and-lifecycle
+│   │   ├── fork-exec-and-wait
+│   │   ├── foreground-and-background-processes
+│   │   ├── orphan-and-zombie-processes
+│   │   ├── process-groups-and-sessions
+│   │   ├── environment-and-process-inheritance
+│   │   └── process-resource-limits
+│   ├── process-inspection-and-control
+│   │   ├── ps-and-process-tree
+│   │   ├── top-and-htop
+│   │   ├── pgrep-pkill-and-pidof
+│   │   ├── kill-and-signal-delivery
+│   │   ├── nice-and-renice
+│   │   ├── jobs-bg-and-fg
+│   │   ├── lsof-and-open-files
+│   │   └── strace-and-system-call-tracing
+│   ├── signals-and-job-control
+│   │   ├── signal-types-and-default-actions
+│   │   ├── sigint-sigterm-and-sigkill
+│   │   ├── sighup-and-session-termination
+│   │   ├── sigstop-sigcont-and-sigchld
+│   │   ├── signal-handling-and-traps
+│   │   ├── process-group-signal-delivery
+│   │   └── graceful-process-shutdown
+│   ├── cpu-scheduling-and-resource-control
+│   │   ├── scheduler-and-run-queue
+│   │   ├── process-priority-and-nice
+│   │   ├── cpu-affinity-and-taskset
+│   │   ├── cgroups-v1-and-v2
+│   │   ├── resource-limits-and-ulimits
+│   │   ├── systemd-resource-controls
+│   │   └── cpu-throttling-and-saturation
+│   ├── memory-management
+│   │   ├── virtual-memory-and-address-spaces
+│   │   ├── paging-and-page-tables
+│   │   ├── physical-memory-and-swap
+│   │   ├── page-cache-and-buffer-cache
+│   │   ├── oom-killer-and-memory-pressure
+│   │   ├── memory-mapping-and-mmap
+│   │   ├── huge-pages-and-transparent-huge-pages
+│   │   └── memory-leak-and-pressure-diagnostics
+│   └── kernel-and-system-interface
+│       ├── kernel-version-and-build-information
+│       ├── procfs-and-sysfs
+│       ├── sysctl-and-kernel-parameters
+│       ├── kernel-modules-and-modprobe
+│       ├── udev-and-device-events
+│       ├── dmesg-and-kernel-ring-buffer
+│       ├── system-calls-and-library-boundaries
+│       └── kernel-panic-and-oops-awareness
+├── boot-process-and-service-management
+│   ├── linux-boot-process
+│   │   ├── bios-and-uefi
+│   │   ├── firmware-and-device-initialization
+│   │   ├── bootloader-and-grub
+│   │   ├── kernel-loading-and-initramfs
+│   │   ├── root-filesystem-mount
+│   │   ├── init-and-pid-one
+│   │   ├── systemd-startup-targets
+│   │   └── boot-failure-diagnostics
+│   ├── systemd-and-service-management
+│   │   ├── systemd-architecture-and-units
+│   │   ├── service-unit-files
+│   │   ├── target-and-dependency-ordering
+│   │   ├── systemctl-start-stop-restart
+│   │   ├── enable-disable-and-mask
+│   │   ├── daemon-reload-and-unit-validation
+│   │   ├── service-restart-policies
+│   │   ├── timers-and-scheduled-units
+│   │   └── custom-service-design
+│   ├── logging-and-journaling
+│   │   ├── syslog-and-rsyslog
+│   │   ├── journald-and-journalctl
+│   │   ├── log-levels-and-facilities
+│   │   ├── persistent-and-volatile-journals
+│   │   ├── logrotate-and-retention
+│   │   ├── centralized-log-forwarding
+│   │   └── log-integrity-and-sensitive-data
+│   ├── scheduled-tasks
+│   │   ├── cron-and-crontab
+│   │   ├── systemd-timers
+│   │   ├── at-and-one-time-jobs
+│   │   ├── cron-environment-and-path
+│   │   ├── job-locking-and-overlap-prevention
+│   │   ├── missed-run-and-retry-strategy
+│   │   └── scheduled-job-monitoring
+│   └── system-startup-and-shutdown
+│       ├── boot-targets-and-runlevels
+│       ├── emergency-and-rescue-modes
+│       ├── reboot-and-poweroff
+│       ├── service-dependency-failure
+│       ├── graceful-shutdown-and-timeouts
+│       └── startup-performance-analysis
+├── networking-and-system-connectivity
+│   ├── network-configuration
+│   │   ├── ip-address-and-interface-management
+│   │   ├── iproute2-and-ip-command
+│   │   ├── networkmanager-and-nmcli
+│   │   ├── systemd-networkd
+│   │   ├── netplan
+│   │   ├── routing-and-default-gateway
+│   │   ├── vlan-and-bonding
+│   │   └── network-configuration-persistence
+│   ├── dns-and-name-services
+│   │   ├── resolv-conf-and-resolved
+│   │   ├── systemd-resolved
+│   │   ├── dns-records-and-resolution
+│   │   ├── hosts-and-nsswitch-conf
+│   │   ├── caching-and-local-resolvers
+│   │   ├── bind-and-authoritative-dns-overview
+│   │   └── dns-troubleshooting
+│   ├── firewall-and-packet-filtering
+│   │   ├── netfilter-and-nftables
+│   │   ├── iptables-and-legacy-rules
+│   │   ├── ufw
+│   │   ├── firewalld-and-zones
+│   │   ├── connection-tracking
+│   │   ├── ingress-egress-and-forwarding-rules
+│   │   ├── firewall-persistence
+│   │   └── firewall-audit-and-troubleshooting
+│   ├── remote-access-and-file-transfer
+│   │   ├── openssh-server-and-client
+│   │   ├── ssh-key-generation-and-agent
+│   │   ├── sshd-configuration-and-hardening
+│   │   ├── scp-and-sftp
+│   │   ├── rsync-over-ssh
+│   │   ├── port-forwarding-and-tunnels
+│   │   ├── bastion-hosts-and-jump-hosts
+│   │   └── ssh-auditing-and-troubleshooting
+│   ├── network-services
+│   │   ├── web-server-and-reverse-proxy
+│   │   ├── nginx-and-apache-http-server
+│   │   ├── load-balancing-and-proxying
+│   │   ├── nfs-and-samba-services
+│   │   ├── dhcp-and-ip-address-management
+│   │   ├── mail-and-time-services-overview
+│   │   └── service-port-and-listener-inspection
+│   └── network-diagnostics
+│       ├── ping-and-fping
+│       ├── traceroute-tracepath-and-mtr
+│       ├── dig-host-and-nslookup
+│       ├── curl-wget-and-http-debugging
+│       ├── tcpdump-and-wireshark
+│       ├── ss-and-socket-statistics
+│       ├── ethtool-and-interface-diagnostics
+│       └── packet-loss-latency-and-throughput-analysis
+├── package-management-and-software-installation
+│   ├── package-management-fundamentals
+│   │   ├── packages-repositories-and-metadata
+│   │   ├── dependency-resolution
+│   │   ├── package-signatures-and-trust
+│   │   ├── package-versioning-and-pinning
+│   │   ├── package-cache-and-cleanup
+│   │   └── package-installation-troubleshooting
+│   ├── debian-and-ubuntu-package-management
+│   │   ├── dpkg
+│   │   ├── apt-and-apt-get
+│   │   ├── sources-list-and-repositories
+│   │   ├── apt-preferences-and-pinning
+│   │   ├── package-holds-and-upgrades
+│   │   └── deb-package-building-overview
+│   ├── red-hat-family-package-management
+│   │   ├── rpm
+│   │   ├── dnf-and-yum
+│   │   ├── repository-and-module-management
+│   │   ├── package-groups-and-history
+│   │   ├── version-locking
+│   │   └── rpm-package-building-overview
+│   ├── other-distribution-package-managers
+│   │   ├── apk-on-alpine
+│   │   ├── pacman-on-arch
+│   │   ├── zypper-on-suse
+│   │   ├── nix-package-manager-overview
+│   │   └── cross-distribution-package-differences
+│   └── software-installation-and-lifecycle
+│       ├── source-build-and-compilation
+│       ├── make-and-autotools
+│       ├── cmake-and-build-systems
+│       ├── third-party-repository-risk
+│       ├── software-version-and-upgrade-policy
+│       ├── rollback-and-package-downgrade
+│       └── software-inventory-and-sbom
+├── security-and-system-hardening
+│   ├── linux-security-fundamentals
+│   │   ├── threat-model-and-attack-surface
+│   │   ├── least-privilege-and-defense-in-depth
+│   │   ├── secure-baselines
+│   │   ├── security-updates-and-patching
+│   │   ├── system-inventory-and-risk-assessment
+│   │   └── security-configuration-auditing
+│   ├── authentication-and-access-security
+│   │   ├── password-policy-and-aging
+│   │   ├── pam-hardening
+│   │   ├── ssh-hardening
+│   │   ├── sudo-policy-and-auditing
+│   │   ├── mfa-and-centralized-identity
+│   │   ├── account-lockout-and-brute-force-controls
+│   │   └── session-and-login-monitoring
+│   ├── mandatory-access-control
+│   │   ├── selinux-modes-and-contexts
+│   │   ├── selinux-booleans-and-policy
+│   │   ├── selinux-troubleshooting-and-audit2why
+│   │   ├── apparmor-profiles
+│   │   ├── apparmor-enforcement-and-diagnostics
+│   │   └── mac-policy-design-and-maintenance
+│   ├── network-and-host-security
+│   │   ├── firewall-default-deny
+│   │   ├── service-minimization
+│   │   ├── tls-and-certificate-management
+│   │   ├── intrusion-detection-overview
+│   │   ├── fail2ban-and-abuse-mitigation
+│   │   ├── kernel-hardening-and-sysctl
+│   │   └── network-service-exposure-review
+│   ├── filesystem-and-data-security
+│   │   ├── secure-file-permissions
+│   │   ├── acl-and-capabilities-review
+│   │   ├── disk-and-filesystem-encryption
+│   │   ├── luks-and-dm-crypt
+│   │   ├── secure-deletion-limitations
+│   │   ├── backup-encryption-and-access
+│   │   └── secret-and-key-storage
+│   ├── auditing-and-compliance
+│   │   ├── auditd-and-linux-audit-framework
+│   │   ├── audit-rules-and-event-analysis
+│   │   ├── file-integrity-monitoring
+│   │   ├── centralized-security-logs
+│   │   ├── vulnerability-scanning
+│   │   ├── compliance-benchmark-awareness
+│   │   └── security-evidence-and-reporting
+│   └── incident-response-and-forensics
+│       ├── incident-triage-and-containment
+│       ├── volatile-and-persistent-evidence
+│       ├── process-and-network-forensics
+│       ├── authentication-and-log-investigation
+│       ├── rootkit-and-malware-awareness
+│       ├── recovery-and-rebuild-strategy
+│       └── post-incident-hardening
+├── virtualization-containers-and-isolation
+│   ├── virtualization-fundamentals
+│   │   ├── hypervisors-type-one-and-type-two
+│   │   ├── qemu-and-kvm
+│   │   ├── libvirt-and-virsh
+│   │   ├── virtual-cpu-and-memory-allocation
+│   │   ├── virtual-disk-and-networking
+│   │   ├── snapshots-and-cloning
+│   │   └── vm-live-migration-overview
+│   ├── container-runtime-and-images
+│   │   ├── docker-engine-and-containerd
+│   │   ├── podman-and-rootless-containers
+│   │   ├── image-layers-and-build-cache
+│   │   ├── registries-and-image-signing
+│   │   ├── container-entrypoints-and-processes
+│   │   ├── volumes-and-bind-mounts
+│   │   └── container-logs-and-inspection
+│   ├── container-isolation-and-security
+│   │   ├── namespaces
+│   │   ├── cgroups-and-resource-limits
+│   │   ├── capabilities-and-seccomp
+│   │   ├── apparmor-and-selinux-for-containers
+│   │   ├── rootless-and-user-namespaces
+│   │   ├── read-only-filesystems
+│   │   └── container-escape-risk-awareness
+│   ├── container-networking-and-storage
+│   │   ├── bridge-host-and-overlay-networks
+│   │   ├── port-publishing-and-nat
+│   │   ├── dns-and-service-discovery
+│   │   ├── persistent-volumes-and-volume-drivers
+│   │   ├── filesystem-permissions-and-user-mapping
+│   │   └── container-network-troubleshooting
+│   └── container-orchestration-introduction
+│       ├── docker-compose
+│       ├── podman-compose-and-pods
+│       ├── kubernetes-concepts
+│       ├── container-health-and-restart-policy
+│       ├── resource-management
+│       └── orchestration-versus-single-host-containers
+├── automation-configuration-and-infrastructure
+│   ├── shell-and-python-automation
+│   │   ├── bash-for-system-administration
+│   │   ├── python-for-linux-automation
+│   │   ├── command-exit-status-and-error-propagation
+│   │   ├── idempotent-script-design
+│   │   ├── logging-and-notification
+│   │   ├── retries-locking-and-timeouts
+│   │   └── safe-automation-and-dry-run
+│   ├── configuration-management
+│   │   ├── ansible-inventory-and-connection
+│   │   ├── playbooks-and-task-modules
+│   │   ├── roles-and-collections
+│   │   ├── templates-and-variables
+│   │   ├── handlers-and-idempotency
+│   │   ├── vault-and-secret-handling
+│   │   ├── ansible-lint-and-molecule
+│   │   └── configuration-drift-and-remediation
+│   ├── infrastructure-as-code
+│   │   ├── terraform-fundamentals
+│   │   ├── providers-resources-and-data-sources
+│   │   ├── modules-and-reuse
+│   │   ├── remote-state-and-locking
+│   │   ├── plan-apply-and-import
+│   │   ├── cloud-init-and-user-data
+│   │   ├── packer-and-machine-images
+│   │   └── infrastructure-testing-and-policy
+│   ├── scheduled-automation-and-jobs
+│   │   ├── cron-and-systemd-timers
+│   │   ├── at-and-one-shot-tasks
+│   │   ├── job-overlap-and-locking
+│   │   ├── retries-and-failure-alerting
+│   │   ├── log-rotation-and-retention
+│   │   └── automation-monitoring
+│   └── fleet-and-configuration-operations
+│       ├── host-inventory-and-grouping
+│       ├── remote-command-execution
+│       ├── patch-and-package-orchestration
+│       ├── configuration-baseline-enforcement
+│       ├── secrets-and-credential-rotation
+│       ├── fleet-health-and-compliance
+│       └── safe-rollout-and-batch-execution
+├── scripting-and-systems-programming
+│   ├── shell-scripting-engineering
+│   │   ├── posix-shell-portability
+│   │   ├── bash-arrays-and-advanced-expansion
+│   │   ├── file-descriptors-and-process-substitution
+│   │   ├── traps-and-signal-safe-cleanup
+│   │   ├── argument-parsing-and-cli-design
+│   │   ├── shellcheck-and-static-analysis
+│   │   └── bats-and-shell-testing
+│   ├── python-systems-automation
+│   │   ├── subprocess-and-process-control
+│   │   ├── filesystem-and-permission-automation
+│   │   ├── sockets-and-network-clients
+│   │   ├── concurrency-and-asyncio
+│   │   ├── system-metrics-and-procfs
+│   │   ├── configuration-and-api-integration
+│   │   └── packaging-and-deployment
+│   ├── c-and-systems-programming-awareness
+│   │   ├── c-language-and-compilation-basics
+│   │   ├── pointers-and-memory-layout
+│   │   ├── system-call-interface
+│   │   ├── process-and-thread-api
+│   │   ├── file-descriptors-and-io
+│   │   ├── shared-libraries-and-linking
+│   │   └── debugging-native-processes
+│   └── linux-api-and-library-basics
+│       ├── glibc-and-musl-awareness
+│       ├── procfs-and-sysfs-programmatic-access
+│       ├── netlink-overview
+│       ├── epoll-and-event-driven-io
+│       ├── signals-and-polling
+│       └── systemd-dbus-and-service-integration
+├── observability-performance-and-troubleshooting
+│   ├── system-monitoring
+│   │   ├── top-htop-and-load-average
+│   │   ├── uptime-and-run-queue
+│   │   ├── free-vmstat-and-memory-pressure
+│   │   ├── iostat-and-disk-performance
+│   │   ├── sar-and-sysstat
+│   │   ├── pidstat-and-per-process-metrics
+│   │   ├── mpstat-and-cpu-analysis
+│   │   └── resource-utilization-baselines
+│   ├── logging-and-monitoring-stack
+│   │   ├── journald-and-rsyslog
+│   │   ├── logrotate
+│   │   ├── prometheus-node-exporter
+│   │   ├── grafana-and-dashboards
+│   │   ├── alertmanager
+│   │   ├── telegraf-and-collectors
+│   │   ├── centralized-log-platforms
+│   │   └── alert-design-and-noise-reduction
+│   ├── tracing-and-profiling
+│   │   ├── strace-and-system-call-profiling
+│   │   ├── perf-and-hardware-counters
+│   │   ├── flame-graphs
+│   │   ├── eBPF-and-bpftrace-overview
+│   │   ├── ftrace-and-kernel-tracing
+│   │   ├── tcpdump-and-network-tracing
+│   │   └── profiling-overhead-and-interpretation
+│   ├── performance-engineering
+│   │   ├── cpu-bound-and-io-bound-workloads
+│   │   ├── scheduler-and-context-switches
+│   │   ├── memory-allocation-and-page-cache
+│   │   ├── disk-queue-and-io-scheduler
+│   │   ├── network-throughput-and-latency
+│   │   ├── file-descriptor-and-connection-limits
+│   │   ├── benchmark-methodology
+│   │   └── performance-regression-analysis
+│   └── troubleshooting-methodology
+│       ├── symptom-scope-and-impact-assessment
+│       ├── hypothesis-driven-investigation
+│       ├── cpu-saturation-investigation
+│       ├── memory-pressure-and-oom-investigation
+│       ├── disk-full-and-io-latency-investigation
+│       ├── dns-and-network-connectivity-investigation
+│       ├── service-startup-and-crash-investigation
+│       ├── permission-and-security-policy-investigation
+│       └── incident-report-and-root-cause-analysis
+├── kernel-architecture-and-advanced-internals
+│   ├── kernel-architecture
+│   │   ├── monolithic-kernel-and-modules
+│   │   ├── kernel-space-and-user-space-boundary
+│   │   ├── system-call-entry-and-return
+│   │   ├── kernel-configuration-and-compilation
+│   │   ├── kernel-module-development-overview
+│   │   ├── module-signing-and-loading-policy
+│   │   └── kernel-version-and-abi-considerations
+│   ├── memory-management-internals
+│   │   ├── virtual-memory-areas
+│   │   ├── page-faults-and-demand-paging
+│   │   ├── buddy-allocator
+│   │   ├── slab-and-slab-like-allocators
+│   │   ├── reclaim-and-page-writeback
+│   │   ├── swap-and-oom-selection
+│   │   ├── memory-cgroups
+│   │   └── numa-and-memory-locality
+│   ├── process-scheduling-internals
+│   │   ├── linux-scheduler-overview
+│   │   ├── cfs-and-scheduling-class-awareness
+│   │   ├── real-time-scheduling-policies
+│   │   ├── cpu-affinity-and-isolation
+│   │   ├── load-balancing-and-migration
+│   │   ├── scheduler-tracepoints
+│   │   └── latency-and-throughput-tradeoffs
+│   ├── device-and-driver-subsystems
+│   │   ├── device-model-and-sysfs
+│   │   ├── udev-rules-and-device-events
+│   │   ├── block-device-stack
+│   │   ├── network-device-stack
+│   │   ├── character-devices-and-device-nodes
+│   │   ├── kernel-module-lifecycle
+│   │   └── driver-diagnostics
+│   └── advanced-kernel-observability
+│       ├── tracepoints-and-kprobes
+│       ├── eBPF-program-types-and-maps
+│       ├── bpftrace-and-bcc-tools
+│       ├── perf-events-and-profiling
+│       ├── kernel-lock-and-contention-analysis
+│       ├── crash-dump-and-vmcore-awareness
+│       └── kernel-regression-investigation
+├── high-availability-and-enterprise-linux
+│   ├── high-availability-fundamentals
+│   │   ├── availability-and-failure-domains
+│   │   ├── active-active-and-active-passive
+│   │   ├── quorum-and-split-brain
+│   │   ├── fencing-and-watchdog
+│   │   ├── failover-and-failback
+│   │   └── recovery-time-and-recovery-point
+│   ├── clustering-and-shared-storage
+│   │   ├── pacemaker-and-corosync
+│   │   ├── cluster-resources-and-constraints
+│   │   ├── fencing-agents-and-stonith
+│   │   ├── shared-storage-and-multipath
+│   │   ├── cluster-filesystems-overview
+│   │   └── cluster-quorum-and-recovery
+│   ├── enterprise-linux-administration
+│   │   ├── rhel-subscription-and-repositories
+│   │   ├── rocky-linux-and-alma-linux-operations
+│   │   ├── kernel-live-patching-awareness
+│   │   ├── enterprise-lifecycle-and-support
+│   │   ├── centralized-configuration-and-compliance
+│   │   └── vendor-support-and-escalation
+│   ├── identity-and-enterprise-services
+│   │   ├── ldap-and-active-directory
+│   │   ├── kerberos-and-sssd
+│   │   ├── centralized-sudo-and-access-policy
+│   │   ├── certificate-and-pki-integration
+│   │   └── enterprise-audit-and-accountability
+│   └── business-continuity-and-operations
+│       ├── critical-service-inventory
+│       ├── recovery-and-continuity-runbooks
+│       ├── patching-and-maintenance-windows
+│       ├── capacity-and-lifecycle-planning
+│       ├── operational-change-control
+│       └── disaster-recovery-exercises
+├── cloud-devops-and-platform-linux
+│   ├── linux-in-cloud-environments
+│   │   ├── cloud-vm-provisioning
+│   │   ├── cloud-init-and-instance-bootstrap
+│   │   ├── cloud-network-interface-and-routing
+│   │   ├── cloud-block-and-object-storage
+│   │   ├── cloud-metadata-services-and-security
+│   │   ├── instance-identity-and-managed-credentials
+│   │   └── cloud-agent-and-guest-management
+│   ├── container-host-and-kubernetes-node-operations
+│   │   ├── container-runtime-operations
+│   │   ├── kubelet-and-node-components
+│   │   ├── cni-and-csi-plugin-awareness
+│   │   ├── node-pressure-and-eviction
+│   │   ├── containerd-and-cri-tools
+│   │   ├── node-upgrade-and-drain
+│   │   └── cluster-node-troubleshooting
+│   ├── ci-cd-and-release-operations
+│   │   ├── github-actions-runner-management
+│   │   ├── gitlab-runner-management
+│   │   ├── jenkins-agent-and-controller
+│   │   ├── build-agent-hardening
+│   │   ├── artifact-and-package-publishing
+│   │   ├── deployment-automation
+│   │   └── release-rollback-and-audit
+│   ├── site-reliability-engineering
+│   │   ├── service-level-indicators
+│   │   ├── service-level-objectives
+│   │   ├── error-budgets
+│   │   ├── toil-identification-and-reduction
+│   │   ├── on-call-and-incident-management
+│   │   ├── blameless-postmortems
+│   │   └── reliability-capacity-and-risk
+│   └── platform-and-fleet-engineering
+│       ├── golden-image-and-image-pipeline
+│       ├── immutable-server-patterns
+│       ├── fleet-provisioning-and-inventory
+│       ├── patch-and-configuration-orchestration
+│       ├── self-service-linux-environments
+│       ├── host-compliance-and-drift-detection
+│       └── platform-runbooks-and-support
+├── testing-quality-and-security-validation
+│   ├── linux-system-testing
+│   │   ├── boot-and-service-validation
+│   │   ├── filesystem-and-storage-tests
+│   │   ├── network-and-firewall-tests
+│   │   ├── permission-and-access-tests
+│   │   ├── package-and-upgrade-tests
+│   │   └── recovery-and-rollback-tests
+│   ├── automation-and-configuration-testing
+│   │   ├── shellcheck-and-shell-script-tests
+│   │   ├── bats-and-shell-test-frameworks
+│   │   ├── ansible-lint-and-molecule
+│   │   ├── infrastructure-as-code-validation
+│   │   ├── test-kitchen-and-alternatives
+│   │   └── idempotency-and-drift-tests
+│   ├── security-validation
+│   │   ├── lynis-and-system-auditing
+│   │   ├── open-scap-and-compliance-scanning
+│   │   ├── vulnerability-scanning
+│   │   ├── file-integrity-monitoring
+│   │   ├── ssh-and-firewall-configuration-tests
+│   │   └── remediation-and-retest
+│   └── performance-and-resilience-testing
+│       ├── stress-ng-and-sysbench
+│       ├── fio-storage-testing
+│       ├── iperf-network-testing
+│       ├── resource-exhaustion-simulation
+│       ├── service-failure-and-restart-testing
+│       ├── backup-restore-drills
+│       └── chaos-and-failure-injection
+├── professional-practice-and-career
+│   ├── linux-administration-workflow
+│   │   ├── change-and-maintenance-planning
+│   │   ├── incident-triage-and-prioritization
+│   │   ├── safe-command-and-change-practices
+│   │   ├── operational-runbooks
+│   │   ├── root-cause-analysis
+│   │   ├── documentation-and-knowledge-sharing
+│   │   └── automation-and-toil-reduction
+│   ├── collaboration-and-communication
+│   │   ├── developer-and-application-team-support
+│   │   ├── network-and-storage-team-collaboration
+│   │   ├── security-and-compliance-collaboration
+│   │   ├── cloud-and-platform-team-collaboration
+│   │   ├── stakeholder-and-incident-communication
+│   │   └── mentoring-and-peer-review
+│   ├── career-levels-and-specializations
+│   │   ├── junior-linux-system-administrator
+│   │   ├── linux-system-administrator
+│   │   ├── senior-linux-engineer
+│   │   ├── linux-systems-engineer
+│   │   ├── linux-kernel-and-performance-engineer
+│   │   ├── cloud-and-devops-engineer
+│   │   ├── site-reliability-engineer
+│   │   ├── platform-engineer
+│   │   └── infrastructure-architect
+│   ├── certifications-and-learning
+│   │   ├── linux-foundation-certification-paths
+│   │   ├── red-hat-rhcsa-and-rhce
+│   │   ├── suse-certification-paths
+│   │   ├── cloud-and-kubernetes-certifications
+│   │   ├── certification-versus-practical-skill
+│   │   └── continuing-professional-development
+│   └── portfolio-and-interview-preparation
+│       ├── linux-server-build-and-hardening
+│       ├── network-and-storage-troubleshooting-cases
+│       ├── shell-and-ansible-automation-repository
+│       ├── monitoring-and-incident-case-study
+│       ├── infrastructure-as-code-project
+│       ├── performance-analysis-report
+│       └── practical-linux-interview-exercises
+└── practice-projects
+    ├── linux-command-line-lab
+    │   ├── filesystem-navigation-and-search
+    │   ├── permissions-and-ownership-exercises
+    │   ├── text-processing-and-pipelines
+    │   ├── process-and-resource-inspection
+    │   ├── archive-and-transfer-workflows
+    │   └── command-history-and-documentation
+    ├── linux-user-and-access-management
+    │   ├── user-and-group-provisioning
+    │   ├── directory-permission-design
+    │   ├── sudo-policy-configuration
+    │   ├── ssh-key-and-login-policy
+    │   ├── account-expiration-and-audit
+    │   └── access-validation-and-runbook
+    ├── linux-web-server-deployment
+    │   ├── vm-and-os-provisioning
+    │   ├── nginx-or-apache-installation
+    │   ├── virtual-host-and-tls-configuration
+    │   ├── firewall-and-network-access
+    │   ├── systemd-service-and-log-rotation
+    │   ├── backup-and-restore
+    │   └── uptime-and-health-monitoring
+    ├── disk-and-storage-management-lab
+    │   ├── disk-and-partition-inventory
+    │   ├── filesystem-creation-and-mounting
+    │   ├── persistent-fstab-configuration
+    │   ├── lvm-volume-expansion
+    │   ├── disk-usage-and-inode-alerting
+    │   ├── backup-and-restore-validation
+    │   └── storage-troubleshooting-report
+    ├── shell-system-automation-toolkit
+    │   ├── argument-driven-admin-scripts
+    │   ├── log-rotation-and-cleanup
+    │   ├── service-health-checks
+    │   ├── backup-and-retention-automation
+    │   ├── locking-and-idempotency
+    │   ├── shellcheck-and-automated-tests
+    │   └── documentation-and-release
+    ├── linux-network-diagnostics-toolkit
+    │   ├── interface-and-route-inventory
+    │   ├── dns-and-connectivity-checks
+    │   ├── listening-port-and-process-mapping
+    │   ├── packet-capture-and-analysis
+    │   ├── tls-and-http-diagnostics
+    │   ├── automated-diagnostic-report
+    │   └── failure-simulation-and-validation
+    ├── secure-linux-server-baseline
+    │   ├── minimal-package-and-service-profile
+    │   ├── ssh-and-sudo-hardening
+    │   ├── firewall-and-network-policy
+    │   ├── selinux-or-apparmor-enforcement
+    │   ├── auditd-and-centralized-logging
+    │   ├── patch-and-vulnerability-management
+    │   └── compliance-evidence-report
+    ├── ansible-server-fleet-automation
+    │   ├── inventory-and-environment-groups
+    │   ├── reusable-roles-and-playbooks
+    │   ├── user-and-package-management
+    │   ├── service-and-firewall-configuration
+    │   ├── vault-and-secret-management
+    │   ├── molecule-and-idempotency-tests
+    │   └── fleet-drift-and-reporting
+    ├── linux-monitoring-and-alerting-stack
+    │   ├── node-exporter-and-metrics
+    │   ├── prometheus-scrape-configuration
+    │   ├── grafana-dashboards
+    │   ├── alertmanager-routing
+    │   ├── centralized-system-logs
+    │   ├── service-and-host-slos
+    │   └── incident-runbooks-and-alert-tuning
+    ├── dockerized-multi-service-environment
+    │   ├── custom-container-images
+    │   ├── compose-network-and-service-discovery
+    │   ├── volumes-and-persistent-data
+    │   ├── health-checks-and-restart-policy
+    │   ├── rootless-and-container-hardening
+    │   ├── image-scanning-and-version-pinning
+    │   └── backup-and-recovery-tests
+    ├── linux-virtualization-host
+    │   ├── kvm-and-libvirt-setup
+    │   ├── virtual-network-and-bridge
+    │   ├── storage-pool-and-volume-management
+    │   ├── vm-template-and-cloning
+    │   ├── snapshot-and-recovery
+    │   ├── resource-allocation-and-monitoring
+    │   └── host-security-and-maintenance
+    ├── high-availability-service-cluster
+    │   ├── cluster-node-and-network-design
+    │   ├── pacemaker-and-corosync-setup
+    │   ├── resource-and-fencing-configuration
+    │   ├── health-check-and-failover
+    │   ├── split-brain-and-quorum-tests
+    │   ├── failback-and-recovery-drill
+    │   └── availability-and-incident-report
+    ├── terraform-linux-cloud-infrastructure
+    │   ├── cloud-network-and-subnet-provisioning
+    │   ├── linux-vm-and-security-group-provisioning
+    │   ├── ssh-and-cloud-identity-configuration
+    │   ├── remote-state-and-module-design
+    │   ├── cloud-init-and-bootstrap
+    │   ├── ci-plan-and-approved-apply
+    │   └── drift-detection-and-destroy-safety
+    ├── linux-kubernetes-node-operations
+    │   ├── node-runtime-and-kubelet-inspection
+    │   ├── containerd-and-cri-tools
+    │   ├── cni-and-csi-diagnostics
+    │   ├── node-pressure-and-eviction
+    │   ├── drain-upgrade-and-maintenance
+    │   ├── kernel-and-network-troubleshooting
+    │   └── node-readiness-and-recovery-runbook
+    ├── linux-performance-investigation
+    │   ├── cpu-load-and-scheduler-analysis
+    │   ├── memory-pressure-and-oom-analysis
+    │   ├── disk-latency-and-io-analysis
+    │   ├── network-throughput-and-packet-loss
+    │   ├── perf-strace-and-flame-graphs
+    │   ├── eBPF-observability-exercises
+    │   └── evidence-based-performance-report
+    └── production-linux-engineering-capstone
+        ├── workload-and-service-requirements
+        ├── linux-host-and-network-architecture
+        ├── storage-and-backup-design
+        ├── identity-security-and-hardening
+        ├── configuration-and-infrastructure-automation
+        ├── container-and-orchestration-deployment
+        ├── monitoring-logging-and-alerting
+        ├── performance-and-capacity-validation
+        ├── high-availability-and-disaster-recovery
+        ├── patching-and-change-management
+        ├── incident-response-and-operational-runbooks
+        └── final-review-and-portfolio-presentation

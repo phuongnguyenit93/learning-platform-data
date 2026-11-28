@@ -1,0 +1,883 @@
+cloud-engineer-module
+├── foundations
+│   ├── cloud-computing-overview
+│   │   ├── what-cloud-computing-is
+│   │   ├── cloud-service-models-iaas-paas-saas
+│   │   ├── deployment-models-public-private-hybrid
+│   │   ├── cloud-native-and-cloud-first-thinking
+│   │   ├── shared-responsibility-model
+│   │   ├── cloud-economics-and-consumption-model
+│   │   ├── regions-availability-zones-and-edge
+│   │   ├── elasticity-scalability-and-resilience
+│   │   └── cloud-engineer-learning-path
+│   ├── infrastructure-and-computer-science-basics
+│   │   ├── computer-hardware-and-virtualization
+│   │   ├── cpu-memory-storage-and-io
+│   │   ├── operating-system-fundamentals
+│   │   ├── processes-threads-and-services
+│   │   ├── filesystems-and-permissions
+│   │   ├── networking-and-routing-fundamentals
+│   │   ├── distributed-systems-basics
+│   │   ├── availability-and-failure-domains
+│   │   └── time-synchronization-and-clock-skew
+│   ├── linux-and-command-line
+│   │   ├── linux-filesystem-hierarchy
+│   │   ├── users-groups-and-permissions
+│   │   ├── processes-and-signals
+│   │   ├── systemd-and-service-management
+│   │   ├── package-management
+│   │   ├── shell-and-bash-scripting
+│   │   ├── ssh-and-remote-administration
+│   │   ├── logs-and-journald
+│   │   └── system-resource-inspection
+│   ├── development-and-automation-prerequisites
+│   │   ├── git-and-version-control
+│   │   ├── python-for-infrastructure-automation
+│   │   ├── yaml-json-and-toml
+│   │   ├── http-and-api-fundamentals
+│   │   ├── cli-tools-and-sdk-usage
+│   │   ├── environment-variables-and-configuration
+│   │   ├── secrets-and-credential-basics
+│   │   └── technical-documentation
+│   └── cloud-architecture-fundamentals
+│       ├── workload-characterization
+│       ├── availability-and-recovery-objectives
+│       ├── scalability-and-capacity-planning
+│       ├── fault-tolerance-and-redundancy
+│       ├── loose-coupling-and-service-boundaries
+│       ├── stateless-and-stateful-workloads
+│       ├── architecture-tradeoffs
+│       └── architecture-review-and-documentation
+├── networking-and-connectivity
+│   ├── networking-fundamentals
+│   │   ├── osi-and-tcp-ip-models
+│   │   ├── ipv4-and-ipv6-addressing
+│   │   ├── subnetting-and-cidr
+│   │   ├── routing-and-routing-tables
+│   │   ├── tcp-udp-and-icmp
+│   │   ├── ports-and-sockets
+│   │   ├── dns-and-name-resolution
+│   │   ├── dhcp-and-address-allocation
+│   │   ├── nat-and-port-forwarding
+│   │   └── mtu-and-fragmentation
+│   ├── virtual-cloud-networking
+│   │   ├── virtual-private-clouds-and-vnets
+│   │   ├── subnets-and-ip-planning
+│   │   ├── public-and-private-subnets
+│   │   ├── route-tables-and-routes
+│   │   ├── internet-gateways-and-nat-gateways
+│   │   ├── security-groups-and-network-acls
+│   │   ├── network-interfaces-and-ip-addresses
+│   │   ├── private-service-endpoints
+│   │   └── network-segmentation-and-isolation
+│   ├── load-balancing-and-traffic-management
+│   │   ├── layer-four-and-layer-seven-load-balancing
+│   │   ├── application-and-network-load-balancers
+│   │   ├── health-checks-and-target-groups
+│   │   ├── session-affinity-and-sticky-sessions
+│   │   ├── tls-termination-and-re-encryption
+│   │   ├── reverse-proxy-and-ingress
+│   │   ├── global-load-balancing
+│   │   └── traffic-shifting-and-weighted-routing
+│   ├── hybrid-and-private-connectivity
+│   │   ├── site-to-site-vpn
+│   │   ├── client-vpn-and-remote-access
+│   │   ├── dedicated-private-connectivity
+│   │   ├── aws-direct-connect
+│   │   ├── azure-expressroute
+│   │   ├── google-cloud-interconnect
+│   │   ├── transit-gateway-and-network-hub
+│   │   ├── cloud-to-cloud-connectivity
+│   │   └── hybrid-dns-and-routing
+│   ├── network-security
+│   │   ├── firewall-and-policy-design
+│   │   ├── ingress-and-egress-controls
+│   │   ├── web-application-firewall
+│   │   ├── ddos-protection
+│   │   ├── network-flow-logs
+│   │   ├── private-dns-and-service-discovery
+│   │   ├── zero-trust-network-access
+│   │   └── network-threat-detection
+│   └── network-troubleshooting
+│       ├── ping-traceroute-and-mtr
+│       ├── dig-nslookup-and-host
+│       ├── curl-and-tls-diagnostics
+│       ├── tcpdump-and-packet-analysis
+│       ├── ss-netstat-and-socket-inspection
+│       ├── route-and-firewall-diagnostics
+│       ├── mtu-and-connectivity-issues
+│       └── cloud-network-flow-analysis
+├── compute-and-virtualization
+│   ├── virtual-machines
+│   │   ├── machine-images-and-templates
+│   │   ├── instance-types-and-sizing
+│   │   ├── boot-and-initialization
+│   │   ├── cloud-init-and-user-data
+│   │   ├── disks-and-attached-volumes
+│   │   ├── snapshots-and-image-lifecycle
+│   │   ├── autoscaling-groups-and-instance-pools
+│   │   ├── placement-and-host-failure
+│   │   └── vm-backup-and-recovery
+│   ├── operating-system-administration
+│   │   ├── linux-server-provisioning
+│   │   ├── windows-server-provisioning
+│   │   ├── kernel-and-system-updates
+│   │   ├── service-and-process-management
+│   │   ├── disk-and-filesystem-management
+│   │   ├── user-and-access-administration
+│   │   ├── time-sync-and-ntp
+│   │   └── hardening-and-baseline-configuration
+│   ├── containers
+│   │   ├── container-fundamentals
+│   │   ├── namespaces-and-control-groups
+│   │   ├── docker-images-and-layers
+│   │   ├── dockerfile-and-multi-stage-builds
+│   │   ├── registries-and-image-publishing
+│   │   ├── volumes-and-persistent-storage
+│   │   ├── container-networking
+│   │   ├── resource-limits-and-health-checks
+│   │   └── container-security-and-scanning
+│   ├── serverless-compute
+│   │   ├── function-as-a-service-concepts
+│   │   ├── aws-lambda
+│   │   ├── azure-functions
+│   │   ├── google-cloud-functions-and-cloud-run-functions
+│   │   ├── triggers-and-event-sources
+│   │   ├── cold-start-and-runtime-limits
+│   │   ├── concurrency-and-scaling
+│   │   ├── function-packaging-and-dependencies
+│   │   └── serverless-observability
+│   └── compute-selection-and-optimization
+│       ├── vm-versus-container-versus-serverless
+│       ├── cpu-and-memory-sizing
+│       ├── burstable-and-specialized-instances
+│       ├── gpu-and-accelerator-compute
+│       ├── spot-and-preemptible-instances
+│       ├── scaling-policy-design
+│       ├── utilization-and-right-sizing
+│       └── compute-cost-optimization
+├── storage-and-data-infrastructure
+│   ├── block-storage
+│   │   ├── managed-block-volumes
+│   │   ├── volume-types-and-performance
+│   │   ├── iops-and-throughput
+│   │   ├── snapshots-and-cloning
+│   │   ├── encryption-and-key-management
+│   │   ├── filesystem-expansion
+│   │   └── backup-and-restore-testing
+│   ├── object-storage
+│   │   ├── amazon-s3
+│   │   ├── azure-blob-storage
+│   │   ├── google-cloud-storage
+│   │   ├── buckets-objects-and-versioning
+│   │   ├── lifecycle-and-retention-policies
+│   │   ├── access-policies-and-public-access
+│   │   ├── replication-and-cross-region-copy
+│   │   ├── event-notifications
+│   │   └── object-storage-cost-and-performance
+│   ├── file-storage
+│   │   ├── network-file-systems
+│   │   ├── amazon-efs-and-fsx
+│   │   ├── azure-files-and-netapp-files
+│   │   ├── google-filestore
+│   │   ├── nfs-and-smb-protocols
+│   │   ├── throughput-and-performance-modes
+│   │   └── shared-file-access-and-permissions
+│   ├── database-infrastructure
+│   │   ├── managed-relational-databases
+│   │   ├── managed-nosql-databases
+│   │   ├── database-networking-and-access
+│   │   ├── high-availability-and-replicas
+│   │   ├── backups-and-point-in-time-recovery
+│   │   ├── encryption-and-auditing
+│   │   ├── connection-pooling-and-proxies
+│   │   └── database-capacity-and-cost
+│   ├── backup-and-disaster-recovery
+│   │   ├── backup-types-and-retention
+│   │   ├── recovery-point-objective
+│   │   ├── recovery-time-objective
+│   │   ├── cross-zone-and-cross-region-recovery
+│   │   ├── immutable-and-protected-backups
+│   │   ├── restore-drills-and-validation
+│   │   ├── disaster-recovery-runbooks
+│   │   └── backup-security-and-access-control
+│   └── storage-architecture-and-cost
+│       ├── storage-tiering-and-lifecycle
+│       ├── durability-and-availability
+│       ├── latency-and-throughput-requirements
+│       ├── replication-versus-backup
+│       ├── data-residency-and-retention
+│       ├── capacity-forecasting
+│       └── storage-cost-allocation
+├── identity-access-and-cloud-security
+│   ├── identity-and-access-management
+│   │   ├── users-groups-and-roles
+│   │   ├── policies-and-permissions
+│   │   ├── role-based-access-control
+│   │   ├── attribute-based-access-control
+│   │   ├── resource-hierarchy-and-inheritance
+│   │   ├── service-accounts-and-workload-identities
+│   │   ├── federation-and-single-sign-on
+│   │   ├── privileged-access-management
+│   │   └── access-review-and-audit
+│   ├── authentication-and-authorization
+│   │   ├── authentication-versus-authorization
+│   │   ├── oauth2-and-openid-connect
+│   │   ├── saml-and-enterprise-federation
+│   │   ├── multi-factor-authentication
+│   │   ├── short-lived-credentials
+│   │   ├── workload-identity-federation
+│   │   ├── cross-account-and-cross-project-access
+│   │   └── break-glass-access
+│   ├── secrets-and-key-management
+│   │   ├── cloud-secret-managers
+│   │   ├── key-management-services
+│   │   ├── envelope-encryption
+│   │   ├── certificate-management
+│   │   ├── secret-rotation-and-revocation
+│   │   ├── application-secret-injection
+│   │   ├── hsm-and-key-protection
+│   │   └── secret-leak-detection
+│   ├── cloud-security-architecture
+│   │   ├── shared-responsibility-and-control-mapping
+│   │   ├── defense-in-depth
+│   │   ├── zero-trust-principles
+│   │   ├── network-and-workload-segmentation
+│   │   ├── encryption-at-rest-and-in-transit
+│   │   ├── secure-baselines-and-guardrails
+│   │   ├── cloud-security-posture-management
+│   │   └── threat-modeling-for-cloud-workloads
+│   ├── governance-and-compliance
+│   │   ├── cloud-policy-and-organization-guardrails
+│   │   ├── resource-tagging-and-classification
+│   │   ├── audit-logs-and-evidence
+│   │   ├── data-privacy-and-residency
+│   │   ├── regulatory-framework-awareness
+│   │   ├── configuration-compliance
+│   │   ├── vulnerability-and-patch-management
+│   │   └── security-exceptions-and-risk-acceptance
+│   └── security-operations
+│       ├── cloud-security-monitoring
+│       ├── threat-detection-and-alerting
+│       ├── incident-response-and-containment
+│       ├── forensic-readiness-and-log-retention
+│       ├── vulnerability-scanning
+│       ├── container-and-image-security
+│       ├── workload-runtime-protection
+│       └── security-posture-reporting
+├── infrastructure-as-code-and-configuration-management
+│   ├── infrastructure-as-code-fundamentals
+│   │   ├── declarative-versus-imperative-provisioning
+│   │   ├── desired-state-and-reconciliation
+│   │   ├── idempotency-and-repeatability
+│   │   ├── resource-dependency-graphs
+│   │   ├── state-and-drift-management
+│   │   ├── module-and-reuse-strategy
+│   │   └── environment-promotion
+│   ├── terraform
+│   │   ├── providers-and-resources
+│   │   ├── variables-outputs-and-locals
+│   │   ├── modules-and-composition
+│   │   ├── state-backends-and-locking
+│   │   ├── plan-apply-and-destroy-workflows
+│   │   ├── import-and-refactoring
+│   │   ├── workspaces-and-environment-design
+│   │   ├── data-sources-and-dynamic-blocks
+│   │   ├── for-each-count-and-dependency
+│   │   ├── testing-and-validation
+│   │   └── terraform-ci-and-policy-checks
+│   ├── cloud-native-infrastructure-as-code
+│   │   ├── aws-cloudformation-and-cdk
+│   │   ├── azure-bicep-and-arm-templates
+│   │   ├── google-cloud-deployment-manager-alternatives
+│   │   ├── pulumi
+│   │   ├── crossplane
+│   │   ├── infrastructure-testing-frameworks
+│   │   └── tool-selection-and-governance
+│   ├── configuration-management
+│   │   ├── ansible-inventory-and-playbooks
+│   │   ├── roles-and-collections
+│   │   ├── templates-and-variables
+│   │   ├── handlers-and-idempotent-tasks
+│   │   ├── secrets-with-ansible-vault
+│   │   ├── remote-configuration-and-hardening
+│   │   └── configuration-drift-detection
+│   ├── policy-as-code
+│   │   ├── open-policy-agent
+│   │   ├── rego-language-basics
+│   │   ├── terraform-policy-checks
+│   │   ├── cloud-organization-policies
+│   │   ├── admission-and-deployment-policies
+│   │   └── policy-testing-and-exceptions
+│   └── infrastructure-lifecycle-management
+│       ├── resource-naming-and-tagging
+│       ├── module-versioning
+│       ├── state-migration-and-recovery
+│       ├── safe-change-and-destruction-controls
+│       ├── drift-remediation
+│       ├── infrastructure-documentation
+│       └── decommissioning-and-cost-cleanup
+├── containers-kubernetes-and-platform-engineering
+│   ├── kubernetes-fundamentals
+│   │   ├── control-plane-and-worker-nodes
+│   │   ├── pods-and-workload-resources
+│   │   ├── deployments-and-replicasets
+│   │   ├── services-and-service-discovery
+│   │   ├── namespaces-and-resource-quotas
+│   │   ├── configmaps-and-secrets
+│   │   ├── probes-and-health-checks
+│   │   ├── requests-limits-and-quality-of-service
+│   │   └── kubectl-and-cluster-inspection
+│   ├── kubernetes-networking-and-storage
+│   │   ├── cluster-networking-and-cni
+│   │   ├── ingress-and-gateway-api
+│   │   ├── network-policies
+│   │   ├── dns-and-service-discovery
+│   │   ├── persistent-volumes-and-claims
+│   │   ├── storage-classes-and-provisioners
+│   │   ├── statefulsets
+│   │   └── storage-backup-and-recovery
+│   ├── workload-scheduling-and-scaling
+│   │   ├── scheduler-and-node-selection
+│   │   ├── affinity-and-anti-affinity
+│   │   ├── taints-and-tolerations
+│   │   ├── horizontal-pod-autoscaler
+│   │   ├── vertical-pod-autoscaler
+│   │   ├── cluster-autoscaler-and-node-pools
+│   │   ├── disruption-budgets
+│   │   └── workload-capacity-planning
+│   ├── kubernetes-security
+│   │   ├── service-accounts-and-rbac
+│   │   ├── pod-security-standards
+│   │   ├── admission-controllers-and-policies
+│   │   ├── secrets-encryption-and-external-secret-stores
+│   │   ├── image-signing-and-admission
+│   │   ├── network-segmentation
+│   │   ├── runtime-security
+│   │   └── cluster-upgrade-and-patch-policy
+│   ├── packaging-and-gitops
+│   │   ├── helm-charts-and-values
+│   │   ├── kustomize
+│   │   ├── argo-cd
+│   │   ├── flux-cd
+│   │   ├── git-as-source-of-truth
+│   │   ├── promotion-and-drift-reconciliation
+│   │   ├── secrets-in-gitops
+│   │   └── deployment-rollbacks
+│   └── platform-engineering
+│       ├── internal-developer-platforms
+│       ├── golden-paths-and-templates
+│       ├── self-service-infrastructure
+│       ├── developer-portals-and-backstage
+│       ├── platform-api-and-abstractions
+│       ├── multi-tenancy-and-isolation
+│       ├── platform-reliability-and-adoption
+│       └── platform-product-thinking
+├── cloud-provider-specialization
+│   ├── amazon-web-services
+│   │   ├── aws-global-infrastructure-and-account-model
+│   │   ├── organizations-and-control-tower
+│   │   ├── iam-and-identity-center
+│   │   ├── ec2-and-auto-scaling
+│   │   ├── vpc-route-tables-and-security-groups
+│   │   ├── elastic-load-balancing
+│   │   ├── s3-and-storage-services
+│   │   ├── rds-aurora-and-dynamodb
+│   │   ├── lambda-and-eventbridge
+│   │   ├── ecs-eks-and-fargate
+│   │   ├── cloudwatch-cloudtrail-and-config
+│   │   ├── systems-manager-and-ssm
+│   │   ├── kms-secrets-manager-and-parameter-store
+│   │   └── aws-well-architected-framework
+│   ├── microsoft-azure
+│   │   ├── subscriptions-management-groups-and-tenants
+│   │   ├── microsoft-entra-id-and-rbac
+│   │   ├── azure-virtual-networks-and-peering
+│   │   ├── network-security-groups-and-firewall
+│   │   ├── virtual-machines-and-scale-sets
+│   │   ├── app-service-and-container-apps
+│   │   ├── azure-kubernetes-service
+│   │   ├── blob-files-and-managed-disks
+│   │   ├── azure-sql-and-cosmos-db
+│   │   ├── functions-and-event-grid
+│   │   ├── monitor-log-analytics-and-application-insights
+│   │   ├── key-vault-and-managed-identities
+│   │   ├── policy-and-management-groups
+│   │   └── azure-well-architected-framework
+│   ├── google-cloud-platform
+│   │   ├── organizations-folders-and-projects
+│   │   ├── cloud-iam-and-service-accounts
+│   │   ├── shared-vpc-and-networking
+│   │   ├── compute-engine-and-managed-instance-groups
+│   │   ├── cloud-load-balancing
+│   │   ├── cloud-storage-and-filestore
+│   │   ├── cloud-sql-spanner-and-firestore
+│   │   ├── cloud-run-and-functions
+│   │   ├── google-kubernetes-engine
+│   │   ├── pub-sub-and-eventarc
+│   │   ├── cloud-logging-and-monitoring
+│   │   ├── secret-manager-and-cloud-kms
+│   │   ├── organization-policy-and-security-command-center
+│   │   └── google-cloud-architecture-framework
+│   └── cloud-provider-architecture-comparison
+│       ├── service-equivalence-and-differences
+│       ├── identity-and-organization-models
+│       ├── network-and-private-connectivity-comparison
+│       ├── compute-and-container-service-comparison
+│       ├── storage-and-database-comparison
+│       ├── monitoring-and-audit-comparison
+│       ├── pricing-and-cost-model-comparison
+│       └── portability-and-migration-strategy
+├── devops-sre-and-automation
+│   ├── devops-fundamentals
+│   │   ├── devops-culture-and-collaboration
+│   │   ├── continuous-integration
+│   │   ├── continuous-delivery-and-deployment
+│   │   ├── deployment-strategies
+│   │   ├── release-and-rollback-management
+│   │   ├── environment-promotion
+│   │   ├── configuration-and-secret-injection
+│   │   └── pipeline-security-and-governance
+│   ├── ci-cd-platforms
+│   │   ├── github-actions
+│   │   ├── gitlab-ci
+│   │   ├── jenkins
+│   │   ├── azure-devops-pipelines
+│   │   ├── buildkite-and-other-runners
+│   │   ├── reusable-pipeline-templates
+│   │   ├── artifact-and-container-registry
+│   │   └── pipeline-observability
+│   ├── site-reliability-engineering
+│   │   ├── service-level-indicators
+│   │   ├── service-level-objectives
+│   │   ├── service-level-agreements
+│   │   ├── error-budgets-and-release-policy
+│   │   ├── toil-identification-and-automation
+│   │   ├── on-call-and-escalation
+│   │   ├── incident-command-and-communication
+│   │   ├── postmortems-and-learning
+│   │   └── reliability-capacity-and-risk-management
+│   ├── deployment-and-release-engineering
+│   │   ├── rolling-deployments
+│   │   ├── blue-green-deployments
+│   │   ├── canary-and-progressive-delivery
+│   │   ├── feature-flags-and-configuration-rollout
+│   │   ├── database-migration-safety
+│   │   ├── rollback-and-roll-forward
+│   │   ├── release-approvals-and-audit
+│   │   └── deployment-verification
+│   └── automation-and-operations
+│       ├── infrastructure-and-operations-scripting
+│       ├── scheduled-jobs-and-event-driven-automation
+│       ├── self-healing-and-auto-remediation
+│       ├── runbooks-and-operational-automation
+│       ├── configuration-drift-remediation
+│       ├── fleet-and-patch-management
+│       ├── safe-automation-and-human-approval
+│       └── automation-testing-and-auditability
+├── observability-and-monitoring
+│   ├── observability-fundamentals
+│   │   ├── metrics-logs-and-traces
+│   │   ├── golden-signals
+│   │   ├── service-and-infrastructure-health
+│   │   ├── telemetry-collection-and-export
+│   │   ├── cardinality-and-label-design
+│   │   ├── sampling-and-retention
+│   │   └── observability-versus-monitoring
+│   ├── metrics-and-monitoring-platforms
+│   │   ├── prometheus
+│   │   ├── grafana
+│   │   ├── cloudwatch
+│   │   ├── azure-monitor
+│   │   ├── google-cloud-monitoring
+│   │   ├── datadog-and-new-relic
+│   │   └── dashboards-and-alert-rules
+│   ├── centralized-logging
+│   │   ├── structured-logging
+│   │   ├── fluent-bit-and-fluentd
+│   │   ├── elasticsearch-and-opensearch
+│   │   ├── loki-and-log-aggregation
+│   │   ├── retention-and-index-lifecycle
+│   │   ├── correlation-ids-and-context
+│   │   └── sensitive-data-redaction
+│   ├── distributed-tracing
+│   │   ├── opentelemetry
+│   │   ├── trace-context-propagation
+│   │   ├── spans-and-span-attributes
+│   │   ├── service-dependency-mapping
+│   │   ├── sampling-and-cost-control
+│   │   └── trace-based-troubleshooting
+│   └── alerting-and-incident-detection
+│       ├── alert-severity-and-routing
+│       ├── symptom-versus-cause-alerts
+│       ├── noise-reduction-and-deduplication
+│       ├── escalation-and-notification-policies
+│       ├── synthetic-monitoring
+│       ├── uptime-and-end-to-end-probes
+│       └── alert-review-and-tuning
+├── reliability-resilience-and-disaster-recovery
+│   ├── high-availability-design
+│   │   ├── availability-zones-and-regions
+│   │   ├── redundant-compute-and-network-paths
+│   │   ├── load-balancing-and-health-checks
+│   │   ├── database-replication-and-failover
+│   │   ├── quorum-and-consensus-awareness
+│   │   ├── dependency-failure-isolation
+│   │   └── availability-calculation-and-error-budgets
+│   ├── resilience-engineering
+│   │   ├── timeout-and-deadline-design
+│   │   ├── retry-and-exponential-backoff
+│   │   ├── circuit-breaker-and-bulkhead
+│   │   ├── rate-limiting-and-load-shedding
+│   │   ├── graceful-degradation
+│   │   ├── queueing-and-backpressure
+│   │   ├── chaos-engineering-fundamentals
+│   │   └── failure-injection-and-game-days
+│   ├── disaster-recovery
+│   │   ├── business-impact-analysis
+│   │   ├── rpo-and-rto-design
+│   │   ├── backup-and-replication-strategy
+│   │   ├── cross-region-recovery
+│   │   ├── recovery-site-patterns
+│   │   ├── failover-and-failback
+│   │   ├── recovery-runbooks
+│   │   └── disaster-recovery-exercises
+│   └── incident-management
+│       ├── incident-severity-and-prioritization
+│       ├── detection-triage-and-containment
+│       ├── incident-roles-and-command
+│       ├── stakeholder-and-customer-communication
+│       ├── evidence-and-timeline-capture
+│       ├── root-cause-and-contributing-factors
+│       ├── blameless-postmortems
+│       └── corrective-actions-and-follow-through
+├── cloud-cost-management-and-finops
+│   ├── cloud-financial-management
+│   │   ├── cloud-pricing-models
+│   │   ├── on-demand-reserved-and-spot-pricing
+│   │   ├── tagging-and-cost-allocation
+│   │   ├── budgets-and-cost-alerts
+│   │   ├── chargeback-and-showback
+│   │   ├── unit-economics-and-cost-per-workload
+│   │   └── finops-operating-model
+│   ├── compute-cost-optimization
+│   │   ├── instance-right-sizing
+│   │   ├── autoscaling-and-scheduling
+│   │   ├── spot-and-preemptible-workloads
+│   │   ├── idle-resource-detection
+│   │   ├── container-density-and-bin-packing
+│   │   └── serverless-cost-and-duration
+│   ├── storage-and-network-cost-optimization
+│   │   ├── storage-tiering-and-lifecycle
+│   │   ├── snapshot-and-backup-retention
+│   │   ├── data-transfer-and-egress
+│   │   ├── nat-and-load-balancer-costs
+│   │   ├── cross-region-replication-cost
+│   │   └── caching-and-locality
+│   └── cost-governance-and-reporting
+│       ├── cost-explorer-and-billing-exports
+│       ├── anomaly-detection-and-investigation
+│       ├── forecast-and-budget-variance
+│       ├── resource-owner-accountability
+│       ├── architecture-cost-review
+│       └── continuous-optimization-backlog
+├── cloud-native-architecture-and-modern-platforms
+│   ├── cloud-native-design-principles
+│   │   ├── twelve-factor-application-awareness
+│   │   ├── immutable-infrastructure
+│   │   ├── stateless-service-design
+│   │   ├── externalized-configuration
+│   │   ├── service-discovery-and-dynamic-environments
+│   │   ├── health-and-readiness-contracts
+│   │   └── graceful-shutdown
+│   ├── microservices-and-distributed-platforms
+│   │   ├── service-boundaries-and-decomposition
+│   │   ├── api-gateway-and-ingress
+│   │   ├── service-mesh-concepts
+│   │   ├── synchronous-and-asynchronous-communication
+│   │   ├── distributed-configuration-and-secrets
+│   │   ├── service-identity-and-mtls
+│   │   └── distributed-tracing-and-resilience
+│   ├── serverless-and-event-driven-architecture
+│   │   ├── event-sources-and-triggers
+│   │   ├── queues-and-pub-sub
+│   │   ├── event-routing-and-filtering
+│   │   ├── workflow-orchestration
+│   │   ├── idempotency-and-deduplication
+│   │   ├── dead-letter-and-replay
+│   │   └── event-driven-observability
+│   ├── edge-and-hybrid-computing
+│   │   ├── edge-compute-use-cases
+│   │   ├── edge-device-provisioning
+│   │   ├── intermittent-connectivity
+│   │   ├── edge-security-and-identity
+│   │   ├── fleet-management-and-updates
+│   │   └── cloud-edge-data-synchronization
+│   └── architecture-frameworks-and-review
+│       ├── aws-well-architected-review
+│       ├── azure-well-architected-review
+│       ├── google-cloud-architecture-review
+│       ├── architecture-decision-records
+│       ├── threat-and-risk-review
+│       ├── operational-readiness-review
+│       └── architecture-evolution-and-modernization
+├── platform-engineering-and-developer-experience
+│   ├── internal-developer-platform
+│   │   ├── platform-capabilities-and-users
+│   │   ├── self-service-resource-provisioning
+│   │   ├── service-catalog-and-templates
+│   │   ├── golden-paths-and-paved-roads
+│   │   ├── developer-portal-and-backstage
+│   │   ├── platform-api-and-abstractions
+│   │   └── adoption-and-developer-feedback
+│   ├── platform-automation
+│   │   ├── reusable-infrastructure-modules
+│   │   ├── account-and-project-factory
+│   │   ├── environment-provisioning
+│   │   ├── policy-and-guardrail-automation
+│   │   ├── automated-cleanup-and-expiration
+│   │   └── platform-workflow-testing
+│   ├── multi-account-and-landing-zone-design
+│   │   ├── organizational-hierarchy
+│   │   ├── account-and-subscription-vending
+│   │   ├── shared-services-and-network-hubs
+│   │   ├── centralized-logging-and-security
+│   │   ├── identity-and-policy-baselines
+│   │   ├── environment-separation
+│   │   └── landing-zone-lifecycle-management
+│   └── platform-operations
+│       ├── platform-slos-and-service-catalog
+│       ├── tenant-isolation-and-quotas
+│       ├── platform-upgrades-and-deprecation
+│       ├── support-and-escalation-model
+│       ├── capacity-and-cost-management
+│       └── platform-security-and-audit
+├── testing-validation-and-quality-engineering
+│   ├── infrastructure-testing
+│   │   ├── terraform-format-validate-and-plan-checks
+│   │   ├── module-unit-tests
+│   │   ├── policy-and-compliance-tests
+│   │   ├── integration-tests-in-ephemeral-environments
+│   │   ├── deployment-smoke-tests
+│   │   ├── drift-detection
+│   │   └── destructive-change-safety
+│   ├── configuration-and-image-testing
+│   │   ├── ansible-lint-and-syntax-checks
+│   │   ├── molecule-testing
+│   │   ├── container-image-scanning
+│   │   ├── image-hardening-validation
+│   │   ├── boot-and-cloud-init-tests
+│   │   └── operating-system-compliance-tests
+│   ├── cloud-service-testing
+│   │   ├── connectivity-and-permission-tests
+│   │   ├── failover-and-recovery-tests
+│   │   ├── load-and-capacity-tests
+│   │   ├── backup-restore-validation
+│   │   ├── service-integration-tests
+│   │   └── cloud-provider-sandbox-and-mocking
+│   └── chaos-and-resilience-validation
+│       ├── controlled-failure-injection
+│       ├── instance-and-zone-failure-tests
+│       ├── network-latency-and-partition-tests
+│       ├── dependency-outage-tests
+│       ├── autoscaling-and-recovery-tests
+│       └── resilience-evidence-and-remediation
+├── compliance-risk-and-enterprise-governance
+│   ├── cloud-governance
+│   │   ├── organization-and-account-guardrails
+│   │   ├── resource-policy-and-allowed-services
+│   │   ├── naming-tagging-and-metadata-standards
+│   │   ├── approved-regions-and-data-residency
+│   │   ├── configuration-baselines
+│   │   └── exception-and-waiver-management
+│   ├── risk-and-compliance-management
+│   │   ├── cloud-risk-assessment
+│   │   ├── control-objectives-and-evidence
+│   │   ├── audit-logging-and-retention
+│   │   ├── vulnerability-and-patch-compliance
+│   │   ├── privacy-and-data-protection
+│   │   ├── regulatory-framework-awareness
+│   │   └── third-party-and-supply-chain-risk
+│   ├── enterprise-identity-and-access-governance
+│   │   ├── joiner-mover-leaver-lifecycle
+│   │   ├── periodic-access-recertification
+│   │   ├── privileged-role-approval
+│   │   ├── service-identity-ownership
+│   │   ├── separation-of-duties
+│   │   └── access-audit-and-remediation
+│   └── business-continuity
+│       ├── business-impact-analysis
+│       ├── critical-service-inventory
+│       ├── continuity-and-recovery-plans
+│       ├── dependency-and-vendor-risk
+│       ├── recovery-exercises
+│       └── continuity-plan-review
+├── professional-practice-and-career
+│   ├── cloud-engineering-workflow
+│   │   ├── requirements-and-workload-discovery
+│   │   ├── architecture-and-capacity-estimation
+│   │   ├── change-management-and-approvals
+│   │   ├── infrastructure-code-review
+│   │   ├── operational-handover-and-runbooks
+│   │   ├── incident-and-on-call-ownership
+│   │   └── technical-debt-and-platform-roadmap
+│   ├── collaboration-and-communication
+│   │   ├── developer-and-application-team-collaboration
+│   │   ├── security-and-compliance-collaboration
+│   │   ├── network-and-database-team-collaboration
+│   │   ├── sre-and-platform-team-collaboration
+│   │   ├── stakeholder-risk-communication
+│   │   └── mentoring-and-knowledge-sharing
+│   ├── career-levels-and-specializations
+│   │   ├── junior-cloud-engineer
+│   │   ├── cloud-engineer
+│   │   ├── senior-cloud-engineer
+│   │   ├── cloud-infrastructure-engineer
+│   │   ├── cloud-network-engineer
+│   │   ├── cloud-security-engineer
+│   │   ├── devops-and-sre-engineer
+│   │   ├── platform-engineer
+│   │   └── cloud-solutions-architect
+│   ├── certifications-and-learning
+│   │   ├── aws-cloud-practitioner-and-associate-paths
+│   │   ├── aws-professional-and-specialty-paths
+│   │   ├── azure-fundamentals-and-role-based-paths
+│   │   ├── google-cloud-engineer-and-architect-paths
+│   │   ├── kubernetes-certification-paths
+│   │   ├── terraform-certification-paths
+│   │   └── certification-versus-practical-competence
+│   └── portfolio-and-interview-preparation
+│       ├── multi-tier-cloud-architecture-case-study
+│       ├── infrastructure-as-code-repository
+│       ├── secure-network-and-identity-design
+│       ├── kubernetes-platform-demonstration
+│       ├── ci-cd-and-gitops-pipeline
+│       ├── monitoring-and-incident-case-study
+│       ├── cost-optimization-report
+│       └── cloud-system-design-interviews
+└── practice-projects
+    ├── linux-cloud-vm-foundation
+    │   ├── provision-linux-virtual-machine
+    │   ├── configure-users-ssh-and-firewall
+    │   ├── install-and-manage-services
+    │   ├── configure-disk-and-backups
+    │   ├── centralize-system-logs
+    │   └── document-hardening-and-recovery
+    ├── secure-cloud-network
+    │   ├── design-vpc-or-vnet-and-cidr-plan
+    │   ├── create-public-and-private-subnets
+    │   ├── configure-routing-and-nat
+    │   ├── implement-security-groups-and-acls
+    │   ├── add-private-service-connectivity
+    │   ├── enable-flow-logs-and-diagnostics
+    │   └── test-connectivity-and-segmentation
+    ├── terraform-multi-environment-platform
+    │   ├── reusable-network-and-compute-modules
+    │   ├── remote-state-and-locking
+    │   ├── dev-test-and-production-environments
+    │   ├── secrets-and-variable-management
+    │   ├── policy-and-static-validation
+    │   ├── ci-plan-and-approved-apply
+    │   └── drift-detection-and-destruction-guard
+    ├── highly-available-web-application
+    │   ├── load-balanced-compute-tier
+    │   ├── multi-zone-deployment
+    │   ├── managed-database-and-replication
+    │   ├── object-storage-for-static-assets
+    │   ├── autoscaling-and-health-checks
+    │   ├── tls-and-web-application-firewall
+    │   └── failover-and-load-test-report
+    ├── containerized-application-platform
+    │   ├── application-dockerfile-and-image
+    │   ├── image-registry-and-tag-policy
+    │   ├── compose-based-local-environment
+    │   ├── container-network-and-persistent-storage
+    │   ├── resource-limits-and-health-probes
+    │   ├── image-scanning-and-hardening
+    │   └── automated-build-and-publish
+    ├── kubernetes-production-cluster
+    │   ├── managed-cluster-and-node-pools
+    │   ├── namespaces-and-rbac
+    │   ├── deployments-services-and-ingress
+    │   ├── configmaps-and-external-secrets
+    │   ├── persistent-storage-and-stateful-workload
+    │   ├── autoscaling-and-disruption-budgets
+    │   ├── network-policies-and-pod-security
+    │   └── upgrade-and-recovery-runbook
+    ├── gitops-deployment-platform
+    │   ├── application-and-infrastructure-repositories
+    │   ├── helm-or-kustomize-packaging
+    │   ├── argocd-or-flux-bootstrap
+    │   ├── environment-promotion
+    │   ├── secret-management
+    │   ├── drift-detection-and-reconciliation
+    │   └── rollback-and-audit-trail
+    ├── cloud-identity-and-secrets-platform
+    │   ├── role-and-policy-design
+    │   ├── workload-identity-and-federation
+    │   ├── secret-manager-integration
+    │   ├── key-and-certificate-rotation
+    │   ├── privileged-access-workflow
+    │   ├── audit-and-alerting
+    │   └── access-review-and-security-report
+    ├── monitoring-and-observability-stack
+    │   ├── prometheus-and-grafana-deployment
+    │   ├── centralized-log-collection
+    │   ├── opentelemetry-instrumentation
+    │   ├── service-and-infrastructure-dashboards
+    │   ├── slo-based-alerting
+    │   ├── incident-routing-and-runbooks
+    │   └── telemetry-retention-and-cost-review
+    ├── backup-and-disaster-recovery-system
+    │   ├── workload-and-data-criticality-inventory
+    │   ├── backup-policy-and-retention
+    │   ├── immutable-and-cross-region-copies
+    │   ├── automated-backup-verification
+    │   ├── restore-and-failover-automation
+    │   ├── rpo-and-rto-exercise
+    │   └── disaster-recovery-report
+    ├── serverless-event-driven-workflow
+    │   ├── event-source-and-function-deployment
+    │   ├── queue-and-pub-sub-integration
+    │   ├── idempotency-and-deduplication
+    │   ├── retry-and-dead-letter-handling
+    │   ├── workflow-orchestration
+    │   ├── concurrency-and-cost-controls
+    │   └── tracing-and-failure-tests
+    ├── cloud-cost-optimization-project
+    │   ├── resource-inventory-and-tagging
+    │   ├── cost-export-and-dashboard
+    │   ├── idle-and-underutilized-resource-detection
+    │   ├── compute-and-storage-right-sizing
+    │   ├── schedule-and-lifecycle-automation
+    │   ├── budget-and-anomaly-alerts
+    │   └── savings-validation-and-report
+    ├── multi-account-cloud-landing-zone
+    │   ├── organization-and-account-hierarchy
+    │   ├── identity-center-and-central-access
+    │   ├── shared-network-and-connectivity
+    │   ├── centralized-logging-and-security
+    │   ├── policy-guardrails-and-approved-regions
+    │   ├── account-vending-automation
+    │   └── governance-and-operations-documentation
+    ├── hybrid-cloud-connectivity
+    │   ├── on-premises-and-cloud-network-design
+    │   ├── site-to-site-vpn-configuration
+    │   ├── private-routing-and-dns
+    │   ├── identity-and-trust-integration
+    │   ├── connectivity-monitoring
+    │   ├── failover-and-bandwidth-testing
+    │   └── hybrid-operations-runbook
+    └── production-cloud-platform-capstone
+        ├── business-requirements-and-workload-assessment
+        ├── multi-account-and-landing-zone-architecture
+        ├── network-and-identity-security-design
+        ├── infrastructure-as-code-and-policy-guardrails
+        ├── compute-container-and-managed-service-platform
+        ├── ci-cd-and-gitops-delivery
+        ├── observability-and-slo-definition
+        ├── backup-disaster-recovery-and-resilience-tests
+        ├── compliance-and-security-validation
+        ├── cost-allocation-and-optimization
+        ├── operational-runbooks-and-incident-exercises
+        └── architecture-review-and-portfolio-presentation

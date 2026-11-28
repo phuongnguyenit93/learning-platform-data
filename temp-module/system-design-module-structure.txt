@@ -1,0 +1,726 @@
+﻿system-design-module
+├── foundations
+│   ├── system-design-overview
+│   │   ├── what-system-design-solves
+│   │   ├── software-architecture-and-system-design
+│   │   ├── functional-and-nonfunctional-requirements
+│   │   ├── quality-attributes-and-tradeoffs
+│   │   ├── architecture-styles-and-patterns
+│   │   ├── system-design-interview-overview
+│   │   └── system-design-learning-path
+│   ├── requirements-and-problem-framing
+│   │   ├── business-context-and-user-journeys
+│   │   ├── functional-requirements
+│   │   ├── nonfunctional-requirements
+│   │   ├── constraints-and-assumptions
+│   │   ├── scope-and-out-of-scope
+│   │   ├── acceptance-criteria
+│   │   └── requirement-prioritization
+│   ├── system-design-process
+│   │   ├── clarify-the-problem
+│   │   ├── estimate-scale-and-traffic
+│   │   ├── define-api-and-data-models
+│   │   ├── design-high-level-architecture
+│   │   ├── identify-bottlenecks-and-failures
+│   │   ├── evaluate-tradeoffs
+│   │   └── communicate-and-document-decisions
+│   ├── engineering-fundamentals
+│   │   ├── operating-system-basics
+│   │   ├── networking-fundamentals
+│   │   ├── databases-and-storage
+│   │   ├── concurrency-and-parallelism
+│   │   ├── distributed-computing
+│   │   ├── data-structures-and-algorithms
+│   │   └── performance-fundamentals
+│   └── architecture-documentation
+│       ├── architecture-diagrams
+│       ├── context-and-container-diagrams
+│       ├── component-and-deployment-diagrams
+│       ├── sequence-and-data-flow-diagrams
+│       ├── architecture-decision-records
+│       ├── technical-design-documents
+│       └── architecture-review-process
+├── capacity-planning-and-estimation
+│   ├── estimation-fundamentals
+│   │   ├── users-and-active-users
+│   │   ├── requests-per-second
+│   │   ├── read-write-ratios
+│   │   ├── peak-and-average-traffic
+│   │   ├── storage-growth
+│   │   ├── bandwidth-and-throughput
+│   │   └── estimation-assumptions
+│   ├── back-of-the-envelope-calculations
+│   │   ├── powers-of-two-and-units
+│   │   ├── latency-and-throughput-calculation
+│   │   ├── storage-and-retention-calculation
+│   │   ├── network-bandwidth-calculation
+│   │   ├── memory-and-cache-sizing
+│   │   └── cost-estimation
+│   ├── workload-characterization
+│   │   ├── read-heavy-and-write-heavy-workloads
+│   │   ├── bursty-and-steady-traffic
+│   │   ├── interactive-and-batch-workloads
+│   │   ├── latency-sensitive-workloads
+│   │   ├── compute-and-io-bound-workloads
+│   │   └── workload-isolation
+│   └── growth-and-capacity-strategy
+│       ├── vertical-and-horizontal-growth
+│       ├── headroom-and-overprovisioning
+│       ├── autoscaling-signals
+│       ├── capacity-reservations
+│       ├── load-testing-and-forecasting
+│       └── capacity-review
+├── networking-and-communication
+│   ├── network-models-and-protocols
+│   │   ├── osi-and-tcp-ip-models
+│   │   ├── ip-addressing-and-subnets
+│   │   ├── routing-and-nat
+│   │   ├── tcp-connection-lifecycle
+│   │   ├── udp-and-datagram-communication
+│   │   ├── tls-and-transport-security
+│   │   └── dns-resolution
+│   ├── application-protocols
+│   │   ├── http-and-https
+│   │   ├── http-methods-and-status-codes
+│   │   ├── http-1-1-http-2-and-http-3
+│   │   ├── headers-cookies-and-sessions
+│   │   ├── keep-alive-and-connection-pooling
+│   │   ├── webhooks
+│   │   └── protocol-selection
+│   ├── api-communication-patterns
+│   │   ├── rest-api-design
+│   │   ├── graphql
+│   │   ├── grpc-and-protobuf
+│   │   ├── websocket
+│   │   ├── server-sent-events
+│   │   ├── long-polling
+│   │   ├── request-response
+│   │   └── streaming-and-bidirectional-communication
+│   ├── network-performance
+│   │   ├── latency-and-round-trip-time
+│   │   ├── packet-loss-and-retransmission
+│   │   ├── congestion-control
+│   │   ├── bandwidth-and-throughput
+│   │   ├── connection-establishment-cost
+│   │   ├── network-timeouts
+│   │   └── regional-network-behavior
+│   └── network-infrastructure
+│       ├── reverse-proxies
+│       ├── load-balancers
+│       ├── api-gateways
+│       ├── service-mesh-data-plane
+│       ├── firewalls-and-network-acls
+│       ├── private-networks-and-vpns
+│       └── network-observability
+├── application-architecture
+│   ├── architecture-styles
+│   │   ├── layered-architecture
+│   │   ├── modular-monolith
+│   │   ├── microservices-architecture
+│   │   ├── service-oriented-architecture
+│   │   ├── event-driven-architecture
+│   │   ├── serverless-architecture
+│   │   ├── hexagonal-and-clean-architecture
+│   │   └── architecture-selection-tradeoffs
+│   ├── application-boundaries
+│   │   ├── domain-and-bounded-contexts
+│   │   ├── service-responsibilities
+│   │   ├── module-and-package-boundaries
+│   │   ├── ownership-and-team-boundaries
+│   │   ├── shared-library-risks
+│   │   └── dependency-direction
+│   ├── api-and-contract-design
+│   │   ├── resource-modeling
+│   │   ├── endpoint-and-method-design
+│   │   ├── pagination-and-filtering
+│   │   ├── sorting-and-search-contracts
+│   │   ├── validation-and-error-models
+│   │   ├── api-versioning
+│   │   ├── backward-and-forward-compatibility
+│   │   └── schema-and-contract-evolution
+│   ├── application-state-and-workflows
+│   │   ├── stateless-and-stateful-services
+│   │   ├── session-management
+│   │   ├── workflow-orchestration
+│   │   ├── long-running-processes
+│   │   ├── saga-pattern
+│   │   ├── compensation-and-recovery
+│   │   └── business-process-state
+│   └── integration-patterns
+│       ├── synchronous-service-calls
+│       ├── asynchronous-messaging
+│       ├── api-composition
+│       ├── backend-for-frontend
+│       ├── anti-corruption-layer
+│       ├── strangler-migration
+│       └── third-party-integration
+├── data-architecture-and-storage
+│   ├── data-modeling
+│   │   ├── conceptual-logical-and-physical-models
+│   │   ├── relational-data-modeling
+│   │   ├── normalization-and-denormalization
+│   │   ├── entity-relationships-and-constraints
+│   │   ├── indexing-strategy
+│   │   ├── schema-design
+│   │   ├── data-types-and-encoding
+│   │   └── schema-evolution
+│   ├── relational-databases
+│   │   ├── sql-and-query-planning
+│   │   ├── transactions-and-acid
+│   │   ├── isolation-levels
+│   │   ├── locks-and-deadlocks
+│   │   ├── indexes-and-query-optimization
+│   │   ├── replication
+│   │   ├── partitioning-and-sharding
+│   │   └── connection-pooling
+│   ├── nosql-databases
+│   │   ├── key-value-stores
+│   │   ├── document-databases
+│   │   ├── wide-column-stores
+│   │   ├── graph-databases
+│   │   ├── time-series-databases
+│   │   ├── search-oriented-storage
+│   │   └── data-modeling-by-access-pattern
+│   ├── specialized-storage
+│   │   ├── object-and-blob-storage
+│   │   ├── file-and-block-storage
+│   │   ├── distributed-filesystems
+│   │   ├── vector-databases
+│   │   ├── data-warehouses-and-lakes
+│   │   └── archival-and-cold-storage
+│   ├── data-distribution-and-consistency
+│   │   ├── leader-and-follower-replication
+│   │   ├── synchronous-and-asynchronous-replication
+│   │   ├── read-after-write-consistency
+│   │   ├── eventual-consistency
+│   │   ├── quorum-reads-and-writes
+│   │   ├── conflict-resolution
+│   │   ├── multi-region-data
+│   │   └── consistency-models-and-tradeoffs
+│   └── data-lifecycle-and-governance
+│       ├── data-retention-and-expiration
+│       ├── archival-and-deletion
+│       ├── backup-and-restore
+│       ├── data-lineage-and-provenance
+│       ├── privacy-and-classification
+│       └── data-integrity-and-auditing
+├── distributed-systems
+│   ├── distributed-systems-fundamentals
+│   │   ├── partial-failure
+│   │   ├── network-partitions
+│   │   ├── clock-and-time-synchronization
+│   │   ├── logical-and-vector-clocks
+│   │   ├── failure-detection
+│   │   ├── coordination-and-consensus
+│   │   └── distributed-systems-tradeoffs
+│   ├── consistency-and-availability
+│   │   ├── cap-theorem
+│   │   ├── pacelc-theorem
+│   │   ├── strong-and-eventual-consistency
+│   │   ├── linearizability
+│   │   ├── serializability
+│   │   ├── causal-consistency
+│   │   └── consistency-for-business-invariants
+│   ├── coordination-and-consensus
+│   │   ├── leader-election
+│   │   ├── distributed-locks
+│   │   ├── fencing-tokens
+│   │   ├── raft-consensus-overview
+│   │   ├── paxos-overview
+│   │   ├── distributed-membership
+│   │   └── coordination-service-tradeoffs
+│   ├── distributed-transactions
+│   │   ├── two-phase-commit
+│   │   ├── three-phase-commit-overview
+│   │   ├── saga-orchestration
+│   │   ├── saga-choreography
+│   │   ├── transactional-outbox
+│   │   ├── inbox-and-deduplication
+│   │   └── eventual-consistency-workflows
+│   ├── distributed-computation
+│   │   ├── partitioning-and-sharding
+│   │   ├── scatter-gather
+│   │   ├── map-reduce
+│   │   ├── distributed-scheduling
+│   │   ├── work-stealing
+│   │   ├── backpressure
+│   │   └── distributed-resource-management
+│   └── time-and-ordering
+│       ├── wall-clock-and-monotonic-time
+│       ├── timestamp-ordering
+│       ├── event-time-and-processing-time
+│       ├── ordering-guarantees
+│       ├── duplicate-and-out-of-order-events
+│       └── temporal-data-modeling
+├── scalability-and-performance
+│   ├── scaling-strategies
+│   │   ├── vertical-scaling
+│   │   ├── horizontal-scaling
+│   │   ├── stateless-service-design
+│   │   ├── workload-separation
+│   │   ├── read-replicas
+│   │   ├── database-sharding
+│   │   └── scale-up-and-scale-out-tradeoffs
+│   ├── load-balancing-and-traffic-management
+│   │   ├── layer-four-and-layer-seven-balancing
+│   │   ├── round-robin-and-weighted-routing
+│   │   ├── least-connections
+│   │   ├── consistent-hashing
+│   │   ├── health-checks-and-outlier-detection
+│   │   ├── sticky-sessions
+│   │   └── rate-limiting-and-traffic-shaping
+│   ├── caching-architecture
+│   │   ├── cache-aside
+│   │   ├── read-through-and-write-through
+│   │   ├── write-behind
+│   │   ├── cache-invalidation
+│   │   ├── ttl-and-eviction-policies
+│   │   ├── distributed-caching
+│   │   ├── cache-stampede-and-thundering-herd
+│   │   └── cache-consistency
+│   ├── content-delivery-and-edge
+│   │   ├── content-delivery-networks
+│   │   ├── edge-caching
+│   │   ├── geo-routing
+│   │   ├── origin-shielding
+│   │   ├── static-and-dynamic-content-delivery
+│   │   └── edge-compute
+│   ├── performance-engineering
+│   │   ├── latency-percentiles
+│   │   ├── throughput-and-concurrency
+│   │   ├── profiling-and-flame-graphs
+│   │   ├── cpu-and-memory-efficiency
+│   │   ├── database-query-performance
+│   │   ├── connection-and-thread-pools
+│   │   └── performance-budgets
+│   └── overload-and-resilience
+│       ├── admission-control
+│       ├── load-shedding
+│       ├── bounded-queues
+│       ├── backpressure-and-flow-control
+│       ├── bulkheads
+│       ├── circuit-breakers
+│       └── graceful-degradation
+├── asynchronous-and-event-driven-systems
+│   ├── messaging-fundamentals
+│   │   ├── queues-and-topics
+│   │   ├── publish-subscribe
+│   │   ├── message-brokers
+│   │   ├── point-to-point-delivery
+│   │   ├── message-ordering
+│   │   ├── delivery-semantics
+│   │   └── message-retention
+│   ├── messaging-platforms
+│   │   ├── kafka-architecture
+│   │   ├── rabbitmq-architecture
+│   │   ├── cloud-queue-services
+│   │   ├── streaming-platforms
+│   │   ├── broker-partitioning
+│   │   └── broker-selection-tradeoffs
+│   ├── reliable-message-processing
+│   │   ├── at-most-once-and-at-least-once
+│   │   ├── effectively-once-processing
+│   │   ├── idempotent-consumers
+│   │   ├── deduplication-and-inbox-pattern
+│   │   ├── retry-and-dead-letter-queues
+│   │   ├── poison-message-handling
+│   │   └── replay-and-reprocessing
+│   ├── event-driven-architecture
+│   │   ├── domain-events
+│   │   ├── event-notification-and-event-carried-state
+│   │   ├── event-sourcing
+│   │   ├── cqrs
+│   │   ├── schema-registry-and-compatibility
+│   │   ├── event-versioning
+│   │   └── choreography-and-orchestration
+│   └── stream-processing
+│       ├── stream-and-table-abstractions
+│       ├── windowing-and-aggregation
+│       ├── watermarks-and-late-events
+│       ├── stateful-stream-processing
+│       ├── exactly-once-stream-processing
+│       └── stream-processing-operations
+├── reliability-and-disaster-recovery
+│   ├── reliability-fundamentals
+│   │   ├── availability-and-reliability
+│   │   ├── reliability-block-diagrams
+│   │   ├── failure-modes-and-effects
+│   │   ├── error-budgets
+│   │   ├── service-level-indicators
+│   │   ├── service-level-objectives
+│   │   └── service-level-agreements
+│   ├── fault-tolerance
+│   │   ├── redundancy-and-replication
+│   │   ├── active-active-and-active-passive
+│   │   ├── health-checks-and-failover
+│   │   ├── retries-with-jitter
+│   │   ├── timeout-and-deadline-propagation
+│   │   ├── idempotency-and-safe-retries
+│   │   └── failure-isolation
+│   ├── disaster-recovery
+│   │   ├── backup-strategies
+│   │   ├── point-in-time-recovery
+│   │   ├── recovery-time-objective
+│   │   ├── recovery-point-objective
+│   │   ├── multi-region-recovery
+│   │   ├── failover-and-failback
+│   │   └── disaster-recovery-exercises
+│   ├── incident-management
+│   │   ├── incident-detection-and-declaration
+│   │   ├── severity-and-escalation
+│   │   ├── mitigation-and-rollback
+│   │   ├── incident-communication
+│   │   ├── root-cause-analysis
+│   │   └── blameless-postmortems
+│   └── chaos-and-resilience-testing
+│       ├── fault-injection
+│       ├── dependency-failure-testing
+│       ├── network-partition-testing
+│       ├── resource-exhaustion-testing
+│       ├── game-days
+│       └── resilience-validation
+├── security-and-privacy-architecture
+│   ├── security-foundations
+│   │   ├── threat-modeling
+│   │   ├── attack-surfaces-and-trust-boundaries
+│   │   ├── defense-in-depth
+│   │   ├── least-privilege
+│   │   ├── secure-defaults
+│   │   └── security-design-reviews
+│   ├── identity-and-access-management
+│   │   ├── authentication-and-authorization
+│   │   ├── session-and-token-management
+│   │   ├── oauth-2-and-openid-connect
+│   │   ├── saml-and-federated-identity
+│   │   ├── role-and-attribute-based-access
+│   │   ├── service-identities
+│   │   └── zero-trust-architecture
+│   ├── application-and-api-security
+│   │   ├── api-authentication-and-scopes
+│   │   ├── input-validation-and-output-encoding
+│   │   ├── injection-and-deserialization-risks
+│   │   ├── secrets-and-key-management
+│   │   ├── request-signing
+│   │   ├── abuse-prevention
+│   │   └── secure-file-and-object-access
+│   ├── infrastructure-and-data-security
+│   │   ├── encryption-in-transit-and-at-rest
+│   │   ├── key-rotation-and-kms
+│   │   ├── network-segmentation
+│   │   ├── workload-and-container-isolation
+│   │   ├── database-access-controls
+│   │   ├── audit-logging
+│   │   └── supply-chain-security
+│   └── privacy-and-compliance
+│       ├── data-minimization
+│       ├── consent-and-purpose-limitation
+│       ├── retention-and-deletion
+│       ├── data-residency
+│       ├── pii-and-sensitive-data-handling
+│       ├── privacy-by-design
+│       └── regulatory-and-industry-requirements
+├── cloud-and-infrastructure-architecture
+│   ├── cloud-computing-models
+│   │   ├── infrastructure-platform-and-software-as-a-service
+│   │   ├── public-private-and-hybrid-cloud
+│   │   ├── regions-and-availability-zones
+│   │   ├── cloud-shared-responsibility
+│   │   └── cloud-service-selection
+│   ├── compute-and-runtime-platforms
+│   │   ├── virtual-machines
+│   │   ├── containers
+│   │   ├── container-orchestration
+│   │   ├── serverless-functions
+│   │   ├── platform-as-a-service
+│   │   ├── workload-scheduling
+│   │   └── runtime-isolation
+│   ├── infrastructure-as-code
+│   │   ├── declarative-infrastructure
+│   │   ├── terraform-and-opentofu
+│   │   ├── cloud-native-templates
+│   │   ├── configuration-management
+│   │   ├── state-and-drift-management
+│   │   └── reusable-infrastructure-modules
+│   ├── deployment-and-release-architecture
+│   │   ├── immutable-infrastructure
+│   │   ├── blue-green-deployment
+│   │   ├── canary-release
+│   │   ├── rolling-deployment
+│   │   ├── feature-flags
+│   │   ├── progressive-delivery
+│   │   └── rollback-strategy
+│   └── multi-region-and-hybrid-design
+│       ├── regional-service-topology
+│       ├── global-load-balancing
+│       ├── cross-region-replication
+│       ├── data-residency-and-locality
+│       ├── hybrid-connectivity
+│       └── global-failure-scenarios
+├── observability-and-operations
+│   ├── observability-fundamentals
+│   │   ├── logs-metrics-and-traces
+│   │   ├── structured-logging
+│   │   ├── metrics-types-and-cardinality
+│   │   ├── distributed-tracing
+│   │   ├── context-propagation
+│   │   ├── correlation-and-trace-ids
+│   │   └── telemetry-instrumentation
+│   ├── monitoring-and-alerting
+│   │   ├── golden-signals
+│   │   ├── dashboard-design
+│   │   ├── alert-quality-and-fatigue
+│   │   ├── symptom-based-alerting
+│   │   ├── synthetic-monitoring
+│   │   └── service-health-reporting
+│   ├── production-operations
+│   │   ├── runbooks-and-playbooks
+│   │   ├── on-call-and-escalation
+│   │   ├── capacity-and-cost-monitoring
+│   │   ├── configuration-and-secret-rotation
+│   │   ├── maintenance-and-upgrades
+│   │   └── operational-readiness-review
+│   └── debugging-distributed-systems
+│       ├── request-flow-reconstruction
+│       ├── dependency-mapping
+│       ├── latency-breakdown
+│       ├── data-consistency-investigation
+│       ├── production-profiling
+│       └── incident-evidence-preservation
+├── cost-efficiency-and-governance
+│   ├── cloud-and-infrastructure-costs
+│   │   ├── compute-cost-models
+│   │   ├── storage-and-transfer-costs
+│   │   ├── managed-service-pricing
+│   │   ├── reserved-and-spot-capacity
+│   │   ├── idle-resource-identification
+│   │   └── cost-allocation-and-tagging
+│   ├── performance-cost-tradeoffs
+│   │   ├── latency-versus-cost
+│   │   ├── redundancy-versus-cost
+│   │   ├── caching-cost-benefits
+│   │   ├── storage-tiering
+│   │   └── right-sizing-and-efficiency
+│   ├── architecture-governance
+│   │   ├── architecture-principles-and-standards
+│   │   ├── technology-selection
+│   │   ├── technical-debt-management
+│   │   ├── architecture-review-board
+│   │   ├── exception-and-waiver-process
+│   │   └── lifecycle-and-deprecation
+│   └── sustainability
+│       ├── resource-efficiency
+│       ├── workload-carbon-awareness
+│       ├── data-center-efficiency
+│       └── sustainable-architecture-decisions
+├── system-design-case-studies
+│   ├── consumer-and-social-platforms
+│   │   ├── url-shortener
+│   │   ├── social-media-news-feed
+│   │   ├── follow-and-unfollow-service
+│   │   ├── chat-and-messaging-platform
+│   │   ├── notification-delivery-system
+│   │   ├── photo-and-video-sharing-platform
+│   │   ├── live-streaming-platform
+│   │   └── collaborative-document-editor
+│   ├── commerce-and-financial-systems
+│   │   ├── e-commerce-platform
+│   │   ├── product-catalog-and-search
+│   │   ├── shopping-cart-and-checkout
+│   │   ├── order-management-system
+│   │   ├── payment-processing-system
+│   │   ├── digital-wallet-and-ledger
+│   │   ├── inventory-and-reservation-system
+│   │   └── fraud-detection-pipeline
+│   ├── content-and-discovery-systems
+│   │   ├── video-on-demand-platform
+│   │   ├── content-delivery-platform
+│   │   ├── search-autocomplete
+│   │   ├── web-crawler-and-indexer
+│   │   ├── recommendation-system
+│   │   ├── ranking-and-feed-service
+│   │   └── analytics-event-platform
+│   ├── location-and-logistics-systems
+│   │   ├── ride-hailing-platform
+│   │   ├── food-delivery-platform
+│   │   ├── real-time-location-tracking
+│   │   ├── route-planning-service
+│   │   ├── fleet-management-system
+│   │   └── appointment-and-booking-platform
+│   ├── developer-and-infrastructure-platforms
+│   │   ├── distributed-cache-service
+│   │   ├── distributed-task-queue
+│   │   ├── api-gateway-platform
+│   │   ├── feature-flag-service
+│   │   ├── metrics-and-monitoring-platform
+│   │   ├── log-ingestion-and-search
+│   │   └── distributed-file-storage
+│   └── enterprise-and-data-systems
+│       ├── multi-tenant-saas-platform
+│       ├── identity-provider
+│       ├── audit-log-platform
+│       ├── workflow-automation-engine
+│       ├── data-ingestion-and-etl-platform
+│       ├── event-streaming-platform
+│       └── multi-region-business-application
+├── architecture-patterns-and-practices
+│   ├── domain-driven-design
+│   │   ├── strategic-domain-design
+│   │   ├── bounded-contexts-and-context-maps
+│   │   ├── entities-and-value-objects
+│   │   ├── aggregates-and-invariants
+│   │   ├── repositories-and-domain-services
+│   │   └── domain-events
+│   ├── common-distributed-patterns
+│   │   ├── api-composition
+│   │   ├── cqrs-and-read-models
+│   │   ├── event-sourcing
+│   │   ├── transactional-outbox
+│   │   ├── saga-and-compensation
+│   │   ├── sidecar-and-ambassador
+│   │   ├── strangler-fig
+│   │   └── anti-corruption-layer
+│   ├── design-patterns-for-resilience
+│   │   ├── retry-and-timeout
+│   │   ├── circuit-breaker
+│   │   ├── bulkhead
+│   │   ├── fallback-and-cache-fallback
+│   │   ├── rate-limiter
+│   │   ├── idempotency-key
+│   │   └── health-endpoint
+│   ├── multi-tenancy-and-isolation
+│   │   ├── shared-database-shared-schema
+│   │   ├── shared-database-separate-schema
+│   │   ├── database-per-tenant
+│   │   ├── tenant-aware-routing
+│   │   ├── noisy-neighbor-mitigation
+│   │   └── tenant-data-isolation
+│   └── architecture-evolution
+│       ├── monolith-to-modular-monolith
+│       ├── monolith-to-microservices
+│       ├── service-decomposition
+│       ├── database-decomposition
+│       ├── legacy-modernization
+│       ├── migration-coexistence
+│       └── architecture-fitness-functions
+├── professional-practice-and-interviews
+│   ├── system-design-interview-method
+│   │   ├── problem-clarification
+│   │   ├── requirements-and-constraints
+│   │   ├── capacity-estimation
+│   │   ├── api-and-data-model
+│   │   ├── high-level-design
+│   │   ├── deep-dive-and-bottlenecks
+│   │   ├── tradeoff-explanation
+│   │   └── time-management-and-communication
+│   ├── architecture-leadership
+│   │   ├── technical-strategy
+│   │   ├── cross-team-alignment
+│   │   ├── architecture-reviews
+│   │   ├── decision-making-under-uncertainty
+│   │   ├── mentoring-and-design-feedback
+│   │   └── stakeholder-communication
+│   ├── technical-documentation-and-review
+│   │   ├── architecture-decision-records
+│   │   ├── design-review-checklists
+│   │   ├── risk-and-tradeoff-registers
+│   │   ├── operational-readiness-documents
+│   │   └── diagrams-and-design-presentations
+│   └── continuous-learning
+│       ├── architecture-case-studies
+│       ├── engineering-blog-and-paper-reading
+│       ├── production-postmortems
+│       ├── cloud-and-platform-documentation
+│       ├── benchmark-and-research-evaluation
+│       └── community-and-open-source
+└── practice-projects
+    ├── scalable-rest-api
+    │   ├── requirements-and-capacity-estimates
+    │   ├── api-and-data-contracts
+    │   ├── relational-schema-and-indexes
+    │   ├── caching-and-rate-limiting
+    │   ├── observability-and-load-tests
+    │   └── deployment-and-performance-report
+    ├── url-shortener-service
+    │   ├── identifier-generation
+    │   ├── redirect-and-resolution-api
+    │   ├── database-and-cache-design
+    │   ├── analytics-event-pipeline
+    │   ├── abuse-prevention
+    │   └── capacity-and-failure-tests
+    ├── distributed-notification-platform
+    │   ├── notification-preferences
+    │   ├── queue-and-worker-architecture
+    │   ├── retry-and-dead-letter-handling
+    │   ├── idempotent-delivery
+    │   ├── provider-adapters
+    │   └── delivery-observability
+    ├── multi-tenant-saas-backend
+    │   ├── tenant-model-and-isolation
+    │   ├── identity-and-access-control
+    │   ├── tenant-aware-data-access
+    │   ├── quotas-and-rate-limits
+    │   ├── audit-and-compliance
+    │   └── tenant-migration-strategy
+    ├── event-driven-order-workflow
+    │   ├── order-and-payment-state-machines
+    │   ├── domain-event-contracts
+    │   ├── transactional-outbox
+    │   ├── saga-orchestration
+    │   ├── compensation-and-reconciliation
+    │   └── failure-injection-tests
+    ├── real-time-chat-system
+    │   ├── connection-and-presence-management
+    │   ├── message-persistence
+    │   ├── delivery-and-read-receipts
+    │   ├── ordering-and-deduplication
+    │   ├── media-and-attachment-storage
+    │   └── horizontal-scaling-and-load-tests
+    ├── distributed-file-storage
+    │   ├── metadata-and-object-model
+    │   ├── chunking-and-upload-resume
+    │   ├── replication-and-placement
+    │   ├── integrity-and-checksums
+    │   ├── authorization-and-sharing
+    │   └── recovery-and-consistency-tests
+    ├── observability-platform
+    │   ├── telemetry-ingestion
+    │   ├── metrics-and-log-storage
+    │   ├── trace-correlation
+    │   ├── query-and-dashboard-api
+    │   ├── alert-evaluation
+    │   └── retention-and-cost-controls
+    ├── resilient-microservices-platform
+    │   ├── service-boundaries-and-contracts
+    │   ├── gateway-and-service-discovery
+    │   ├── timeout-retry-and-circuit-breaker
+    │   ├── distributed-tracing
+    │   ├── deployment-and-rollback
+    │   └── chaos-and-recovery-exercises
+    ├── multi-region-commerce-system
+    │   ├── regional-application-topology
+    │   ├── catalog-and-inventory-partitioning
+    │   ├── payment-and-order-consistency
+    │   ├── global-traffic-routing
+    │   ├── disaster-recovery-design
+    │   └── regional-failover-validation
+    └── end-to-end-system-design-capstone
+        ├── discovery-and-requirements
+        │   ├── stakeholders-and-user-journeys
+        │   ├── functional-and-nonfunctional-requirements
+        │   ├── constraints-and-capacity-estimates
+        │   └── success-metrics-and-acceptance-criteria
+        ├── architecture-and-implementation
+        │   ├── context-and-container-architecture
+        │   ├── api-and-data-contracts
+        │   ├── service-and-storage-design
+        │   ├── asynchronous-workflows
+        │   ├── security-and-privacy-controls
+        │   └── infrastructure-and-deployment
+        └── validation-and-operations
+            ├── load-and-capacity-testing
+            ├── failure-and-chaos-testing
+            ├── observability-and-alerting
+            ├── backup-and-disaster-recovery
+            ├── cost-and-performance-review
+            ├── architecture-decision-records
+            └── operational-handover-and-postmortem

@@ -1,0 +1,966 @@
+shell-module
+├── foundations
+│   ├── shell-overview
+│   │   ├── what-a-shell-is
+│   │   ├── shell-versus-terminal-versus-console
+│   │   ├── command-interpreter-and-process-launching
+│   │   ├── interactive-and-non-interactive-shells
+│   │   ├── login-and-non-login-shells
+│   │   ├── command-line-interface-design
+│   │   ├── shell-use-cases-and-tradeoffs
+│   │   └── shell-developer-learning-path
+│   ├── shell-families-and-standards
+│   │   ├── sh-and-posix-shell
+│   │   ├── bash
+│   │   ├── zsh
+│   │   ├── dash-and-ash
+│   │   ├── ksh-and-mksh
+│   │   ├── fish
+│   │   ├── busybox-ash
+│   │   ├── powershell-boundary-and-comparison
+│   │   ├── posix-shell-standard
+│   │   └── shell-feature-portability
+│   ├── environment-setup
+│   │   ├── linux-shell-environments
+│   │   ├── macos-shell-environments
+│   │   ├── bsd-and-unix-environments
+│   │   ├── windows-wsl-and-msys2
+│   │   ├── installing-and-selecting-a-shell
+│   │   ├── checking-shell-version-and-features
+│   │   ├── terminal-emulators
+│   │   ├── editor-and-shell-language-support
+│   │   └── reproducible-development-environment
+│   ├── command-line-basics
+│   │   ├── command-structure
+│   │   ├── command-names-and-arguments
+│   │   ├── options-and-operands
+│   │   ├── short-and-long-options
+│   │   ├── option-terminator-double-dash
+│   │   ├── quoting-command-arguments
+│   │   ├── command-exit-status
+│   │   ├── command-documentation-and-man-pages
+│   │   └── command-discovery-and-help
+│   ├── filesystem-and-path-prerequisites
+│   │   ├── filesystem-hierarchy
+│   │   ├── absolute-and-relative-paths
+│   │   ├── current-working-directory
+│   │   ├── home-and-temporary-directories
+│   │   ├── hidden-files-and-dotfiles
+│   │   ├── permissions-and-ownership-basics
+│   │   ├── symbolic-links
+│   │   ├── mount-points-and-filesystems
+│   │   └── pathnames-spaces-and-special-characters
+│   └── terminal-and-text-basics
+│       ├── stdin-stdout-and-stderr
+│       ├── terminal-input-and-output
+│       ├── line-endings-and-newlines
+│       ├── character-encodings-and-locale
+│       ├── unicode-and-terminal-width
+│       ├── control-characters
+│       ├── terminal-raw-and-canonical-modes
+│       └── terminal-capabilities-and-terminfo
+├── shell-language-fundamentals
+│   ├── lexical-structure-and-parsing
+│   │   ├── tokens-and-words
+│   │   ├── reserved-words
+│   │   ├── operators-and-metacharacters
+│   │   ├── comments
+│   │   ├── command-lists-and-compound-lists
+│   │   ├── simple-and-compound-commands
+│   │   ├── parsing-order
+│   │   └── syntax-errors
+│   ├── quoting-and-expansion
+│   │   ├── unquoted-words
+│   │   ├── single-quotes
+│   │   ├── double-quotes
+│   │   ├── backslash-escaping
+│   │   ├── quote-removal
+│   │   ├── parameter-expansion
+│   │   ├── command-substitution
+│   │   ├── arithmetic-expansion
+│   │   ├── tilde-expansion
+│   │   ├── pathname-expansion
+│   │   ├── field-splitting
+│   │   ├── expansion-order
+│   │   └── shellcheck-quoting-diagnostics
+│   ├── variables-and-data
+│   │   ├── variable-assignment
+│   │   ├── variable-naming
+│   │   ├── scalar-values
+│   │   ├── indexed-arrays
+│   │   ├── associative-arrays
+│   │   ├── positional-parameters
+│   │   ├── special-parameters
+│   │   ├── readonly-and-exported-variables
+│   │   ├── local-and-dynamic-scope
+│   │   ├── unset-and-default-values
+│   │   ├── indirect-expansion
+│   │   ├── nameref-and-variable-references
+│   │   └── variable-attributes-and-declarations
+│   ├── parameter-expansion-patterns
+│   │   ├── default-value-operators
+│   │   ├── assign-default-and-error-operators
+│   │   ├── substring-expansion
+│   │   ├── prefix-and-suffix-removal
+│   │   ├── pattern-replacement
+│   │   ├── case-modification
+│   │   ├── variable-length
+│   │   ├── array-expansion
+│   │   └── safe-unset-and-empty-handling
+│   ├── control-flow
+│   │   ├── if-then-elif-else
+│   │   ├── test-and-conditional-expressions
+│   │   ├── double-bracket-conditionals
+│   │   ├── case-statements
+│   │   ├── for-loops
+│   │   ├── while-and-until-loops
+│   │   ├── select-loops
+│   │   ├── break-and-continue
+│   │   ├── arithmetic-for-loops
+│   │   └── conditional-command-status
+│   ├── functions-and-reuse
+│   │   ├── function-definition-syntax
+│   │   ├── function-invocation
+│   │   ├── positional-arguments-in-functions
+│   │   ├── return-status-and-output
+│   │   ├── local-variables
+│   │   ├── recursion-and-iteration
+│   │   ├── function-namespaces-and-prefixes
+│   │   ├── function-library-files
+│   │   └── subshell-and-function-scope
+│   ├── arithmetic-and-expressions
+│   │   ├── arithmetic-expansion-syntax
+│   │   ├── integer-arithmetic
+│   │   ├── arithmetic-operators-and-precedence
+│   │   ├── arithmetic-commands
+│   │   ├── integer-overflow-and-portability
+│   │   ├── floating-point-through-external-tools
+│   │   └── numeric-validation
+│   └── shell-builtins-and-command-resolution
+│       ├── builtin-commands
+│       ├── reserved-word-resolution
+│       ├── functions-versus-executables
+│       ├── command-type-and-command-v
+│       ├── hash-command-cache
+│       ├── builtin-versus-external-performance
+│       └── command-not-found-behavior
+├── process-model-and-execution
+│   ├── process-fundamentals
+│   │   ├── process-and-program
+│   │   ├── process-id-and-parent-process
+│   │   ├── process-creation-and-exec
+│   │   ├── fork-exec-wait-lifecycle
+│   │   ├── process-environment-inheritance
+│   │   ├── process-exit-status
+│   │   ├── orphan-and-zombie-processes
+│   │   └── process-resource-limits
+│   ├── execution-contexts
+│   │   ├── current-shell-execution
+│   │   ├── subshell-environments
+│   │   ├── command-substitution-environments
+│   │   ├── pipeline-subshell-behavior
+│   │   ├── sourced-script-context
+│   │   ├── environment-variable-inheritance
+│   │   └── working-directory-and-state-isolation
+│   ├── job-control
+│   │   ├── foreground-and-background-jobs
+│   │   ├── job-table-and-job-specifications
+│   │   ├── jobs-bg-and-fg
+│   │   ├── suspend-and-resume
+│   │   ├── process-groups
+│   │   ├── sessions-and-controlling-terminal
+│   │   ├── terminal-job-control-signals
+│   │   └── nohup-disown-and-detachment
+│   ├── signals-and-traps
+│   │   ├── signal-basics
+│   │   ├── sigint-sigterm-and-sigkill
+│   │   ├── sighup-and-terminal-closure
+│   │   ├── sigpipe-and-broken-pipes
+│   │   ├── trap-command
+│   │   ├── exit-and-error-traps
+│   │   ├── signal-interruption-and-restart
+│   │   ├── trap-inheritance-and-subshells
+│   │   └── reliable-cleanup-on-signals
+│   ├── startup-and-shutdown
+│   │   ├── shell-startup-file-order
+│   │   ├── system-and-user-configuration
+│   │   ├── login-shell-initialization
+│   │   ├── interactive-shell-initialization
+│   │   ├── non-interactive-shell-environment
+│   │   ├── bash-env-and-bashrc
+│   │   ├── zshenv-zprofile-zshrc-and-zlogin
+│   │   ├── shell-exit-hooks
+│   │   └── startup-debugging
+│   └── execution-and-interpreter-options
+│       ├── shebang-and-interpreter-selection
+│       ├── env-shebang-portability
+│       ├── interpreter-command-line-flags
+│       ├── syntax-check-with-n-option
+│       ├── tracing-with-x-option
+│       ├── verbose-mode
+│       ├── restricted-shells
+│       └── invocation-name-and-login-mode
+├── input-output-and-pipelines
+│   ├── file-descriptors
+│   │   ├── descriptor-zero-one-and-two
+│   │   ├── opening-and-closing-descriptors
+│   │   ├── descriptor-duplication
+│   │   ├── descriptor-redirection-order
+│   │   ├── custom-file-descriptors
+│   │   ├── descriptor-lifetime
+│   │   └── close-on-exec-and-inheritance
+│   ├── redirection
+│   │   ├── output-redirection
+│   │   ├── input-redirection
+│   │   ├── append-redirection
+│   │   ├── stderr-redirection
+│   │   ├── combined-output-redirection
+│   │   ├── here-documents
+│   │   ├── here-strings
+│   │   ├── process-substitution
+│   │   ├── read-write-redirection
+│   │   └── noclobber-and-safe-overwrite
+│   ├── pipelines
+│   │   ├── pipeline-construction
+│   │   ├── pipeline-data-flow
+│   │   ├── pipe-buffering-and-capacity
+│   │   ├── pipefail-option
+│   │   ├── lastpipe-option
+│   │   ├── pipeline-exit-status
+│   │   ├── tee-and-multiple-consumers
+│   │   ├── named-pipes-and-fifos
+│   │   └── pipeline-deadlocks-and-broken-pipes
+│   ├── command-composition
+│   │   ├── sequential-command-lists
+│   │   ├── and-or-lists
+│   │   ├── conditional-chaining
+│   │   ├── grouping-with-braces
+│   │   ├── grouping-with-parentheses
+│   │   ├── asynchronous-command-lists
+│   │   └── command-substitution-versus-process-substitution
+│   └── stream-processing
+│       ├── line-oriented-processing
+│       ├── byte-stream-processing
+│       ├── record-delimiters
+│       ├── null-delimited-streams
+│       ├── buffering-and-flushing
+│       ├── large-stream-handling
+│       ├── streaming-versus-slurping
+│       └── safe-pipeline-composition
+├── text-processing-and-command-line-tooling
+│   ├── core-text-utilities
+│   │   ├── cat-and-tac
+│   │   ├── head-and-tail
+│   │   ├── wc-and-counting
+│   │   ├── cut-and-paste
+│   │   ├── sort-and-unique
+│   │   ├── tr-and-character-mapping
+│   │   ├── join-and-comm
+│   │   ├── fold-and-expand
+│   │   ├── column-and-formatting
+│   │   └── split-and-csplit
+│   ├── search-and-pattern-matching
+│   │   ├── grep-basic-and-extended-regex
+│   │   ├── grep-fixed-strings-and-recursion
+│   │   ├── ripgrep-and-portable-alternatives
+│   │   ├── find-and-expression-evaluation
+│   │   ├── locate-and-indexed-search
+│   │   ├── glob-patterns
+│   │   ├── regular-expression-fundamentals
+│   │   └── regex-dialect-differences
+│   ├── text-transformation
+│   │   ├── sed-addressing-and-substitution
+│   │   ├── sed-multiline-processing
+│   │   ├── awk-records-and-fields
+│   │   ├── awk-pattern-action-model
+│   │   ├── awk-arrays-and-functions
+│   │   ├── perl-one-liners
+│   │   ├── jq-json-processing
+│   │   ├── yq-yaml-processing
+│   │   ├── xml-and-html-command-line-tools
+│   │   └── structured-data-versus-regex
+│   ├── file-and-directory-utilities
+│   │   ├── ls-stat-and-file-metadata
+│   │   ├── cp-mv-and-install
+│   │   ├── mkdir-rmdir-and-tree
+│   │   ├── rm-and-safe-deletion
+│   │   ├── touch-and-timestamps
+│   │   ├── basename-dirname-and-realpath
+│   │   ├── chmod-chown-and-chgrp
+│   │   ├── readlink-and-symlink-management
+│   │   ├── du-df-and-disk-usage
+│   │   └── archive-and-compression-tools
+│   ├── system-inspection-tools
+│   │   ├── ps-and-process-inspection
+│   │   ├── top-htop-and-resource-monitoring
+│   │   ├── pgrep-pkill-and-pidof
+│   │   ├── lsof-and-open-files
+│   │   ├── free-vmstat-and-iostat
+│   │   ├── uname-hostname-and-os-release
+│   │   ├── id-groups-and-user-information
+│   │   ├── date-time-and-timezones
+│   │   ├── env-printenv-and-export
+│   │   └── dmesg-and-system-logs
+│   └── networking-cli-tools
+│       ├── curl-request-and-response-workflows
+│       ├── wget-downloads
+│       ├── ssh-and-scp
+│       ├── sftp-and-rsync
+│       ├── nc-and-socat
+│       ├── ss-netstat-and-socket-inspection
+│       ├── dig-nslookup-and-host
+│       ├── ping-traceroute-and-mtr
+│       ├── ip-and-route-inspection
+│       └── openssl-command-line-basics
+├── scripting-engineering
+│   ├── script-design-and-structure
+│   │   ├── script-purpose-and-scope
+│   │   ├── script-file-layout
+│   │   ├── shebang-and-executable-permissions
+│   │   ├── main-function-pattern
+│   │   ├── helper-function-organization
+│   │   ├── constants-and-configuration
+│   │   ├── sourcing-shared-libraries
+│   │   ├── script-reentrancy
+│   │   └── script-documentation
+│   ├── arguments-and-cli-interface
+│   │   ├── positional-argument-validation
+│   │   ├── getopts-portable-option-parsing
+│   │   ├── getopt-and-long-options
+│   │   ├── manual-argument-parsing
+│   │   ├── required-and-optional-arguments
+│   │   ├── repeated-options-and-variadic-arguments
+│   │   ├── usage-and-help-output
+│   │   ├── version-and-about-options
+│   │   ├── stdin-versus-file-input
+│   │   └── cli-exit-code-contracts
+│   ├── input-validation-and-data-handling
+│   │   ├── required-variable-validation
+│   │   ├── numeric-and-enumerated-validation
+│   │   ├── path-and-file-validation
+│   │   ├── validation-before-side-effects
+│   │   ├── whitespace-and-empty-input
+│   │   ├── multiline-and-binary-input
+│   │   ├── safe-read-loops
+│   │   ├── delimiter-aware-parsing
+│   │   └── avoiding-eval-for-data-parsing
+│   ├── error-handling-and-exit-codes
+│   │   ├── command-status-propagation
+│   │   ├── explicit-error-functions
+│   │   ├── errexit-limitations
+│   │   ├── nounset-and-unset-variables
+│   │   ├── pipefail-and-pipeline-errors
+│   │   ├── conditional-command-contexts
+│   │   ├── cleanup-after-failure
+│   │   ├── error-messages-and-diagnostics
+│   │   ├── stable-exit-code-design
+│   │   └── partial-failure-and-recovery
+│   ├── reliability-and-idempotency
+│   │   ├── idempotent-script-design
+│   │   ├── precondition-and-postcondition-checks
+│   │   ├── retries-and-backoff
+│   │   ├── timeouts-and-deadlines
+│   │   ├── lock-files-and-flock
+│   │   ├── atomic-file-replacement
+│   │   ├── temporary-resource-cleanup
+│   │   ├── interruption-safe-workflows
+│   │   └── resumable-operations
+│   ├── logging-and-observability
+│   │   ├── stdout-as-machine-readable-output
+│   │   ├── stderr-for-diagnostics
+│   │   ├── log-levels-and-format
+│   │   ├── timestamps-and-correlation-ids
+│   │   ├── command-tracing
+│   │   ├── redacting-secrets-from-logs
+│   │   ├── structured-log-output
+│   │   └── syslog-and-journald-integration
+│   └── performance-and-resource-management
+│       ├── process-startup-cost
+│       ├── avoiding-unnecessary-subshells
+│       ├── builtin-versus-external-commands
+│       ├── batching-external-processes
+│       ├── memory-and-streaming
+│       ├── parallel-jobs-and-wait
+│       ├── cpu-and-io-bound-script-work
+│       ├── file-descriptor-management
+│       └── profiling-shell-scripts
+├── bash-specialization
+│   ├── bash-language-features
+│   │   ├── bash-version-and-compatibility
+│   │   ├── indexed-arrays
+│   │   ├── associative-arrays
+│   │   ├── mapfile-and-readarray
+│   │   ├── process-substitution
+│   │   ├── here-strings
+│   │   ├── extended-globbing
+│   │   ├── globstar-and-dotglob
+│   │   ├── brace-expansion
+│   │   ├── regex-conditional-matching
+│   │   ├── coprocesses
+│   │   └── nameref-and-declare
+│   ├── bash-options-and-shopt
+│   │   ├── errexit-nounset-and-pipefail
+│   │   ├── errtrace-and-functrace
+│   │   ├── inherit-errexit
+│   │   ├── lastpipe
+│   │   ├── extglob-and-glob-options
+│   │   ├── nullglob-failglob-and-nocaseglob
+│   │   ├── nocasematch
+│   │   └── option-state-and-restoration
+│   ├── bash-completion-and-interaction
+│   │   ├── programmable-completion
+│   │   ├── completion-functions
+│   │   ├── completion-specifications
+│   │   ├── key-bindings-and-readline
+│   │   ├── prompt-and-ps1
+│   │   ├── history-expansion-and-history-file
+│   │   ├── aliases-and-functions
+│   │   └── interactive-shell-customization
+│   └── bash-portability-and-migration
+│       ├── bashisms-identification
+│       ├── bash-to-posix-sh-migration
+│       ├── bash-version-gated-features
+│       ├── macos-bash-version-constraints
+│       ├── busybox-ash-compatibility
+│       └── compatibility-test-matrix
+├── portable-shell-and-cross-platform
+│   ├── posix-shell-programming
+│   │   ├── posix-syntax-subset
+│   │   ├── portable-function-definitions
+│   │   ├── portable-parameter-expansion
+│   │   ├── portable-test-and-case
+│   │   ├── portable-command-substitution
+│   │   ├── portable-read-and-printf
+│   │   ├── portable-trap-and-signals
+│   │   └── avoiding-non-posix-extensions
+│   ├── utility-portability
+│   │   ├── gnu-bsd-and-busybox-utility-differences
+│   │   ├── sed-in-place-portability
+│   │   ├── date-command-portability
+│   │   ├── grep-and-awk-portability
+│   │   ├── find-and-xargs-portability
+│   │   ├── stat-and-readlink-portability
+│   │   ├── tar-and-compression-variants
+│   │   └── feature-detection-over-version-checks
+│   ├── operating-system-compatibility
+│   │   ├── linux-distribution-differences
+│   │   ├── macos-and-bsd-differences
+│   │   ├── alpine-and-musl-environments
+│   │   ├── minimal-container-environments
+│   │   ├── wsl-and-windows-path-boundaries
+│   │   ├── filesystem-case-sensitivity
+│   │   ├── locale-and-encoding-differences
+│   │   └── permissions-and-privilege-differences
+│   └── compatibility-strategy
+│       ├── declare-supported-shells
+│       ├── minimum-version-policy
+│       ├── runtime-feature-probes
+│       ├── portable-fallbacks
+│       ├── shellcheck-target-selection
+│       ├── containerized-compatibility-tests
+│       └── portability-documentation
+├── security-and-safe-shell-development
+│   ├── shell-injection-and-command-safety
+│   │   ├── unquoted-variable-injection
+│   │   ├── command-injection-via-eval
+│   │   ├── safe-argument-arrays
+│   │   ├── avoid-string-built-commands
+│   │   ├── safe-command-invocation
+│   │   ├── option-injection-and-double-dash
+│   │   ├── input-validation-boundaries
+│   │   ├── safe-use-of-find-and-xargs
+│   │   └── shell-escaping-limitations
+│   ├── filesystem-security
+│   │   ├── path-traversal-and-canonicalization
+│   │   ├── symlink-following-risks
+│   │   ├── temporary-file-races
+│   │   ├── mktemp-and-private-temporary-directories
+│   │   ├── umask-and-default-permissions
+│   │   ├── safe-recursive-deletion
+│   │   ├── atomic-creation-and-replacement
+│   │   ├── ownership-and-permission-checks
+│   │   └── avoiding-toctou-vulnerabilities
+│   ├── secrets-and-credentials
+│   │   ├── environment-variable-secret-risks
+│   │   ├── command-line-argument-exposure
+│   │   ├── shell-history-and-secret-leakage
+│   │   ├── file-permissions-for-secrets
+│   │   ├── stdin-and-file-descriptor-secret-delivery
+│   │   ├── credential-helper-integration
+│   │   ├── log-and-trace-redaction
+│   │   └── secret-rotation-and-cleanup
+│   ├── privilege-and-trust-boundaries
+│   │   ├── sudo-and-privilege-escalation
+│   │   ├── root-script-design
+│   │   ├── environment-sanitization
+│   │   ├── path-hijacking
+│   │   ├── privileged-script-working-directory
+│   │   ├── setuid-and-shell-script-limitations
+│   │   ├── untrusted-repository-scripts
+│   │   └── least-privilege-execution
+│   └── security-review-and-hardening
+│       ├── shellcheck-security-findings
+│       ├── static-analysis-and-code-review
+│       ├── dependency-and-download-verification
+│       ├── checksum-and-signature-verification
+│       ├── secure-curl-and-wget-patterns
+│       ├── audit-trail-and-change-control
+│       └── shell-script-threat-model
+├── automation-and-system-administration
+│   ├── user-and-account-automation
+│   │   ├── user-and-group-management
+│   │   ├── account-provisioning
+│   │   ├── password-and-credential-policy
+│   │   ├── home-directory-setup
+│   │   ├── ssh-key-provisioning
+│   │   └── account-audit-and-cleanup
+│   ├── package-and-software-management
+│   │   ├── apt-and-dpkg-automation
+│   │   ├── dnf-yum-and-rpm-automation
+│   │   ├── apk-package-management
+│   │   ├── pacman-and-zypper-overview
+│   │   ├── homebrew-and-macos-packages
+│   │   ├── package-version-pinning
+│   │   ├── repository-trust-and-signatures
+│   │   └── unattended-upgrades-and-maintenance
+│   ├── service-and-system-management
+│   │   ├── systemctl-and-systemd-units
+│   │   ├── service-status-and-restart
+│   │   ├── service-dependency-order
+│   │   ├── cron-and-crontab
+│   │   ├── at-and-one-shot-jobs
+│   │   ├── logrotate-configuration
+│   │   ├── journald-and-syslog
+│   │   └── scheduled-job-observability
+│   ├── storage-and-backup-automation
+│   │   ├── disk-and-filesystem-inventory
+│   │   ├── mount-and-unmount-workflows
+│   │   ├── backup-strategy-and-retention
+│   │   ├── rsync-incremental-backups
+│   │   ├── archive-integrity-and-verification
+│   │   ├── restore-testing
+│   │   ├── rotation-and-pruning
+│   │   └── disaster-recovery-scripts
+│   ├── network-and-host-automation
+│   │   ├── host-discovery-and-inventory
+│   │   ├── dns-and-connectivity-checks
+│   │   ├── ssh-fanout-and-parallel-execution
+│   │   ├── remote-command-execution
+│   │   ├── file-distribution-and-rsync
+│   │   ├── certificate-expiry-checks
+│   │   └── network-configuration-validation
+│   └── operational-runbooks
+│       ├── repeatable-maintenance-procedures
+│       ├── preflight-and-postflight-checks
+│       ├── dry-run-and-confirmation
+│       ├── rollback-and-compensation
+│       ├── operator-prompts-and-noninteractive-mode
+│       ├── audit-logging
+│       └── runbook-testing-and-review
+├── developer-workflows-and-tooling
+│   ├── shell-development-environment
+│   │   ├── editor-configuration
+│   │   ├── vscode-shell-integration
+│   │   ├── terminal-multiplexers-tmux-and-screen
+│   │   ├── direnv-and-project-environments
+│   │   ├── environment-version-managers
+│   │   ├── dotfiles-management
+│   │   └── reproducible-shell-setup
+│   ├── linting-and-formatting
+│   │   ├── shellcheck-rules-and-severities
+│   │   ├── shellcheck-source-and-external-sources
+│   │   ├── shfmt-formatting
+│   │   ├── formatting-policy
+│   │   ├── lint-suppressions-and-justification
+│   │   ├── editor-and-pre-commit-integration
+│   │   └── continuous-lint-enforcement
+│   ├── debugging-and-diagnostics
+│   │   ├── set-x-and-xtrace
+│   │   ├── custom-ps4-tracing
+│   │   ├── bash-debugger-and-extdebug
+│   │   ├── breakpoints-and-stack-traces
+│   │   ├── inspecting-variables-and-file-descriptors
+│   │   ├── reproducing-environment-dependent-bugs
+│   │   ├── tracing-process-and-system-calls
+│   │   └── debugging-pipelines-and-subshells
+│   ├── version-control-and-collaboration
+│   │   ├── git-for-shell-projects
+│   │   ├── executable-bit-and-file-mode
+│   │   ├── line-ending-policy
+│   │   ├── code-review-checklist
+│   │   ├── shell-style-guide
+│   │   ├── change-impact-and-compatibility-review
+│   │   └── script-ownership-and-maintenance
+│   └── documentation-and-distribution
+│       ├── readme-and-usage-examples
+│       ├── man-page-and-help-generation
+│       ├── configuration-reference
+│       ├── changelog-and-versioning
+│       ├── install-and-uninstall-scripts
+│       ├── release-archives-and-checksums
+│       ├── package-manager-distribution
+│       └── support-and-deprecation-policy
+├── testing-and-quality-engineering
+│   ├── shell-testing-fundamentals
+│   │   ├── testable-script-design
+│   │   ├── deterministic-test-environments
+│   │   ├── temporary-test-fixtures
+│   │   ├── stdout-stderr-and-exit-code-assertions
+│   │   ├── filesystem-state-assertions
+│   │   ├── command-dependency-isolation
+│   │   └── cleanup-and-test-isolation
+│   ├── shell-test-frameworks
+│   │   ├── bats-core
+│   │   ├── shunit2
+│   │   ├── shellspec
+│   │   ├── cram-and-transcript-testing
+│   │   ├── framework-selection
+│   │   └── test-runner-integration
+│   ├── unit-and-integration-testing
+│   │   ├── function-level-tests
+│   │   ├── cli-contract-tests
+│   │   ├── subprocess-integration-tests
+│   │   ├── mock-and-stub-external-commands
+│   │   ├── fake-path-and-command-injection-for-tests
+│   │   ├── filesystem-fixture-tests
+│   │   ├── signal-and-timeout-tests
+│   │   └── network-dependent-test-isolation
+│   ├── compatibility-and-regression-testing
+│   │   ├── multiple-shell-version-matrix
+│   │   ├── multiple-operating-system-matrix
+│   │   ├── gnu-bsd-busybox-tool-matrix
+│   │   ├── locale-and-timezone-matrix
+│   │   ├── regression-fixtures
+│   │   ├── edge-case-and-fuzz-inputs
+│   │   └── backward-compatibility-tests
+│   └── continuous-integration
+│       ├── github-actions-shell-workflows
+│       ├── gitlab-ci-shell-jobs
+│       ├── containerized-test-runners
+│       ├── lint-test-and-format-gates
+│       ├── matrix-and-parallel-jobs
+│       ├── artifact-and-log-retention
+│       └── release-validation
+├── infrastructure-and-platform-engineering
+│   ├── containers-and-images
+│   │   ├── docker-entrypoint-scripts
+│   │   ├── container-init-and-signal-forwarding
+│   │   ├── pid-one-and-zombie-reaping
+│   │   ├── minimal-base-image-constraints
+│   │   ├── multi-stage-build-helper-scripts
+│   │   ├── health-check-and-readiness-scripts
+│   │   ├── container-user-and-permission-model
+│   │   └── reproducible-container-builds
+│   ├── ci-cd-and-release-automation
+│   │   ├── build-and-test-orchestration
+│   │   ├── deployment-wrapper-scripts
+│   │   ├── environment-promotion
+│   │   ├── release-tagging-and-packaging
+│   │   ├── artifact-verification
+│   │   ├── rollback-automation
+│   │   └── deployment-locking-and-concurrency
+│   ├── configuration-management-integration
+│   │   ├── ansible-shell-module-and-command
+│   │   ├── cloud-init-and-user-data
+│   │   ├── terraform-provisioner-boundaries
+│   │   ├── packer-provisioning-scripts
+│   │   ├── configuration-drift-detection
+│   │   └── when-to-use-a-configuration-management-tool
+│   ├── cloud-and-cluster-operations
+│   │   ├── cloud-cli-automation
+│   │   ├── aws-cli-workflows
+│   │   ├── azure-cli-workflows
+│   │   ├── gcloud-cli-workflows
+│   │   ├── kubectl-and-helm-wrapper-scripts
+│   │   ├── cluster-diagnostics
+│   │   └── credentials-and-context-safety
+│   └── developer-platform-scripts
+│       ├── repository-bootstrap
+│       ├── local-development-environment-setup
+│       ├── dependency-and-toolchain-checks
+│       ├── code-generation-and-scaffolding
+│       ├── monorepo-task-wrappers
+│       ├── developer-self-service-commands
+│       └── platform-script-versioning
+├── advanced-shell-topics
+│   ├── advanced-process-coordination
+│   │   ├── wait-and-child-status-collection
+│   │   ├── bounded-parallelism
+│   │   ├── worker-process-pools
+│   │   ├── fifo-based-coordination
+│   │   ├── file-locking-and-contention
+│   │   ├── signal-based-coordination
+│   │   ├── cancellation-propagation
+│   │   └── avoiding-orphaned-background-jobs
+│   ├── advanced-bash-io
+│   │   ├── coprocess-lifecycle
+│   │   ├── bidirectional-pipes
+│   │   ├── dynamic-file-descriptors
+│   │   ├── process-substitution-lifecycle
+│   │   ├── read-timeouts-and-delimiters
+│   │   ├── terminal-control-and-tty
+│   │   └── select-and-interactive-input
+│   ├── shell-internals
+│   │   ├── parser-and-grammar-overview
+│   │   ├── expansion-and-execution-phases
+│   │   ├── command-hash-and-resolution-internals
+│   │   ├── environment-and-export-implementation
+│   │   ├── signal-disposition-and-trap-internals
+│   │   ├── shell-memory-and-variable-model
+│   │   └── implementation-differences
+│   ├── interactive-shell-engineering
+│   │   ├── prompt-performance-and-safety
+│   │   ├── completion-system-architecture
+│   │   ├── programmable-key-bindings
+│   │   ├── history-search-and-filtering
+│   │   ├── plugin-and-theme-management
+│   │   ├── startup-latency-profiling
+│   │   └── portable-dotfile-architecture
+│   └── alternative-shells
+│       ├── zsh-arrays-and-expansion
+│       ├── zsh-completion-framework
+│       ├── zsh-hooks-and-widget-system
+│       ├── fish-functions-and-abbreviations
+│       ├── fish-completions-and-events
+│       ├── ksh-and-mksh-extensions
+│       └── choosing-a-shell-for-a-project
+├── shell-integration-and-interoperability
+│   ├── programming-language-integration
+│   │   ├── invoking-shell-from-python
+│   │   ├── invoking-shell-from-nodejs
+│   │   ├── invoking-shell-from-go-and-rust
+│   │   ├── subprocess-argument-safety
+│   │   ├── stdout-stderr-and-exit-code-contracts
+│   │   └── avoiding-shell-when-direct-process-api-is-better
+│   ├── data-format-integration
+│   │   ├── json-and-jq
+│   │   ├── yaml-and-yq
+│   │   ├── csv-and-tsv
+│   │   ├── ini-toml-and-config-files
+│   │   ├── xml-and-html
+│   │   ├── url-and-query-string-encoding
+│   │   └── binary-data-and-base64
+│   ├── api-and-service-integration
+│   │   ├── http-methods-headers-and-status
+│   │   ├── authentication-and-token-refresh
+│   │   ├── pagination-and-rate-limits
+│   │   ├── retries-and-idempotency
+│   │   ├── webhook-and-event-consumption
+│   │   ├── tls-and-certificate-validation
+│   │   └── api-response-validation
+│   └── tool-ecosystem
+│       ├── git-and-git-hooks
+│       ├── make-and-task-runners
+│       ├── just-and-command-runners
+│       ├── fzf-and-interactive-selection
+│       ├── dialog-and-whiptail
+│       ├── expect-and-pexpect-boundaries
+│       ├── yq-jq-and-yamllint-toolchain
+│       └── choosing-shell-versus-dedicated-tool
+├── architecture-and-design
+│   ├── script-architecture
+│   │   ├── single-purpose-scripts
+│   │   ├── layered-script-structure
+│   │   ├── configuration-input-and-execution-separation
+│   │   ├── library-and-command-boundaries
+│   │   ├── dependency-injection-through-path
+│   │   ├── side-effect-isolation
+│   │   └── composable-command-design
+│   ├── cli-application-architecture
+│   │   ├── command-and-subcommand-design
+│   │   ├── option-and-flag-consistency
+│   │   ├── interactive-and-noninteractive-modes
+│   │   ├── machine-readable-output-contract
+│   │   ├── exit-code-taxonomy
+│   │   ├── configuration-precedence
+│   │   └── backward-compatible-cli-evolution
+│   ├── automation-architecture
+│   │   ├── declarative-versus-imperative-automation
+│   │   ├── idempotent-reconciliation-loops
+│   │   ├── orchestration-and-dependency-graphs
+│   │   ├── state-files-and-checkpoints
+│   │   ├── concurrency-and-locking-policy
+│   │   ├── retry-and-compensation-design
+│   │   └── human-approval-boundaries
+│   └── maintainability-and-evolution
+│       ├── abstraction-and-reuse-tradeoffs
+│       ├── avoid-overengineering-shell
+│       ├── migration-to-python-go-or-rust
+│       ├── shell-as-glue-versus-core-application
+│       ├── public-interface-stability
+│       ├── deprecation-and-migration-policy
+│       └── architecture-decision-records
+├── performance-and-observability
+│   ├── performance-analysis
+│   │   ├── startup-and-process-spawn-overhead
+│   │   ├── command-count-and-pipeline-cost
+│   │   ├── builtin-and-external-tool-benchmarks
+│   │   ├── awk-sed-and-language-choice
+│   │   ├── large-file-streaming-performance
+│   │   ├── parallelism-versus-serialization
+│   │   ├── memory-and-file-descriptor-pressure
+│   │   └── benchmark-methodology
+│   ├── operational-observability
+│   │   ├── structured-script-logs
+│   │   ├── metrics-from-exit-status-and-duration
+│   │   ├── command-execution-audit
+│   │   ├── centralized-log-collection
+│   │   ├── alerting-on-scheduled-job-failures
+│   │   ├── health-and-readiness-checks
+│   │   └── operational-dashboards
+│   └── production-diagnostics
+│       ├── stuck-process-and-hung-pipeline
+│       ├── file-descriptor-exhaustion
+│       ├── disk-space-and-inode-exhaustion
+│       ├── permission-and-environment-drift
+│       ├── cron-environment-differences
+│       ├── race-condition-investigation
+│       └── incident-evidence-and-postmortem
+├── professional-practices-and-career
+│   ├── code-quality-and-conventions
+│   │   ├── naming-and-formatting-conventions
+│   │   ├── comments-and-maintainer-documentation
+│   │   ├── function-size-and-complexity
+│   │   ├── safe-defaults-and-explicit-behavior
+│   │   ├── reviewable-diffs
+│   │   └── technical-debt-management
+│   ├── collaboration-and-ownership
+│   │   ├── requirements-and-acceptance-criteria
+│   │   ├── operational-handover
+│   │   ├── peer-review-and-pair-debugging
+│   │   ├── incident-communication
+│   │   ├── runbook-ownership
+│   │   └── cross-team-interface-contracts
+│   ├── professional-development
+│   │   ├── linux-and-unix-fundamentals
+│   │   ├── networking-and-security-fundamentals
+│   │   ├── systems-programming-literacy
+│   │   ├── infrastructure-as-code-literacy
+│   │   ├── technical-writing
+│   │   ├── portfolio-and-code-samples
+│   │   └── interview-and-practical-exercises
+│   └── shell-developer-role-paths
+│       ├── linux-system-automation-developer
+│       ├── devops-and-platform-engineer
+│       ├── build-and-release-automation-engineer
+│       ├── developer-productivity-engineer
+│       ├── site-reliability-engineer
+│       └── embedded-and-minimal-linux-scripting
+└── practice-projects
+    ├── shell-basics-lab
+    │   ├── command-exploration-and-help
+    │   ├── quoting-and-expansion-experiments
+    │   ├── variables-and-control-flow
+    │   ├── functions-and-exit-status
+    │   ├── redirection-and-pipeline-exercises
+    │   └── portable-shell-variants
+    ├── filesystem-cleanup-cli
+    │   ├── command-and-option-design
+    │   ├── path-validation-and-dry-run
+    │   ├── safe-file-selection
+    │   ├── deletion-confirmation-and-allowlists
+    │   ├── logging-and-exit-codes
+    │   ├── signal-safe-cleanup
+    │   └── bats-integration-tests
+    ├── log-analysis-toolkit
+    │   ├── grep-and-awk-analysis
+    │   ├── time-window-and-filter-options
+    │   ├── structured-json-log-support
+    │   ├── large-file-streaming
+    │   ├── summary-and-report-output
+    │   └── performance-benchmark
+    ├── backup-and-restore-automation
+    │   ├── source-and-destination-validation
+    │   ├── archive-and-rsync-strategies
+    │   ├── retention-and-rotation
+    │   ├── locking-and-concurrent-run-protection
+    │   ├── integrity-verification
+    │   ├── restore-drill
+    │   └── alerting-and-audit-logs
+    ├── service-health-monitor
+    │   ├── process-and-port-checks
+    │   ├── http-health-probes
+    │   ├── timeout-and-retry-policy
+    │   ├── status-and-exit-code-contract
+    │   ├── scheduled-execution
+    │   └── monitoring-integration
+    ├── developer-environment-bootstrapper
+    │   ├── operating-system-detection
+    │   ├── dependency-and-version-checks
+    │   ├── package-installation-adapters
+    │   ├── configuration-and-dotfile-setup
+    │   ├── idempotent-provisioning
+    │   ├── dry-run-and-rollback
+    │   └── cross-platform-test-matrix
+    ├── deployment-and-release-cli
+    │   ├── subcommand-and-option-design
+    │   ├── build-test-and-package-workflow
+    │   ├── environment-promotion
+    │   ├── artifact-checksum-verification
+    │   ├── deployment-locking
+    │   ├── rollback-and-recovery
+    │   └── ci-cd-integration
+    ├── parallel-batch-processing-tool
+    │   ├── input-manifest-and-validation
+    │   ├── bounded-worker-processes
+    │   ├── result-collection-and-ordering
+    │   ├── cancellation-and-signal-forwarding
+    │   ├── retry-and-failure-policy
+    │   ├── progress-and-logging
+    │   └── concurrency-and-resource-tests
+    ├── secure-remote-operations-tool
+    │   ├── host-inventory-and-selection
+    │   ├── ssh-configuration-and-key-handling
+    │   ├── safe-remote-argument-passing
+    │   ├── concurrency-limits
+    │   ├── timeout-and-host-failure-policy
+    │   ├── audit-and-secret-redaction
+    │   └── integration-tests
+    ├── portable-cli-utility
+    │   ├── posix-shell-implementation
+    │   ├── bash-enhanced-implementation
+    │   ├── gnu-bsd-utility-compatibility
+    │   ├── help-and-manual-page
+    │   ├── packaging-and-installation
+    │   └── compatibility-ci
+    ├── container-entrypoint-and-init
+    │   ├── argument-and-environment-contract
+    │   ├── pid-one-and-child-process-management
+    │   ├── signal-forwarding
+    │   ├── graceful-shutdown
+    │   ├── health-checks
+    │   └── container-integration-tests
+    ├── infrastructure-diagnostics-suite
+    │   ├── host-and-os-inventory
+    │   ├── cpu-memory-and-disk-snapshot
+    │   ├── network-and-dns-diagnostics
+    │   ├── process-and-service-diagnostics
+    │   ├── redaction-and-safe-capture
+    │   ├── bundle-and-export-report
+    │   └── incident-runbook
+    ├── shell-library-and-package
+    │   ├── public-function-api
+    │   ├── sourcing-and-loading-contract
+    │   ├── error-and-logging-helpers
+    │   ├── shell-compatibility-policy
+    │   ├── unit-and-consumer-tests
+    │   ├── versioning-and-release
+    │   └── documentation-and-examples
+    ├── scheduled-operations-platform
+    │   ├── job-definition-and-configuration
+    │   ├── cron-and-systemd-timer-adapters
+    │   ├── locking-and-overlap-prevention
+    │   ├── retries-and-missed-run-policy
+    │   ├── logs-and-alerts
+    │   ├── operator-runbook
+    │   └── failure-recovery-tests
+    └── production-shell-capstone
+        ├── requirements-and-threat-model
+        ├── architecture-and-cli-contracts
+        ├── portable-and-bash-implementation
+        ├── filesystem-and-process-safety
+        ├── configuration-and-secret-management
+        ├── automated-and-compatibility-tests
+        ├── linting-and-ci-cd
+        ├── observability-and-operational-runbooks
+        └── release-and-maintenance-plan

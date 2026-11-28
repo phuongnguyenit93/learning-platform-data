@@ -1,0 +1,3266 @@
+module
+├── foundation
+│   ├── react-overview
+│   │   ├── declarative-user-interfaces
+│   │   ├── component-based-development
+│   │   ├── react-and-react-dom
+│   │   ├── library-and-framework-boundaries
+│   │   ├── web-and-native-renderers
+│   │   ├── use-cases-and-tradeoffs
+│   │   └── learning-path
+│   ├── thinking-in-react
+│   │   ├── design-to-component-hierarchy
+│   │   ├── static-ui-first
+│   │   ├── minimal-state-identification
+│   │   ├── state-ownership
+│   │   ├── one-way-data-flow
+│   │   ├── interaction-to-state-transition
+│   │   └── incremental-feature-delivery
+│   ├── mental-model
+│   │   ├── ui-as-a-function-of-state
+│   │   ├── elements-components-and-instances
+│   │   ├── render-tree-and-module-tree
+│   │   ├── snapshots-and-closures
+│   │   ├── rendering-and-committing
+│   │   ├── identity-and-state-preservation
+│   │   └── effects-and-external-systems
+│   ├── application-shapes
+│   │   ├── embedded-react-widget
+│   │   ├── single-page-application
+│   │   ├── multi-page-enhancement
+│   │   ├── server-rendered-application
+│   │   ├── static-site-generation
+│   │   ├── full-stack-application
+│   │   └── offline-capable-application
+│   ├── learning-environment
+│   │   ├── browser-and-developer-tools
+│   │   ├── code-editor
+│   │   ├── local-development-server
+│   │   ├── package-manager
+│   │   ├── source-control
+│   │   ├── documentation-and-sandboxes
+│   │   └── minimal-reproduction-workspace
+│   ├── react-platform-boundaries
+│   │   ├── react-core-apis
+│   │   ├── react-dom-web-apis
+│   │   ├── browser-platform-apis
+│   │   ├── build-tool-responsibilities
+│   │   ├── router-responsibilities
+│   │   ├── data-layer-responsibilities
+│   │   └── framework-responsibilities
+│   ├── rules-and-conventions
+│   │   ├── component-purity
+│   │   ├── immutable-inputs
+│   │   ├── hook-call-order
+│   │   ├── react-controlled-component-calls
+│   │   ├── side-effects-outside-render
+│   │   ├── component-and-hook-naming
+│   │   └── strict-mode-development-checks
+│   └── learning-and-evidence
+│       ├── official-learn-path
+│       ├── api-reference-reading
+│       ├── render-behavior-experiments
+│       ├── devtools-observation
+│       ├── browser-network-evidence
+│       ├── version-specific-documentation
+│       └── conceptual-and-implementation-differences
+├── web-and-javascript-prerequisites
+│   ├── semantic-html
+│   │   ├── document-structure
+│   │   ├── landmarks-and-headings
+│   │   ├── buttons-and-links
+│   │   ├── forms-and-labels
+│   │   ├── tables-and-lists
+│   │   ├── native-dialog-and-disclosure
+│   │   └── accessible-source-order
+│   ├── css-for-components
+│   │   ├── cascade-and-specificity
+│   │   ├── box-model
+│   │   ├── flexbox-and-grid
+│   │   ├── intrinsic-sizing
+│   │   ├── responsive-and-container-layouts
+│   │   ├── focus-and-interaction-states
+│   │   └── logical-properties
+│   ├── javascript-values-and-functions
+│   │   ├── primitives-and-references
+│   │   ├── destructuring-and-spread
+│   │   ├── equality-and-object-identity
+│   │   ├── arrow-functions
+│   │   ├── callbacks-and-higher-order-functions
+│   │   ├── lexical-scope
+│   │   └── closures-and-captured-values
+│   ├── collection-transformations
+│   │   ├── map-filter-and-reduce
+│   │   ├── find-some-and-every
+│   │   ├── immutable-array-updates
+│   │   ├── stable-sorting
+│   │   ├── keyed-lookups
+│   │   ├── object-and-array-copy-depth
+│   │   └── optional-chaining-and-nullish-coalescing
+│   ├── modules-and-packages
+│   │   ├── esm-imports-and-exports
+│   │   ├── default-and-named-exports
+│   │   ├── dynamic-imports
+│   │   ├── package-manifests
+│   │   ├── dependency-and-peer-dependency
+│   │   ├── lockfiles
+│   │   └── circular-import-risks
+│   ├── asynchronous-javascript
+│   │   ├── promise-states
+│   │   ├── async-and-await
+│   │   ├── error-propagation
+│   │   ├── concurrent-requests
+│   │   ├── event-loop-and-microtasks
+│   │   ├── abort-controller
+│   │   └── race-conditions
+│   ├── browser-and-network
+│   │   ├── dom-tree-and-events
+│   │   ├── url-and-query-parameters
+│   │   ├── http-methods-and-status-codes
+│   │   ├── fetch-and-response-parsing
+│   │   ├── same-origin-and-cors
+│   │   ├── cookies-and-storage
+│   │   └── browser-history
+│   └── data-and-trust
+│       ├── json-serialization
+│       ├── dates-and-time-zones
+│       ├── number-and-currency-representation
+│       ├── null-and-missing-values
+│       ├── untrusted-input
+│       ├── runtime-validation
+│       └── server-authoritative-decisions
+├── project-setup-and-development-workflow
+│   ├── project-starting-points
+│   │   ├── framework-selection
+│   │   ├── standalone-learning-app
+│   │   ├── existing-site-integration
+│   │   ├── static-and-dynamic-delivery
+│   │   ├── constraints-and-deployment-target
+│   │   ├── dependency-compatibility
+│   │   └── starter-template-review
+│   ├── vite-based-workspace
+│   │   ├── react-template
+│   │   ├── javascript-and-typescript-templates
+│   │   ├── development-server
+│   │   ├── fast-refresh
+│   │   ├── public-and-imported-assets
+│   │   ├── environment-variable-exposure
+│   │   ├── production-build
+│   │   └── preview-server
+│   ├── framework-based-workspace
+│   │   ├── scaffolding-and-generated-files
+│   │   ├── route-conventions
+│   │   ├── client-and-server-entry-points
+│   │   ├── framework-development-server
+│   │   ├── framework-build-output
+│   │   ├── deployment-adapters
+│   │   └── framework-owned-configuration
+│   ├── package-and-runtime-management
+│   │   ├── supported-node-runtime
+│   │   ├── package-manager-selection
+│   │   ├── version-pinning
+│   │   ├── reproducible-installation
+│   │   ├── dependency-updates
+│   │   ├── peer-version-alignment
+│   │   └── duplicate-react-detection
+│   ├── source-layout
+│   │   ├── application-entry
+│   │   ├── feature-directories
+│   │   ├── shared-ui
+│   │   ├── domain-logic
+│   │   ├── assets-and-styles
+│   │   ├── test-files
+│   │   └── server-only-and-client-only-code
+│   ├── editor-and-static-checks
+│   │   ├── eslint-configuration
+│   │   ├── react-hooks-rules
+│   │   ├── jsx-accessibility-rules
+│   │   ├── formatting
+│   │   ├── typescript-language-service
+│   │   ├── import-path-consistency
+│   │   └── compiler-diagnostics
+│   ├── local-services-and-config
+│   │   ├── mock-api-server
+│   │   ├── development-proxy
+│   │   ├── public-runtime-config
+│   │   ├── secret-exclusion
+│   │   ├── local-https
+│   │   ├── origin-and-cookie-testing
+│   │   └── containerized-backend-dependencies
+│   ├── feedback-loop
+│   │   ├── edit-render-inspect
+│   │   ├── fast-refresh-state-preservation
+│   │   ├── hard-reload-differences
+│   │   ├── browser-console
+│   │   ├── network-inspection
+│   │   ├── source-maps
+│   │   └── breakpoints
+│   └── team-baseline
+│       ├── git-ignore-rules
+│       ├── package-scripts
+│       ├── coding-conventions
+│       ├── commit-sized-changes
+│       ├── pull-request-checks
+│       ├── documented-environment
+│       └── setup-smoke-test
+├── jsx-elements-and-ui-description
+│   ├── jsx-syntax
+│   │   ├── expressions-in-braces
+│   │   ├── tag-closure
+│   │   ├── single-root-and-fragments
+│   │   ├── capitalization-and-component-lookup
+│   │   ├── comments-and-whitespace
+│   │   ├── conditional-expressions
+│   │   └── jsx-versus-html
+│   ├── jsx-transformation
+│   │   ├── source-to-element-description
+│   │   ├── automatic-jsx-runtime
+│   │   ├── development-and-production-transforms
+│   │   ├── element-type-and-props
+│   │   ├── children-representation
+│   │   ├── jsx-without-runtime-dom-work
+│   │   └── build-time-transform-boundary
+│   ├── react-nodes-and-elements
+│   │   ├── strings-and-numbers
+│   │   ├── null-and-boolean-output
+│   │   ├── arrays-of-nodes
+│   │   ├── element-objects
+│   │   ├── nested-children
+│   │   ├── invalid-object-children
+│   │   └── element-immutability
+│   ├── html-and-svg-props
+│   │   ├── class-name-and-html-for
+│   │   ├── camel-case-dom-props
+│   │   ├── aria-and-data-attributes
+│   │   ├── svg-attribute-mapping
+│   │   ├── boolean-attributes
+│   │   ├── style-objects
+│   │   └── custom-element-props
+│   ├── conditional-rendering
+│   │   ├── early-return
+│   │   ├── null-rendering
+│   │   ├── conditional-operator
+│   │   ├── logical-and-pitfalls
+│   │   ├── explicit-empty-states
+│   │   ├── loading-error-and-success-branches
+│   │   └── conditional-component-identity
+│   ├── list-rendering
+│   │   ├── data-to-components
+│   │   ├── stable-item-identifiers
+│   │   ├── key-scope
+│   │   ├── key-and-prop-distinction
+│   │   ├── insertion-deletion-and-reordering
+│   │   ├── index-key-risks
+│   │   └── fragment-keys
+│   ├── fragments
+│   │   ├── shorthand-fragments
+│   │   ├── explicit-fragment-syntax
+│   │   ├── keyed-fragment-groups
+│   │   ├── avoiding-unnecessary-wrapper-dom
+│   │   ├── semantic-table-and-list-structure
+│   │   ├── fragment-ref-entry-point
+│   │   └── nesting-and-state-behavior
+│   ├── content-safety
+│   │   ├── default-text-escaping
+│   │   ├── trusted-and-untrusted-markup
+│   │   ├── dangerously-set-inner-html-boundary
+│   │   ├── safe-url-values
+│   │   ├── markdown-rendering-boundary
+│   │   ├── non-text-dom-sinks
+│   │   └── third-party-content-review
+│   └── rendering-lab
+│       ├── element-tree-inspection
+│       ├── jsx-expression-experiments
+│       ├── list-reordering-observation
+│       ├── false-zero-and-empty-string-cases
+│       ├── invalid-nesting-reproduction
+│       ├── browser-corrected-markup
+│       └── accessibility-tree-comparison
+├── components-props-and-composition
+│   ├── function-components
+│   │   ├── declaration-and-export
+│   │   ├── component-return-contract
+│   │   ├── reusable-ui-boundaries
+│   │   ├── component-identity
+│   │   ├── pure-calculations
+│   │   ├── render-time-local-variables
+│   │   └── top-level-component-definition
+│   ├── props-contracts
+│   │   ├── read-only-inputs
+│   │   ├── destructured-parameters
+│   │   ├── default-parameter-values
+│   │   ├── optional-and-required-props
+│   │   ├── callback-props
+│   │   ├── domain-specific-prop-names
+│   │   └── prop-spreading-boundaries
+│   ├── children-and-slots
+│   │   ├── children-as-composition
+│   │   ├── named-slot-props
+│   │   ├── layout-containers
+│   │   ├── content-and-behavior-separation
+│   │   ├── passing-jsx-as-data
+│   │   ├── conditional-slots
+│   │   └── avoiding-unnecessary-clone-element
+│   ├── component-decomposition
+│   │   ├── responsibility-boundaries
+│   │   ├── stateful-and-presentational-concerns
+│   │   ├── repeated-pattern-extraction
+│   │   ├── feature-specific-components
+│   │   ├── shared-primitives
+│   │   ├── over-abstraction-risks
+│   │   └── readable-component-size
+│   ├── controlled-component-design
+│   │   ├── value-and-on-change-contract
+│   │   ├── default-value-contract
+│   │   ├── controlled-mode-selection
+│   │   ├── single-source-of-truth
+│   │   ├── controlled-uncontrolled-switching
+│   │   ├── reset-and-initialization
+│   │   └── internal-state-escape-hatches
+│   ├── composition-patterns
+│   │   ├── compound-components
+│   │   ├── context-backed-composition
+│   │   ├── render-prop-contracts
+│   │   ├── headless-logic-and-presentation
+│   │   ├── adapter-components
+│   │   ├── slot-and-polymorphic-boundaries
+│   │   └── composition-versus-inheritance
+│   ├── component-api-quality
+│   │   ├── explicit-variants
+│   │   ├── semantic-event-callbacks
+│   │   ├── invalid-prop-combinations
+│   │   ├── accessibility-prop-forwarding
+│   │   ├── dom-prop-filtering
+│   │   ├── ref-exposure-minimization
+│   │   └── backward-compatible-evolution
+│   ├── design-for-change
+│   │   ├── domain-versus-ui-responsibilities
+│   │   ├── stable-public-props
+│   │   ├── private-implementation-details
+│   │   ├── extension-points
+│   │   ├── dependency-inversion
+│   │   ├── component-contract-tests
+│   │   └── consumer-examples
+│   └── composition-failure-modes
+│       ├── prop-drilling-diagnosis
+│       ├── excessive-boolean-props
+│       ├── nested-component-definitions
+│       ├── hidden-prop-mutation
+│       ├── children-inspection-fragility
+│       ├── broad-context-coupling
+│       └── component-library-lock-in
+├── rendering-reconciliation-and-component-identity
+│   ├── render-and-commit
+│   │   ├── update-triggers
+│   │   ├── render-phase
+│   │   ├── commit-phase
+│   │   ├── browser-paint
+│   │   ├── dom-mutation-minimization
+│   │   ├── effect-timing
+│   │   └── abandoned-render-work
+│   ├── react-tree-identity
+│   │   ├── element-type
+│   │   ├── tree-position
+│   │   ├── stable-keys
+│   │   ├── parent-child-relationships
+│   │   ├── remount-versus-rerender
+│   │   ├── alternate-branches
+│   │   └── nested-definition-remounts
+│   ├── state-preservation
+│   │   ├── same-position-same-component
+│   │   ├── key-based-reset
+│   │   ├── form-reset-by-identity
+│   │   ├── list-item-state-position
+│   │   ├── conditional-layout-reparenting
+│   │   ├── provider-boundary-reset
+│   │   └── route-identity-and-state
+│   ├── reconciliation-mental-model
+│   │   ├── previous-and-next-ui
+│   │   ├── matching-elements
+│   │   ├── child-list-diffing
+│   │   ├── replacement-versus-update
+│   │   ├── host-component-updates
+│   │   ├── component-output-comparison
+│   │   └── algorithm-details-as-non-contract
+│   ├── render-purity
+│   │   ├── deterministic-output
+│   │   ├── immutable-props-and-state
+│   │   ├── local-mutation-boundary
+│   │   ├── idempotent-rendering
+│   │   ├── no-network-during-render
+│   │   ├── no-subscription-during-render
+│   │   └── side-effect-location
+│   ├── strict-mode
+│   │   ├── development-only-checks
+│   │   ├── repeated-component-invocation
+│   │   ├── effect-setup-cleanup-replay
+│   │   ├── ref-callback-replay
+│   │   ├── deprecated-api-warnings
+│   │   ├── root-and-subtree-placement
+│   │   └── production-behavior-distinction
+│   ├── render-trigger-analysis
+│   │   ├── local-state-change
+│   │   ├── parent-render
+│   │   ├── context-value-change
+│   │   ├── external-store-notification
+│   │   ├── memoization-bailout
+│   │   ├── state-equality-bailout
+│   │   └── render-versus-dom-change
+│   ├── react-dom-client
+│   │   ├── create-root
+│   │   ├── root-render
+│   │   ├── root-unmount
+│   │   ├── multiple-roots
+│   │   ├── identifier-prefix
+│   │   ├── root-error-callbacks
+│   │   └── existing-dom-ownership
+│   ├── internal-architecture-orientation
+│   │   ├── fiber-as-work-unit
+│   │   ├── scheduling-and-priority
+│   │   ├── interruptible-render-work
+│   │   ├── commit-consistency
+│   │   ├── hook-state-association
+│   │   ├── public-api-versus-internals
+│   │   └── renderer-abstraction
+│   └── identity-diagnostics
+│       ├── unexpected-state-reset
+│       ├── stale-child-state
+│       ├── misplaced-keys
+│       ├── repeated-mount-traces
+│       ├── accidental-root-recreation
+│       ├── duplicate-react-runtime
+│       └── render-count-versus-performance
+├── events-and-interaction
+│   ├── event-handlers
+│   │   ├── passing-versus-calling-handler
+│   │   ├── event-handler-props
+│   │   ├── callback-arguments
+│   │   ├── reading-current-render-values
+│   │   ├── updating-state-from-events
+│   │   ├── semantic-handler-names
+│   │   └── event-driven-side-effects
+│   ├── react-event-model
+│   │   ├── synthetic-and-native-events
+│   │   ├── target-and-current-target
+│   │   ├── bubbling-and-capture
+│   │   ├── stop-propagation
+│   │   ├── prevent-default
+│   │   ├── root-event-delegation
+│   │   └── portal-event-propagation
+│   ├── pointer-and-keyboard
+│   │   ├── click-and-pointer-events
+│   │   ├── pointer-capture
+│   │   ├── keyboard-event-keys
+│   │   ├── composition-and-ime
+│   │   ├── focus-and-blur
+│   │   ├── touch-and-mouse-parity
+│   │   └── accessible-keyboard-activation
+│   ├── input-interaction
+│   │   ├── on-change-and-on-input
+│   │   ├── controlled-text-updates
+│   │   ├── checkbox-and-radio-events
+│   │   ├── select-change-events
+│   │   ├── text-selection
+│   │   ├── caret-preservation
+│   │   └── paste-and-composition
+│   ├── interaction-rate-control
+│   │   ├── debouncing-search-input
+│   │   ├── throttling-high-frequency-events
+│   │   ├── animation-frame-coordination
+│   │   ├── canceling-pending-work
+│   │   ├── stale-closure-prevention
+│   │   ├── interaction-cleanup
+│   │   └── user-feedback-during-delays
+│   ├── interaction-state-machines
+│   │   ├── idle-pending-success-error
+│   │   ├── mutually-exclusive-states
+│   │   ├── transition-guards
+│   │   ├── duplicate-click-prevention
+│   │   ├── cancellation-and-retry
+│   │   ├── optimistic-and-confirmed-results
+│   │   └── event-sequence-tests
+│   ├── event-ownership
+│   │   ├── domain-events-versus-dom-events
+│   │   ├── parent-child-callbacks
+│   │   ├── propagation-contracts
+│   │   ├── native-event-listener-interop
+│   │   ├── external-event-sources
+│   │   ├── command-handlers
+│   │   └── analytics-side-effect-boundaries
+│   └── interaction-testing-cases
+│       ├── rapid-clicks
+│       ├── keyboard-only-use
+│       ├── blur-before-submit
+│       ├── composition-before-search
+│       ├── double-submit
+│       ├── slow-response
+│       └── cancellation-after-navigation
+├── state-modeling-and-updates
+│   ├── state-fundamentals
+│   │   ├── state-versus-local-variable
+│   │   ├── state-as-render-snapshot
+│   │   ├── state-and-component-lifetime
+│   │   ├── minimal-state-design
+│   │   ├── derived-values-versus-state
+│   │   ├── independent-state-domains
+│   │   └── immutable-update-contract
+│   ├── use-state
+│   │   ├── initial-value
+│   │   ├── lazy-initializer
+│   │   ├── setter-identity
+│   │   ├── functional-updater
+│   │   ├── replacement-semantics
+│   │   ├── equality-bailout
+│   │   └── updater-purity
+│   ├── update-queue-and-batching
+│   │   ├── queued-updaters
+│   │   ├── automatic-batching
+│   │   ├── multiple-updates-in-one-event
+│   │   ├── replacement-and-updater-order
+│   │   ├── stale-read-after-setter
+│   │   ├── async-handler-snapshots
+│   │   └── synchronous-flush-exception
+│   ├── object-state
+│   │   ├── shallow-copy
+│   │   ├── nested-update-paths
+│   │   ├── shared-reference-pitfalls
+│   │   ├── normalized-entities
+│   │   ├── object-spread-precedence
+│   │   ├── optional-field-removal
+│   │   └── immutable-update-helpers
+│   ├── array-state
+│   │   ├── append-and-prepend
+│   │   ├── remove-by-identity
+│   │   ├── replace-and-map
+│   │   ├── reorder-without-mutation
+│   │   ├── sort-copy-versus-sort-in-place
+│   │   ├── nested-array-object-updates
+│   │   └── stable-id-generation
+│   ├── state-structure
+│   │   ├── avoiding-redundant-state
+│   │   ├── avoiding-contradictory-flags
+│   │   ├── flattening-deep-state
+│   │   ├── selection-by-id
+│   │   ├── grouping-related-values
+│   │   ├── separating-draft-and-committed-data
+│   │   └── representing-async-status
+│   ├── state-placement
+│   │   ├── local-state-first
+│   │   ├── lifting-state-up
+│   │   ├── closest-common-owner
+│   │   ├── component-boundary-design
+│   │   ├── keeping-input-state-local
+│   │   ├── url-owned-state
+│   │   └── server-owned-state
+│   ├── initialization-and-reset
+│   │   ├── props-as-initial-values
+│   │   ├── intentional-prop-state-divergence
+│   │   ├── key-based-reset
+│   │   ├── controlled-reset-event
+│   │   ├── reset-versus-remount
+│   │   ├── persisted-state-initialization
+│   │   └── session-and-tenant-reset
+│   ├── derived-data
+│   │   ├── render-time-derivation
+│   │   ├── filtering-and-sorting
+│   │   ├── selectors
+│   │   ├── expensive-derivation-measurement
+│   │   ├── memoization-as-optimization
+│   │   ├── avoiding-effect-driven-derivation
+│   │   └── consistent-derived-counts
+│   └── state-debugging
+│       ├── stale-closure-reproduction
+│       ├── mutation-detection
+│       ├── lost-update-reproduction
+│       ├── duplicated-source-of-truth
+│       ├── state-transition-logging
+│       ├── strict-mode-updater-checks
+│       └── race-aware-update-tests
+├── reducers-context-and-shared-state
+│   ├── use-reducer
+│   │   ├── reducer-function
+│   │   ├── action-shape
+│   │   ├── dispatch-contract
+│   │   ├── initial-state
+│   │   ├── lazy-initialization
+│   │   ├── pure-state-transition
+│   │   └── immutable-return-values
+│   ├── reducer-design
+│   │   ├── domain-action-names
+│   │   ├── exhaustive-action-handling
+│   │   ├── transition-invariants
+│   │   ├── normalized-state
+│   │   ├── reducer-composition
+│   │   ├── reducer-error-policy
+│   │   └── action-payload-validation
+│   ├── context-fundamentals
+│   │   ├── create-context
+│   │   ├── default-value-semantics
+│   │   ├── provider-and-consumer
+│   │   ├── use-context
+│   │   ├── nearest-provider-resolution
+│   │   ├── provider-order
+│   │   └── missing-provider-diagnostics
+│   ├── context-provider-design
+│   │   ├── direct-context-provider-syntax
+│   │   ├── focused-provider-responsibility
+│   │   ├── state-and-dispatch-contexts
+│   │   ├── required-context-hooks
+│   │   ├── provider-value-identity
+│   │   ├── provider-scope
+│   │   └── nested-provider-overrides
+│   ├── reducer-and-context
+│   │   ├── feature-level-store
+│   │   ├── provider-owned-reducer
+│   │   ├── read-hooks
+│   │   ├── command-hooks
+│   │   ├── action-oriented-components
+│   │   ├── state-transition-tests
+│   │   └── provider-integration-tests
+│   ├── context-performance
+│   │   ├── subscription-granularity
+│   │   ├── broad-context-update-cost
+│   │   ├── stable-dispatch-context
+│   │   ├── splitting-values-by-change-frequency
+│   │   ├── memoization-boundaries
+│   │   ├── composition-as-alternative
+│   │   └── external-store-selection
+│   ├── shared-state-boundaries
+│   │   ├── ui-state
+│   │   ├── domain-state
+│   │   ├── server-cache-state
+│   │   ├── form-state
+│   │   ├── url-state
+│   │   ├── persistent-preferences
+│   │   └── session-scoped-state
+│   ├── external-store-integration
+│   │   ├── use-sync-external-store
+│   │   ├── subscribe-contract
+│   │   ├── get-snapshot-contract
+│   │   ├── immutable-cached-snapshots
+│   │   ├── get-server-snapshot
+│   │   ├── store-lifetime
+│   │   └── tearing-and-consistency
+│   ├── provider-lifecycle
+│   │   ├── application-root-providers
+│   │   ├── route-scoped-providers
+│   │   ├── test-provider-isolation
+│   │   ├── request-scoped-server-values
+│   │   ├── account-switch-reset
+│   │   ├── dynamically-mounted-providers
+│   │   └── provider-composition-helpers
+│   └── shared-state-failure-modes
+│       ├── default-value-hiding-missing-provider
+│       ├── singleton-state-leakage
+│       ├── provider-recreation
+│       ├── unnecessary-global-state
+│       ├── context-as-event-bus-misuse
+│       ├── circular-provider-dependencies
+│       └── duplicated-server-data
+├── effects-and-external-synchronization
+│   ├── effect-mental-model
+│   │   ├── synchronization-not-lifecycle-replacement
+│   │   ├── render-causes-and-event-causes
+│   │   ├── external-system-definition
+│   │   ├── setup-and-cleanup
+│   │   ├── resynchronization
+│   │   ├── dependency-driven-execution
+│   │   └── effects-not-running-on-server
+│   ├── effect-decision-making
+│   │   ├── calculating-during-render
+│   │   ├── handling-user-actions-in-events
+│   │   ├── resetting-with-keys
+│   │   ├── deriving-selection-state
+│   │   ├── subscribing-only-when-needed
+│   │   ├── framework-data-loading
+│   │   └── avoiding-effect-chains
+│   ├── use-effect
+│   │   ├── setup-function
+│   │   ├── dependency-array
+│   │   ├── reactive-values
+│   │   ├── object-is-comparison
+│   │   ├── cleanup-before-resynchronization
+│   │   ├── cleanup-on-unmount
+│   │   └── development-stress-testing
+│   ├── closure-and-dependency-analysis
+│   │   ├── captured-render-values
+│   │   ├── stale-closures
+│   │   ├── exhaustive-dependencies
+│   │   ├── stable-function-identities
+│   │   ├── object-dependency-removal
+│   │   ├── updater-functions-in-effects
+│   │   └── moving-logic-inside-effect
+│   ├── resource-lifecycle
+│   │   ├── event-listener-registration
+│   │   ├── timer-allocation
+│   │   ├── subscription-unsubscribe
+│   │   ├── socket-connect-disconnect
+│   │   ├── observer-setup-disconnect
+│   │   ├── object-url-revocation
+│   │   └── third-party-widget-disposal
+│   ├── async-effect-work
+│   │   ├── inner-async-function
+│   │   ├── abort-controller
+│   │   ├── response-ordering
+│   │   ├── ignore-stale-results
+│   │   ├── request-identity
+│   │   ├── unmount-and-remount-races
+│   │   └── error-state-updates
+│   ├── use-layout-effect
+│   │   ├── layout-measurement
+│   │   ├── before-paint-synchronization
+│   │   ├── tooltip-placement
+│   │   ├── synchronous-work-cost
+│   │   ├── measurement-feedback-loops
+│   │   ├── server-rendering-limitations
+│   │   └── choosing-passive-effect-instead
+│   ├── use-effect-event
+│   │   ├── non-reactive-effect-logic
+│   │   ├── latest-committed-values
+│   │   ├── effect-only-invocation
+│   │   ├── not-a-dependency-escape-hatch
+│   │   ├── local-effect-event-ownership
+│   │   ├── lint-enforcement
+│   │   └── separating-subscription-from-notification
+│   ├── specialized-effect-apis
+│   │   ├── use-insertion-effect
+│   │   ├── css-library-use-case
+│   │   ├── insertion-versus-layout
+│   │   ├── restricted-ref-and-state-timing
+│   │   ├── external-store-subscription-alternative
+│   │   ├── unsupported-lifecycle-emulation
+│   │   └── library-author-responsibilities
+│   ├── synchronization-recipes
+│   │   ├── browser-title-interop
+│   │   ├── media-playback-control
+│   │   ├── online-status-subscription
+│   │   ├── intersection-observer-wrapper
+│   │   ├── resize-observer-wrapper
+│   │   ├── document-listener-cleanup
+│   │   └── external-library-state-bridge
+│   └── effect-diagnostics
+│       ├── infinite-effect-loop
+│       ├── repeated-network-requests
+│       ├── missing-cleanup
+│       ├── stale-interval-callback
+│       ├── fetch-waterfall
+│       ├── hidden-component-side-effects
+│       └── dependency-lint-suppression
+├── refs-portals-and-imperative-interop
+│   ├── use-ref
+│   │   ├── persistent-mutable-container
+│   │   ├── current-property
+│   │   ├── state-versus-ref
+│   │   ├── no-render-trigger
+│   │   ├── initial-value-and-initialization
+│   │   ├── event-time-ref-access
+│   │   └── avoiding-render-time-mutation
+│   ├── dom-refs
+│   │   ├── attaching-element-ref
+│   │   ├── nullable-element-lifetime
+│   │   ├── focus-management
+│   │   ├── scrolling-into-view
+│   │   ├── element-measurement
+│   │   ├── ref-and-conditional-rendering
+│   │   └── detached-node-safety
+│   ├── callback-refs
+│   │   ├── attach-and-detach
+│   │   ├── callbacks-with-cleanup
+│   │   ├── stable-callback-choice
+│   │   ├── map-of-item-refs
+│   │   ├── list-item-ref-registration
+│   │   ├── strict-mode-replay
+│   │   └── cleanup-return-type
+│   ├── component-ref-contracts
+│   │   ├── ref-as-prop
+│   │   ├── public-ref-minimization
+│   │   ├── dom-ref-forwarding
+│   │   ├── use-imperative-handle
+│   │   ├── custom-handle-methods
+│   │   ├── dependency-management
+│   │   └── controlled-props-before-imperative-api
+│   ├── fragment-refs
+│   │   ├── explicit-fragment-ref
+│   │   ├── fragment-instance
+│   │   ├── group-event-listeners
+│   │   ├── group-focus-control
+│   │   ├── layout-rect-measurement
+│   │   ├── group-observation
+│   │   └── scrolling-without-wrapper
+│   ├── portals
+│   │   ├── create-portal
+│   │   ├── dom-location-versus-react-parent
+│   │   ├── context-through-portals
+│   │   ├── event-bubbling-through-react-tree
+│   │   ├── portal-container-lifecycle
+│   │   ├── stacking-and-overlay-placement
+│   │   └── server-rendering-constraints
+│   ├── imperative-widget-interop
+│   │   ├── editor-integration
+│   │   ├── chart-instance-lifecycle
+│   │   ├── map-instance-lifecycle
+│   │   ├── media-player-control
+│   │   ├── external-dom-ownership
+│   │   ├── update-versus-recreate
+│   │   └── resource-disposal
+│   ├── native-element-interop
+│   │   ├── dialog-show-and-close
+│   │   ├── popover-state-synchronization
+│   │   ├── custom-element-properties
+│   │   ├── custom-events
+│   │   ├── shadow-dom-boundaries
+│   │   ├── trusted-event-requirements
+│   │   └── browser-support-checks
+│   └── ref-and-dom-safety
+│       ├── no-shared-render-dom-mutation
+│       ├── stale-node-handles
+│       ├── focus-after-state-update
+│       ├── flush-sync-as-last-resort
+│       ├── observer-and-listener-leaks
+│       ├── detached-dom-retention
+│       └── imperative-api-tests
+├── custom-hooks-and-reusable-logic
+│   ├── hook-design-fundamentals
+│   │   ├── use-prefix
+│   │   ├── reactive-inputs
+│   │   ├── return-contract
+│   │   ├── stateful-logic-reuse
+│   │   ├── independent-state-per-call
+│   │   ├── hook-versus-utility-function
+│   │   └── feature-scoped-abstraction
+│   ├── rules-of-hooks
+│   │   ├── top-level-calls
+│   │   ├── stable-call-order
+│   │   ├── component-or-hook-call-sites
+│   │   ├── conditional-call-errors
+│   │   ├── early-return-order
+│   │   ├── dynamic-hook-anti-patterns
+│   │   └── linted-hook-contracts
+│   ├── api-design
+│   │   ├── object-versus-tuple-return
+│   │   ├── input-defaults
+│   │   ├── stable-command-handles
+│   │   ├── explicit-enabled-state
+│   │   ├── cancellation-contract
+│   │   ├── error-and-loading-contract
+│   │   └── minimal-public-surface
+│   ├── composition-and-lifecycle
+│   │   ├── composing-built-in-hooks
+│   │   ├── composing-domain-hooks
+│   │   ├── subscription-ownership
+│   │   ├── cleanup-propagation
+│   │   ├── instance-isolation
+│   │   ├── provider-dependencies
+│   │   └── dependency-transparency
+│   ├── stateful-hook-patterns
+│   │   ├── disclosure-state
+│   │   ├── selection-model
+│   │   ├── pagination-model
+│   │   ├── form-draft-state
+│   │   ├── undo-redo-history
+│   │   ├── controlled-uncontrolled-adapter
+│   │   └── reducer-backed-workflow
+│   ├── browser-hook-patterns
+│   │   ├── media-query-subscription
+│   │   ├── resize-observation
+│   │   ├── intersection-observation
+│   │   ├── online-state
+│   │   ├── persisted-preferences
+│   │   ├── keyboard-shortcut-subscription
+│   │   └── document-visibility
+│   ├── async-hook-design
+│   │   ├── task-lifecycle
+│   │   ├── abortable-operations
+│   │   ├── latest-request-wins
+│   │   ├── retry-policy
+│   │   ├── server-cache-library-boundary
+│   │   ├── transition-integration
+│   │   └── avoiding-homegrown-cache-complexity
+│   ├── debugging-and-observability
+│   │   ├── use-debug-value
+│   │   ├── meaningful-debug-labels
+│   │   ├── lazy-debug-formatting
+│   │   ├── devtools-hook-inspection
+│   │   ├── deterministic-reproductions
+│   │   ├── cleanup-observation
+│   │   └── dependency-change-tracing
+│   ├── hook-testing
+│   │   ├── testing-through-components
+│   │   ├── render-hook-focused-tests
+│   │   ├── wrapper-providers
+│   │   ├── async-settlement
+│   │   ├── fake-timer-cleanup
+│   │   ├── strict-mode-lifecycle
+│   │   └── server-snapshot-consistency
+│   └── hook-anti-patterns
+│       ├── lifecycle-wrapper-hooks
+│       ├── unnecessary-hooks
+│       ├── excessive-configuration
+│       ├── stale-callback-contract
+│       ├── hidden-global-state
+│       ├── unstable-dependencies
+│       └── reusing-state-versus-reusing-logic
+├── forms-validation-and-actions
+│   ├── native-form-foundation
+│   │   ├── form-and-submit-semantics
+│   │   ├── labels-and-fieldsets
+│   │   ├── input-names
+│   │   ├── form-data
+│   │   ├── successful-controls
+│   │   ├── submitter-buttons
+│   │   └── native-constraint-validation
+│   ├── controlled-and-uncontrolled-fields
+│   │   ├── value-and-default-value
+│   │   ├── checked-and-default-checked
+│   │   ├── synchronous-change-handler
+│   │   ├── empty-value-normalization
+│   │   ├── controlled-mode-consistency
+│   │   ├── file-input-boundary
+│   │   └── form-reset-behavior
+│   ├── field-types-and-data
+│   │   ├── text-and-textarea
+│   │   ├── radio-and-checkbox-groups
+│   │   ├── select-and-multiple-select
+│   │   ├── numeric-input-strings
+│   │   ├── date-and-time-values
+│   │   ├── file-and-multipart-input
+│   │   └── rich-text-validation-boundary
+│   ├── form-state-model
+│   │   ├── field-values
+│   │   ├── touched-and-dirty
+│   │   ├── validation-errors
+│   │   ├── submission-status
+│   │   ├── default-and-loaded-values
+│   │   ├── draft-versus-saved-values
+│   │   └── form-level-invariants
+│   ├── validation-design
+│   │   ├── client-and-server-validation
+│   │   ├── field-and-cross-field-rules
+│   │   ├── schema-validation
+│   │   ├── async-validation
+│   │   ├── cancellation-and-debounce
+│   │   ├── localized-messages
+│   │   └── server-error-to-field-mapping
+│   ├── react-actions
+│   │   ├── action-model
+│   │   │   ├── async-transition-work
+│   │   │   ├── pending-state
+│   │   │   ├── side-effects-in-actions
+│   │   │   ├── action-prop-contract
+│   │   │   ├── ordering-and-overlap
+│   │   │   ├── expected-error-results
+│   │   │   └── thrown-error-boundary
+│   │   ├── form-action
+│   │   │   ├── function-valued-action
+│   │   │   ├── form-action-overrides
+│   │   │   ├── form-data-parsing
+│   │   │   ├── successful-uncontrolled-reset
+│   │   │   ├── preserving-submitted-values
+│   │   │   ├── progressive-enhancement-boundary
+│   │   │   └── server-function-integration
+│   │   ├── use-action-state
+│   │   │   ├── reducer-action-signature
+│   │   │   ├── previous-state-and-payload
+│   │   │   ├── returned-state
+│   │   │   ├── pending-status
+│   │   │   ├── queued-dispatches
+│   │   │   ├── permalink-behavior
+│   │   │   └── expected-error-model
+│   │   ├── use-form-status
+│   │   │   ├── parent-form-boundary
+│   │   │   ├── pending-data-method-action
+│   │   │   ├── submit-button-composition
+│   │   │   ├── separate-component-placement
+│   │   │   ├── multiple-form-isolation
+│   │   │   ├── pending-ui-tests
+│   │   │   └── submission-transition-integration
+│   │   └── use-optimistic
+│   │       ├── optimistic-state-overlay
+│   │       ├── pure-optimistic-reducer
+│   │       ├── temporary-identifiers
+│   │       ├── confirmation-and-reconciliation
+│   │       ├── failure-reversion
+│   │       ├── concurrent-submissions
+│   │       └── authoritative-state-refresh
+│   ├── complex-form-workflows
+│   │   ├── dynamic-field-arrays
+│   │   ├── conditional-fields
+│   │   ├── multi-step-wizard
+│   │   ├── autosave-drafts
+│   │   ├── file-upload-progress
+│   │   ├── unsaved-change-warning
+│   │   └── duplicate-submission-prevention
+│   ├── form-library-integration
+│   │   ├── react-hook-form
+│   │   ├── field-registration
+│   │   ├── controller-adapters
+│   │   ├── schema-resolvers
+│   │   ├── field-array-identity
+│   │   ├── subscription-granularity
+│   │   └── native-action-interoperability
+│   ├── form-accessibility
+│   │   ├── programmatic-labels
+│   │   ├── field-description-links
+│   │   ├── error-summary
+│   │   ├── focus-first-invalid-field
+│   │   ├── pending-and-success-announcements
+│   │   ├── keyboard-completion
+│   │   └── preserving-input-after-failure
+│   └── form-testing-and-resilience
+│       ├── validation-boundaries
+│       ├── server-rejection
+│       ├── slow-network
+│       ├── stale-edit-conflicts
+│       ├── repeated-submit
+│       ├── failed-upload
+│       └── draft-recovery
+├── routing-and-navigation
+│   ├── routing-foundations
+│   │   ├── url-as-state
+│   │   ├── browser-history
+│   │   ├── links-versus-imperative-navigation
+│   │   ├── path-and-query-parameters
+│   │   ├── nested-navigation
+│   │   ├── deep-linking
+│   │   └── full-document-versus-client-navigation
+│   ├── route-design
+│   │   ├── public-and-private-layouts
+│   │   ├── index-and-detail-routes
+│   │   ├── dynamic-segments
+│   │   ├── optional-and-catch-all-segments
+│   │   ├── route-hierarchy
+│   │   ├── not-found-pages
+│   │   └── stable-url-design
+│   ├── react-router-modes
+│   │   ├── declarative-mode
+│   │   │   ├── browser-router
+│   │   │   ├── routes-and-route
+│   │   │   ├── outlet
+│   │   │   ├── nested-layouts
+│   │   │   ├── link-and-nav-link
+│   │   │   ├── navigation-hooks
+│   │   │   └── application-owned-data-layer
+│   │   ├── data-mode
+│   │   │   ├── router-configuration
+│   │   │   ├── router-provider
+│   │   │   ├── loaders-and-actions
+│   │   │   ├── fetchers
+│   │   │   ├── pending-navigation
+│   │   │   ├── route-error-boundaries
+│   │   │   └── revalidation
+│   │   └── framework-mode
+│   │       ├── route-modules
+│   │       ├── generated-route-types
+│   │       ├── vite-plugin
+│   │       ├── server-and-client-builds
+│   │       ├── rendering-strategy
+│   │       ├── route-level-code-splitting
+│   │       └── deployment-adapters
+│   ├── navigation-state
+│   │   ├── active-links
+│   │   ├── pending-links
+│   │   ├── replace-versus-push
+│   │   ├── location-state
+│   │   ├── back-and-forward
+│   │   ├── scroll-restoration
+│   │   └── focus-restoration
+│   ├── search-parameter-modeling
+│   │   ├── filter-and-sort-state
+│   │   ├── pagination-in-url
+│   │   ├── typed-search-parsing
+│   │   ├── default-value-policy
+│   │   ├── query-serialization
+│   │   ├── invalid-parameter-recovery
+│   │   └── shareable-view-state
+│   ├── route-data-coordination
+│   │   ├── loader-parallelism
+│   │   ├── request-cancellation
+│   │   ├── route-prefetching
+│   │   ├── mutation-revalidation
+│   │   ├── router-and-query-cache-boundaries
+│   │   ├── authentication-loading-state
+│   │   └── avoiding-duplicate-fetches
+│   ├── navigation-workflows
+│   │   ├── nested-settings
+│   │   ├── detail-modal-routes
+│   │   ├── multi-step-flows
+│   │   ├── unsaved-change-blocking
+│   │   ├── login-return-destination
+│   │   ├── locale-routing
+│   │   └── tenant-routing
+│   ├── router-ecosystem-boundaries
+│   │   ├── tanstack-router
+│   │   ├── typed-route-contracts
+│   │   ├── framework-versus-library-choice
+│   │   ├── route-generation-strategy
+│   │   ├── migration-cost
+│   │   ├── browser-history-constraints
+│   │   └── routing-without-global-store
+│   └── routing-quality
+│       ├── direct-url-load
+│       ├── refresh-and-hosting-fallback
+│       ├── unknown-route-status
+│       ├── encoded-parameter-tests
+│       ├── history-navigation-tests
+│       ├── accessible-link-semantics
+│       └── guarded-route-security-limits
+├── data-fetching-and-server-state
+│   ├── server-state-model
+│   │   ├── remote-ownership
+│   │   ├── asynchronous-lifecycle
+│   │   ├── freshness-and-staleness
+│   │   ├── cache-versus-client-state
+│   │   ├── shared-request-results
+│   │   ├── background-updates
+│   │   └── synchronization-boundaries
+│   ├── data-loading-strategies
+│   │   ├── framework-loaders
+│   │   ├── server-component-reads
+│   │   ├── query-library-hooks
+│   │   ├── effect-based-learning-example
+│   │   ├── route-prefetching
+│   │   ├── parallel-loading
+│   │   └── avoiding-network-waterfalls
+│   ├── fetch-foundations
+│   │   ├── request-construction
+│   │   ├── response-status-handling
+│   │   ├── json-and-stream-parsing
+│   │   ├── abort-signals
+│   │   ├── timeout-policy
+│   │   ├── credential-mode
+│   │   └── network-error-versus-http-error
+│   ├── query-key-design
+│   │   ├── resource-and-parameter-identity
+│   │   ├── tenant-and-user-scoping
+│   │   ├── stable-serialization
+│   │   ├── pagination-and-filter-keys
+│   │   ├── key-factories
+│   │   ├── collision-prevention
+│   │   └── secret-free-query-keys
+│   ├── tanstack-query
+│   │   ├── query-lifecycle
+│   │   │   ├── query-client-provider
+│   │   │   ├── use-query
+│   │   │   ├── query-functions
+│   │   │   ├── pending-success-error
+│   │   │   ├── fetching-versus-pending
+│   │   │   ├── enabled-and-dependent-queries
+│   │   │   └── abort-signal-consumption
+│   │   ├── cache-policy
+│   │   │   ├── stale-time
+│   │   │   ├── garbage-collection-time
+│   │   │   ├── background-refetch
+│   │   │   ├── focus-and-reconnect-refetch
+│   │   │   ├── retry-policy
+│   │   │   ├── initial-and-placeholder-data
+│   │   │   └── structural-sharing
+│   │   ├── list-and-detail-data
+│   │   │   ├── parallel-queries
+│   │   │   ├── dependent-queries
+│   │   │   ├── paginated-queries
+│   │   │   ├── infinite-queries
+│   │   │   ├── cursor-contracts
+│   │   │   ├── selected-data-transformation
+│   │   │   └── list-detail-cache-coordination
+│   │   ├── mutations
+│   │   │   ├── use-mutation
+│   │   │   ├── mutation-variables
+│   │   │   ├── pending-and-error-status
+│   │   │   ├── targeted-invalidation
+│   │   │   ├── direct-cache-updates
+│   │   │   ├── optimistic-update-rollback
+│   │   │   └── settled-reconciliation
+│   │   └── server-integration
+│   │       ├── prefetching
+│   │       ├── dehydration
+│   │       ├── hydration-boundary
+│   │       ├── request-scoped-query-client
+│   │       ├── server-client-staleness
+│   │       ├── data-leakage-prevention
+│   │       └── serialized-payload-review
+│   ├── alternative-data-layers
+│   │   ├── swr-key-and-revalidation
+│   │   ├── rtk-query-endpoints
+│   │   ├── apollo-client-cache
+│   │   ├── relay-fragment-colocation
+│   │   ├── framework-native-cache
+│   │   ├── selecting-one-cache-owner
+│   │   └── incremental-adoption
+│   ├── mutation-consistency
+│   │   ├── optimistic-versus-pessimistic-ui
+│   │   ├── duplicate-submit-handling
+│   │   ├── idempotency-token-integration
+│   │   ├── stale-response-rejection
+│   │   ├── conflict-and-version-handling
+│   │   ├── cache-invalidation-scope
+│   │   └── user-switch-cache-clear
+│   ├── realtime-cache-updates
+│   │   ├── polling
+│   │   ├── server-sent-events
+│   │   ├── websocket-subscriptions
+│   │   ├── event-to-cache-mapping
+│   │   ├── reconnect-and-resync
+│   │   ├── duplicate-event-handling
+│   │   └── event-ordering
+│   ├── query-experience
+│   │   ├── initial-loading
+│   │   ├── empty-results
+│   │   ├── background-refresh
+│   │   ├── stale-data-indicators
+│   │   ├── incremental-results
+│   │   ├── offline-fallback
+│   │   └── retry-controls
+│   └── query-testing
+│       ├── isolated-query-clients
+│       ├── deterministic-retry-settings
+│       ├── mock-network-scenarios
+│       ├── cancellation-tests
+│       ├── invalidation-tests
+│       ├── optimistic-rollback-tests
+│       └── cross-user-cache-isolation
+├── api-contracts-and-backend-integration
+│   ├── frontend-backend-boundaries
+│   │   ├── presentation-and-business-rules
+│   │   ├── backend-authoritative-validation
+│   │   ├── api-client-adapters
+│   │   ├── data-transfer-models
+│   │   ├── domain-model-mapping
+│   │   ├── transport-error-normalization
+│   │   └── environment-specific-endpoints
+│   ├── rest-integration
+│   │   ├── resource-endpoints
+│   │   ├── http-method-semantics
+│   │   ├── query-serialization
+│   │   ├── pagination-contract
+│   │   ├── filtering-and-sorting
+│   │   ├── error-response-shapes
+│   │   └── conditional-requests
+│   ├── contract-driven-clients
+│   │   ├── openapi-client-generation
+│   │   ├── generated-code-boundaries
+│   │   ├── runtime-response-validation
+│   │   ├── nullable-and-optional-fields
+│   │   ├── versioned-contracts
+│   │   ├── breaking-change-detection
+│   │   └── contract-fixtures
+│   ├── graphql-integration
+│   │   ├── operation-documents
+│   │   ├── query-and-mutation-variables
+│   │   ├── fragments
+│   │   ├── operation-code-generation
+│   │   ├── partial-data-and-errors
+│   │   ├── pagination-conventions
+│   │   └── normalized-cache-policy
+│   ├── rpc-and-bff
+│   │   ├── typed-rpc-contracts
+│   │   ├── backend-for-frontend
+│   │   ├── request-aggregation
+│   │   ├── schema-boundaries
+│   │   ├── server-only-credentials
+│   │   ├── session-forwarding
+│   │   └── deployment-coupling
+│   ├── async-and-long-running-jobs
+│   │   ├── task-submission
+│   │   ├── job-identifiers
+│   │   ├── status-polling
+│   │   ├── progress-events
+│   │   ├── cancellation-request
+│   │   ├── completion-artifacts
+│   │   └── expired-job-handling
+│   ├── file-and-media-transfer
+│   │   ├── multipart-upload
+│   │   ├── signed-upload-workflow
+│   │   ├── progress-reporting
+│   │   ├── abort-and-retry
+│   │   ├── file-type-validation-boundary
+│   │   ├── authenticated-download
+│   │   └── object-url-cleanup
+│   ├── streaming-and-live-content
+│   │   ├── readable-stream-consumption
+│   │   ├── incremental-text-decoding
+│   │   ├── framing-and-message-parsing
+│   │   ├── bounded-ui-update-frequency
+│   │   ├── cancellation-on-navigation
+│   │   ├── partial-result-errors
+│   │   └── completion-state
+│   ├── backend-stack-interop
+│   │   ├── nodejs-api
+│   │   ├── java-spring-api
+│   │   ├── python-api
+│   │   ├── headless-cms
+│   │   ├── graphql-service
+│   │   ├── api-gateway
+│   │   └── shared-contract-not-shared-secrets
+│   ├── integration-reliability
+│   │   ├── request-correlation
+│   │   ├── retryable-operation-classification
+│   │   ├── backoff-and-jitter
+│   │   ├── rate-limit-feedback
+│   │   ├── request-deduplication
+│   │   ├── timeout-budgets
+│   │   └── offline-versus-service-outage
+│   └── integration-test-matrix
+│       ├── empty-data
+│       ├── malformed-response
+│       ├── unauthorized-and-forbidden
+│       ├── expired-session
+│       ├── slow-network
+│       ├── conflicting-update
+│       └── backend-unavailability
+├── suspense-transitions-and-activity
+│   ├── concurrent-rendering-model
+│   │   ├── urgent-and-non-urgent-updates
+│   │   ├── interruptible-rendering
+│   │   ├── consistent-commit
+│   │   ├── restartable-render-work
+│   │   ├── no-parallel-javascript-guarantee
+│   │   ├── purity-requirement
+│   │   └── scheduling-versus-network-control
+│   ├── suspense-boundaries
+│   │   ├── fallback-ui
+│   │   ├── nested-boundaries
+│   │   ├── reveal-coordination
+│   │   ├── layout-preservation
+│   │   ├── boundary-placement
+│   │   ├── suspense-enabled-data-source
+│   │   └── unsupported-effect-fetch-suspension
+│   ├── code-loading
+│   │   ├── lazy-and-dynamic-import
+│   │   ├── top-level-lazy-declarations
+│   │   ├── default-export-contract
+│   │   ├── loading-boundary
+│   │   ├── chunk-load-failure
+│   │   ├── retry-and-reload-policy
+│   │   └── route-level-splitting
+│   ├── use-api
+│   │   ├── reading-promises
+│   │   ├── reading-context
+│   │   ├── conditional-use-rules
+│   │   ├── stable-promise-source
+│   │   ├── rejection-to-error-boundary
+│   │   ├── server-created-promise-handoff
+│   │   └── use-versus-await
+│   ├── use-transition
+│   │   ├── start-transition
+│   │   ├── pending-state
+│   │   ├── urgent-input-updates
+│   │   ├── non-urgent-result-updates
+│   │   ├── async-actions
+│   │   ├── post-await-update-caveats
+│   │   └── pending-feedback
+│   ├── use-deferred-value
+│   │   ├── deferred-derived-ui
+│   │   ├── stale-content-indicator
+│   │   ├── background-rerender
+│   │   ├── initial-value-option
+│   │   ├── urgent-input-preservation
+│   │   ├── network-request-independence
+│   │   └── debounce-versus-deferral
+│   ├── suspense-user-experience
+│   │   ├── preventing-unnecessary-fallback-replacement
+│   │   ├── preserving-visible-content
+│   │   ├── skeleton-dimensions
+│   │   ├── partial-page-loading
+│   │   ├── loading-announcements
+│   │   ├── minimum-feedback-design
+│   │   └── transition-interruption
+│   ├── activity-boundaries
+│   │   ├── visible-and-hidden-modes
+│   │   ├── preserved-state
+│   │   ├── preserved-dom
+│   │   ├── effect-cleanup-when-hidden
+│   │   ├── effect-recreation-when-visible
+│   │   ├── background-priority-updates
+│   │   └── pre-rendering-likely-content
+│   ├── boundary-coordination
+│   │   ├── activity-and-suspense
+│   │   ├── activity-and-view-transition
+│   │   ├── error-and-suspense-boundary-order
+│   │   ├── context-and-boundary-placement
+│   │   ├── route-transition-policies
+│   │   ├── hidden-resource-lifecycle
+│   │   └── testing-boundary-reentry
+│   └── concurrency-labs
+│       ├── slow-list-rendering
+│       ├── rapid-search-updates
+│       ├── interrupted-navigation
+│       ├── nested-loading-states
+│       ├── hidden-tab-subscription-cleanup
+│       ├── stale-result-display
+│       └── concurrent-mutation-ordering
+├── error-handling-and-resilient-ui
+│   ├── error-classification
+│   │   ├── render-errors
+│   │   ├── event-handler-errors
+│   │   ├── effect-errors
+│   │   ├── rejected-requests
+│   │   ├── expected-domain-errors
+│   │   ├── hydration-errors
+│   │   └── resource-loading-errors
+│   ├── error-boundary-model
+│   │   ├── boundary-placement
+│   │   ├── fallback-rendering
+│   │   ├── reset-and-retry
+│   │   ├── component-stack-reporting
+│   │   ├── errors-outside-boundary-scope
+│   │   ├── boundary-failure-isolation
+│   │   └── class-based-boundary-or-library
+│   ├── framework-error-handling
+│   │   ├── route-error-boundaries
+│   │   ├── server-rendering-failures
+│   │   ├── not-found-and-redirect-signals
+│   │   ├── recoverable-route-state
+│   │   ├── action-validation-results
+│   │   ├── streaming-error-status
+│   │   └── framework-observability-hooks
+│   ├── async-failure-handling
+│   │   ├── try-catch-in-event-work
+│   │   ├── rejected-promise-handling
+│   │   ├── cancellation-not-as-failure
+│   │   ├── retry-after-transient-errors
+│   │   ├── optimistic-rollback
+│   │   ├── stale-response-discard
+│   │   └── preservation-of-user-input
+│   ├── ui-state-completeness
+│   │   ├── initial
+│   │   ├── loading
+│   │   ├── empty
+│   │   ├── success
+│   │   ├── partial-success
+│   │   ├── stale
+│   │   ├── unavailable
+│   │   └── forbidden
+│   ├── recovery-design
+│   │   ├── local-retry
+│   │   ├── page-reload-action
+│   │   ├── reset-boundary-key
+│   │   ├── draft-preservation
+│   │   ├── offline-resume
+│   │   ├── degraded-feature
+│   │   └── fallback-navigation
+│   ├── resource-failures
+│   │   ├── failed-code-chunk
+│   │   ├── stale-deployment-assets
+│   │   ├── failed-image
+│   │   ├── failed-third-party-script
+│   │   ├── unavailable-widget
+│   │   ├── failed-font
+│   │   └── resilient-placeholder
+│   ├── error-contracts
+│   │   ├── user-safe-messages
+│   │   ├── internal-error-details
+│   │   ├── correlation-identifiers
+│   │   ├── actionable-validation-errors
+│   │   ├── localized-error-copy
+│   │   ├── error-code-mapping
+│   │   └── escalation-paths
+│   └── resilience-testing
+│       ├── intentional-render-throw
+│       ├── network-fault-injection
+│       ├── cache-corruption-simulation
+│       ├── navigation-during-request
+│       ├── stale-client-after-deploy
+│       ├── repeated-retry-limit
+│       └── recovery-without-data-loss
+├── styling-theming-and-design-systems
+│   ├── styling-options
+│   │   ├── plain-css
+│   │   ├── css-modules
+│   │   ├── utility-first-css
+│   │   ├── css-in-js
+│   │   ├── compile-time-style-extraction
+│   │   ├── component-library-theming
+│   │   └── approach-selection-by-constraints
+│   ├── component-style-boundaries
+│   │   ├── local-versus-global-style
+│   │   ├── class-name-contracts
+│   │   ├── conditional-classes
+│   │   ├── variant-mapping
+│   │   ├── style-prop-boundaries
+│   │   ├── dom-state-attributes
+│   │   └── avoiding-prop-leakage
+│   ├── responsive-component-design
+│   │   ├── intrinsic-layout
+│   │   ├── container-queries
+│   │   ├── viewport-breakpoints
+│   │   ├── content-driven-overflow
+│   │   ├── mobile-navigation
+│   │   ├── responsive-data-tables
+│   │   └── touch-target-spacing
+│   ├── design-tokens
+│   │   ├── primitive-tokens
+│   │   ├── semantic-tokens
+│   │   ├── component-tokens
+│   │   ├── css-custom-properties
+│   │   ├── spacing-and-type-scales
+│   │   ├── token-versioning
+│   │   └── design-tool-handoff
+│   ├── theme-management
+│   │   ├── light-and-dark-mode
+│   │   ├── system-preference
+│   │   ├── explicit-user-choice
+│   │   ├── persistence-and-initial-render
+│   │   ├── avoiding-theme-flash
+│   │   ├── server-client-theme-consistency
+│   │   └── high-contrast-support
+│   ├── component-variants
+│   │   ├── size-and-density
+│   │   ├── visual-intent
+│   │   ├── interaction-states
+│   │   ├── disabled-versus-readonly
+│   │   ├── compound-variants
+│   │   ├── class-conflict-resolution
+│   │   └── variant-api-tests
+│   ├── style-delivery
+│   │   ├── stylesheet-order
+│   │   ├── cascade-layers
+│   │   ├── code-split-styles
+│   │   ├── server-style-extraction
+│   │   ├── style-insertion-timing
+│   │   ├── critical-css
+│   │   └── framework-style-integration
+│   ├── design-system-components
+│   │   ├── buttons-and-links
+│   │   ├── typography-primitives
+│   │   ├── layout-primitives
+│   │   ├── form-controls
+│   │   ├── feedback-components
+│   │   ├── overlays
+│   │   └── navigation-components
+│   ├── component-workbench
+│   │   ├── storybook-stories
+│   │   ├── isolated-provider-setup
+│   │   ├── controls-and-args
+│   │   ├── interaction-stories
+│   │   ├── accessibility-checks
+│   │   ├── visual-snapshots
+│   │   └── documentation-examples
+│   └── design-system-governance
+│       ├── public-component-api
+│       ├── composability-guidelines
+│       ├── semantic-versioning
+│       ├── deprecation-path
+│       ├── adoption-metrics
+│       ├── cross-product-consistency
+│       └── design-and-engineering-review
+├── accessible-components-and-interaction-patterns
+│   ├── accessibility-foundations
+│   │   ├── semantic-html-first
+│   │   ├── accessibility-tree
+│   │   ├── accessible-name-and-description
+│   │   ├── native-control-preference
+│   │   ├── aria-when-needed
+│   │   ├── keyboard-and-screen-reader-use
+│   │   └── automated-test-limitations
+│   ├── focus-management
+│   │   ├── logical-tab-order
+│   │   ├── visible-focus
+│   │   ├── programmatic-focus
+│   │   ├── return-focus-after-dismissal
+│   │   ├── focus-on-route-change
+│   │   ├── focus-after-errors
+│   │   └── no-positive-tabindex-shortcuts
+│   ├── forms-and-feedback
+│   │   ├── label-association
+│   │   ├── use-id-for-field-relationships
+│   │   ├── descriptive-error-text
+│   │   ├── invalid-and-required-state
+│   │   ├── live-region-announcements
+│   │   ├── pending-state-communication
+│   │   └── autocomplete-and-input-purpose
+│   ├── navigation-patterns
+│   │   ├── skip-links
+│   │   ├── landmark-navigation
+│   │   ├── breadcrumbs
+│   │   ├── disclosure-navigation
+│   │   ├── active-page-indication
+│   │   ├── route-title-updates
+│   │   └── menu-versus-site-navigation
+│   ├── selection-patterns
+│   │   ├── checkbox-and-radio-groups
+│   │   ├── tabs-and-tabpanels
+│   │   ├── listbox-selection
+│   │   ├── combobox-input-and-popup
+│   │   ├── roving-tabindex
+│   │   ├── active-descendant-model
+│   │   └── typeahead-and-ime
+│   ├── modal-and-overlay-patterns
+│   │   ├── native-dialog-integration
+│   │   ├── modal-focus-containment
+│   │   ├── background-inertness
+│   │   ├── escape-dismissal
+│   │   ├── outside-interaction-policy
+│   │   ├── tooltip-description
+│   │   └── popover-versus-modal
+│   ├── complex-content
+│   │   ├── table-versus-grid
+│   │   ├── accessible-sorting
+│   │   ├── pagination-controls
+│   │   ├── virtualized-list-limitations
+│   │   ├── expandable-tree
+│   │   ├── keyboard-reordering
+│   │   └── alternative-to-drag-only
+│   ├── async-accessibility
+│   │   ├── loading-region-labels
+│   │   ├── non-disruptive-background-updates
+│   │   ├── result-count-announcement
+│   │   ├── optimistic-feedback
+│   │   ├── error-recovery-focus
+│   │   ├── suspense-fallback-semantics
+│   │   └── realtime-announcement-rate
+│   ├── user-preferences
+│   │   ├── reduced-motion
+│   │   ├── forced-colors
+│   │   ├── text-resize-and-zoom
+│   │   ├── contrast
+│   │   ├── theme-and-color-independence
+│   │   ├── right-to-left-navigation
+│   │   └── pointer-and-keyboard-parity
+│   └── assistive-testing
+│       ├── keyboard-walkthrough
+│       ├── screen-reader-smoke-tests
+│       ├── automated-axe-checks
+│       ├── accessibility-snapshots
+│       ├── zoom-and-reflow-tests
+│       ├── mobile-assistive-technology
+│       └── real-user-task-validation
+├── typescript-and-type-safe-react
+│   ├── react-types-foundation
+│   │   ├── tsx-files
+│   │   ├── react-and-react-dom-types
+│   │   ├── jsx-transform-configuration
+│   │   ├── react-node-versus-react-element
+│   │   ├── inferred-component-return
+│   │   ├── strict-null-checks
+│   │   └── type-erasure-boundary
+│   ├── props-modeling
+│   │   ├── object-props
+│   │   ├── optional-props
+│   │   ├── default-values
+│   │   ├── discriminated-union-props
+│   │   ├── children-contracts
+│   │   ├── callback-signatures
+│   │   └── readonly-input-contracts
+│   ├── native-prop-composition
+│   │   ├── component-props-inference
+│   │   ├── intrinsic-element-props
+│   │   ├── extending-button-props
+│   │   ├── omit-conflicting-fields
+│   │   ├── aria-and-data-attributes
+│   │   ├── style-object-types
+│   │   └── event-prop-compatibility
+│   ├── state-and-reducer-types
+│   │   ├── initializer-inference
+│   │   ├── explicit-state-unions
+│   │   ├── nullable-state
+│   │   ├── updater-function-types
+│   │   ├── action-discriminated-unions
+│   │   ├── exhaustive-reducer-checks
+│   │   └── avoiding-unsafe-type-assertions
+│   ├── event-and-ref-types
+│   │   ├── change-events
+│   │   ├── form-events
+│   │   ├── keyboard-and-pointer-events
+│   │   ├── current-target-inference
+│   │   ├── nullable-element-refs
+│   │   ├── callback-ref-cleanup
+│   │   └── imperative-handle-types
+│   ├── context-and-hook-types
+│   │   ├── nullable-context-default
+│   │   ├── required-provider-hook
+│   │   ├── generic-hook-parameters
+│   │   ├── tuple-return-inference
+│   │   ├── readonly-return-tuples
+│   │   ├── async-result-unions
+│   │   └── external-store-snapshot-types
+│   ├── generic-components
+│   │   ├── generic-list
+│   │   ├── typed-table-columns
+│   │   ├── key-extractor-contract
+│   │   ├── value-change-consistency
+│   │   ├── polymorphic-prop-tradeoffs
+│   │   ├── inference-preserving-wrappers
+│   │   └── generic-jsx-syntax
+│   ├── async-data-contracts
+│   │   ├── unknown-network-data
+│   │   ├── schema-inference
+│   │   ├── generated-api-types
+│   │   ├── query-result-narrowing
+│   │   ├── action-state-result-types
+│   │   ├── optimistic-payload-types
+│   │   └── serialized-boundary-types
+│   ├── library-type-quality
+│   │   ├── public-type-exports
+│   │   ├── consumer-compile-tests
+│   │   ├── type-level-regression-tests
+│   │   ├── peer-type-compatibility
+│   │   ├── declaration-output
+│   │   ├── forward-ref-migration-types
+│   │   └── avoiding-unnecessary-react-fc
+│   └── incremental-adoption
+│       ├── jsdoc-checked-javascript
+│       ├── javascript-to-tsx
+│       ├── conversion-boundaries
+│       ├── explicit-any-review
+│       ├── shared-domain-types
+│       ├── runtime-validation-retention
+│       └── strictness-ratchet
+├── application-architecture-and-domain-design
+│   ├── architecture-boundaries
+│   │   ├── app-shell
+│   │   ├── feature-modules
+│   │   ├── domain-models
+│   │   ├── infrastructure-adapters
+│   │   ├── shared-ui
+│   │   ├── composition-root
+│   │   └── dependency-direction
+│   ├── feature-oriented-organization
+│   │   ├── route-owned-features
+│   │   ├── feature-public-entry-points
+│   │   ├── colocated-components-and-hooks
+│   │   ├── feature-tests
+│   │   ├── shared-code-extraction
+│   │   ├── avoiding-universal-utils
+│   │   └── cross-feature-contracts
+│   ├── domain-modeling-for-ui
+│   │   ├── server-entity-versus-view-model
+│   │   ├── domain-invariants
+│   │   ├── mapping-api-data
+│   │   ├── selection-and-editing-models
+│   │   ├── money-and-date-boundaries
+│   │   ├── status-transition-models
+│   │   └── derived-read-models
+│   ├── state-ownership-map
+│   │   ├── component-local-state
+│   │   ├── feature-shared-state
+│   │   ├── url-state
+│   │   ├── form-drafts
+│   │   ├── query-cache
+│   │   ├── persisted-preferences
+│   │   └── server-authoritative-state
+│   ├── application-services
+│   │   ├── request-adapters
+│   │   ├── browser-platform-adapters
+│   │   ├── authentication-adapter
+│   │   ├── analytics-adapter
+│   │   ├── storage-adapter
+│   │   ├── clock-and-id-abstractions
+│   │   └── test-replacement-boundaries
+│   ├── component-dependency-design
+│   │   ├── dependency-injection-through-props
+│   │   ├── provider-scoped-services
+│   │   ├── port-and-adapter-pattern
+│   │   ├── pure-domain-functions
+│   │   ├── infrastructure-outside-render
+│   │   ├── import-boundary-enforcement
+│   │   └── avoiding-service-locator-overuse
+│   ├── workflow-modeling
+│   │   ├── finite-state-transitions
+│   │   ├── multi-step-processes
+│   │   ├── pending-approval-states
+│   │   ├── cancel-and-compensate
+│   │   ├── user-visible-side-effects
+│   │   ├── recoverable-checkpoints
+│   │   └── cross-page-workflow-state
+│   ├── large-application-design
+│   │   ├── bounded-feature-ownership
+│   │   ├── team-aligned-modules
+│   │   ├── shared-design-system
+│   │   ├── dependency-graph-management
+│   │   ├── lazy-feature-loading
+│   │   ├── architecture-decision-records
+│   │   └── incremental-refactoring
+│   ├── microfrontend-evaluation
+│   │   ├── independent-deployment-need
+│   │   ├── runtime-integration-boundaries
+│   │   ├── shared-react-singleton
+│   │   ├── cross-app-navigation
+│   │   ├── design-system-alignment
+│   │   ├── isolation-and-security
+│   │   └── operational-overhead
+│   └── architecture-quality
+│       ├── testability
+│       ├── change-locality
+│       ├── dependency-cycle-checks
+│       ├── bundle-boundary-review
+│       ├── observability-ownership
+│       ├── resilience-by-feature
+│       └── architecture-fitness-checks
+├── state-management-ecosystem
+│   ├── selection-framework
+│   │   ├── local-state-and-context-baseline
+│   │   ├── client-state-versus-server-cache
+│   │   ├── complexity-and-team-needs
+│   │   ├── subscription-granularity
+│   │   ├── devtools-and-debugging
+│   │   ├── ssr-compatibility
+│   │   └── migration-and-maintenance-cost
+│   ├── redux-toolkit
+│   │   ├── store-and-slices
+│   │   │   ├── configure-store
+│   │   │   ├── create-slice
+│   │   │   ├── reducers-and-generated-actions
+│   │   │   ├── immutable-updates-with-immer
+│   │   │   ├── middleware-configuration
+│   │   │   ├── serializable-state
+│   │   │   └── typed-store-hooks
+│   │   ├── state-access
+│   │   │   ├── react-redux-provider
+│   │   │   ├── use-selector
+│   │   │   ├── use-dispatch
+│   │   │   ├── selector-memoization
+│   │   │   ├── normalized-entity-adapters
+│   │   │   ├── derived-data
+│   │   │   └── equality-and-rerender-behavior
+│   │   ├── asynchronous-work
+│   │   │   ├── create-async-thunk
+│   │   │   ├── listener-middleware
+│   │   │   ├── cancellation-and-request-ids
+│   │   │   ├── request-status-modeling
+│   │   │   ├── error-payloads
+│   │   │   ├── workflow-side-effects
+│   │   │   └── avoiding-duplicate-query-state
+│   │   ├── rtk-query
+│   │   │   ├── api-slice
+│   │   │   ├── endpoint-definitions
+│   │   │   ├── generated-hooks
+│   │   │   ├── cache-tags
+│   │   │   ├── invalidation
+│   │   │   ├── optimistic-cache-patches
+│   │   │   └── request-lifecycle
+│   │   └── application-integration
+│   │       ├── per-request-server-store
+│   │       ├── preloaded-state
+│   │       ├── persistence-boundaries
+│   │       ├── logout-reset
+│   │       ├── reducer-injection
+│   │       ├── testing-with-real-store
+│   │       └── devtools-trace
+│   ├── zustand
+│   │   ├── store-creation
+│   │   ├── selectors
+│   │   ├── action-functions
+│   │   ├── immutable-set-updates
+│   │   ├── middleware-and-persistence
+│   │   ├── scoped-store-instances
+│   │   └── ssr-and-hydration-boundaries
+│   ├── jotai
+│   │   ├── primitive-atoms
+│   │   ├── derived-atoms
+│   │   ├── writable-atoms
+│   │   ├── atom-identity
+│   │   ├── provider-scoping
+│   │   ├── async-atoms
+│   │   └── storage-backed-atoms
+│   ├── state-machines-and-actors
+│   │   ├── xstate
+│   │   ├── finite-states-and-events
+│   │   ├── guarded-transitions
+│   │   ├── invoked-async-work
+│   │   ├── actor-lifecycle
+│   │   ├── react-subscription
+│   │   └── workflow-visualization
+│   ├── observable-store-interop
+│   │   ├── mobx-observables
+│   │   ├── observer-boundaries
+│   │   ├── actions-and-computed-values
+│   │   ├── observable-lifecycle
+│   │   ├── use-sync-external-store-adapters
+│   │   ├── framework-consistency
+│   │   └── testing-observable-ui
+│   ├── state-persistence
+│   │   ├── schema-versioning
+│   │   ├── migration-and-reset
+│   │   ├── storage-failures
+│   │   ├── cross-tab-events
+│   │   ├── private-data-minimization
+│   │   ├── encryption-boundary
+│   │   └── logout-and-tenant-switch
+│   └── store-testing-and-migration
+│       ├── isolated-store-per-test
+│       ├── reducer-invariants
+│       ├── selector-tests
+│       ├── integration-with-network-mocks
+│       ├── incremental-store-replacement
+│       ├── duplicated-state-removal
+│       └── regression-observation
+├── server-rendering-streaming-and-hydration
+│   ├── rendering-strategy
+│   │   ├── client-side-rendering
+│   │   ├── server-side-rendering
+│   │   ├── static-generation
+│   │   ├── streaming-html
+│   │   ├── hybrid-routes
+│   │   ├── rendering-versus-data-cache
+│   │   └── deployment-capability-matrix
+│   ├── server-environment
+│   │   ├── request-context
+│   │   ├── browser-globals-absence
+│   │   ├── server-runtime-target
+│   │   ├── request-scoped-services
+│   │   ├── server-side-error-handling
+│   │   ├── render-time-data-availability
+│   │   └── resource-cleanup
+│   ├── react-dom-server
+│   │   ├── render-to-pipeable-stream
+│   │   ├── render-to-readable-stream
+│   │   ├── shell-ready-and-all-ready
+│   │   ├── stream-abort
+│   │   ├── status-and-header-timing
+│   │   ├── bootstrap-scripts
+│   │   └── runtime-stream-adapters
+│   ├── static-rendering
+│   │   ├── prerender-static-api
+│   │   ├── web-and-node-stream-variants
+│   │   ├── static-html-without-interactivity
+│   │   ├── build-time-data
+│   │   ├── snapshots-and-freshness
+│   │   ├── resume-and-postponed-work-support
+│   │   └── framework-managed-prerendering
+│   ├── hydration
+│   │   ├── hydrate-root
+│   │   ├── server-client-output-match
+│   │   ├── event-handler-attachment
+│   │   ├── identifier-prefix
+│   │   ├── use-id-consistency
+│   │   ├── recoverable-error-reporting
+│   │   └── hydration-versus-fresh-render
+│   ├── mismatch-diagnostics
+│   │   ├── non-deterministic-time
+│   │   ├── random-values
+│   │   ├── locale-differences
+│   │   ├── invalid-html-nesting
+│   │   ├── browser-extension-mutations
+│   │   ├── conditional-browser-rendering
+│   │   └── server-client-data-divergence
+│   ├── client-only-islands
+│   │   ├── browser-only-component-boundaries
+│   │   ├── react-dom-browser-api
+│   │   ├── framework-dynamic-boundaries
+│   │   ├── fallback-content
+│   │   ├── browser-api-initialization
+│   │   ├── progressive-availability
+│   │   └── avoiding-blank-page-gating
+│   ├── streaming-design
+│   │   ├── suspense-shell
+│   │   ├── nested-streaming-boundaries
+│   │   ├── early-resource-discovery
+│   │   ├── deferred-content
+│   │   ├── error-after-shell
+│   │   ├── abort-on-disconnect
+│   │   └── crawler-and-cache-considerations
+│   ├── hydration-data
+│   │   ├── safe-serialization
+│   │   ├── escaping-inline-payloads
+│   │   ├── request-specific-cache-seeding
+│   │   ├── minimal-client-payload
+│   │   ├── private-data-exclusion
+│   │   ├── cache-dehydration-contract
+│   │   └── schema-version-alignment
+│   └── server-rendering-validation
+│       ├── raw-html-inspection
+│       ├── no-javascript-smoke-test
+│       ├── hydration-console-monitoring
+│       ├── slow-stream-simulation
+│       ├── request-isolation-tests
+│       ├── locale-and-timezone-matrix
+│       └── client-only-widget-tests
+├── server-components-and-server-functions
+│   ├── server-component-model
+│   │   ├── render-before-client-bundling
+│   │   ├── build-time-or-request-time-execution
+│   │   ├── server-component-versus-ssr
+│   │   ├── client-component-versus-browser-only
+│   │   ├── no-client-state-hooks
+│   │   ├── async-component-rendering
+│   │   └── framework-and-bundler-requirements
+│   ├── module-boundaries
+│   │   ├── use-client-directive
+│   │   ├── client-dependency-subtree
+│   │   ├── use-server-directive
+│   │   ├── server-only-modules
+│   │   ├── serialization-contract
+│   │   ├── allowed-server-client-composition
+│   │   └── accidental-client-bundle-imports
+│   ├── server-data-access
+│   │   ├── data-access-layer
+│   │   ├── request-authentication
+│   │   ├── authorized-data-selection
+│   │   ├── parallel-data-reads
+│   │   ├── avoiding-n-plus-one
+│   │   ├── minimal-data-transfer
+│   │   └── server-side-validation
+│   ├── component-composition
+│   │   ├── server-children-in-client-shell
+│   │   ├── interactive-leaf-boundaries
+│   │   ├── shared-presentation-components
+│   │   ├── server-rendered-context-provider
+│   │   ├── framework-supported-provider-semantics
+│   │   ├── passing-server-created-promises
+│   │   └── boundary-placement-tradeoffs
+│   ├── server-functions
+│   │   ├── remotely-invocable-functions
+│   │   ├── argument-serialization
+│   │   ├── return-value-serialization
+│   │   ├── action-versus-server-function
+│   │   ├── bound-arguments
+│   │   ├── invocation-from-client
+│   │   └── invocation-from-form
+│   ├── mutation-boundaries
+│   │   ├── authenticate-each-operation
+│   │   ├── authorize-each-resource
+│   │   ├── validate-all-arguments
+│   │   ├── server-authoritative-business-rules
+│   │   ├── idempotency-and-duplicate-submission
+│   │   ├── conflict-handling
+│   │   └── transaction-boundary
+│   ├── react-server-caching
+│   │   ├── cache-function
+│   │   ├── request-memoization
+│   │   ├── cache-key-identity
+│   │   ├── cached-error-behavior
+│   │   ├── cache-signal-lifetime
+│   │   ├── request-cache-versus-persistent-cache
+│   │   └── framework-revalidation-responsibility
+│   ├── streaming-and-suspense
+│   │   ├── async-server-subtrees
+│   │   ├── promise-handoff-to-client
+│   │   ├── client-use-reading
+│   │   ├── waterfall-prevention
+│   │   ├── suspense-boundary-placement
+│   │   ├── server-error-sanitization
+│   │   └── incremental-ui-reveal
+│   ├── server-function-user-experience
+│   │   ├── action-state-feedback
+│   │   ├── optimistic-client-overlay
+│   │   ├── field-errors
+│   │   ├── pending-action-controls
+│   │   ├── progressive-form-enhancement
+│   │   ├── refresh-after-mutation
+│   │   └── preserving-local-drafts
+│   └── rsc-operations-and-safety
+│       ├── framework-version-pinning
+│       ├── patched-server-runtime
+│       ├── deployment-artifact-compatibility
+│       ├── server-payload-inspection
+│       ├── no-implicit-security-from-directive
+│       ├── cache-scope-audit
+│       └── server-boundary-integration-tests
+├── frameworks-and-full-stack-react
+│   ├── framework-selection
+│   │   ├── route-and-rendering-needs
+│   │   ├── static-hosting-constraints
+│   │   ├── data-loading-conventions
+│   │   ├── backend-integration
+│   │   ├── deployment-portability
+│   │   ├── team-experience
+│   │   └── maintenance-and-upgrade-path
+│   ├── nextjs-app-router
+│   │   ├── routing-and-layouts
+│   │   │   ├── filesystem-routes
+│   │   │   ├── nested-layouts
+│   │   │   ├── route-groups
+│   │   │   ├── dynamic-params
+│   │   │   ├── loading-and-error-files
+│   │   │   ├── not-found-handling
+│   │   │   └── navigation-and-prefetch
+│   │   ├── data-and-mutations
+│   │   │   ├── server-component-data-access
+│   │   │   ├── server-functions
+│   │   │   ├── route-handlers
+│   │   │   ├── cache-and-revalidation-policy
+│   │   │   ├── request-scoped-authentication
+│   │   │   ├── parallel-data-fetching
+│   │   │   └── optimistic-client-ui
+│   │   ├── delivery-and-platform
+│   │   │   ├── static-and-dynamic-routes
+│   │   │   ├── streaming-boundaries
+│   │   │   ├── metadata-and-social-previews
+│   │   │   ├── image-and-font-integration
+│   │   │   ├── server-runtime-selection
+│   │   │   ├── deployment-adapter
+│   │   │   └── cache-behavior-by-version
+│   │   └── production-design
+│   │       ├── server-client-boundary-review
+│   │       ├── data-access-layer
+│   │       ├── authorization-in-server-operations
+│   │       ├── request-proxy-responsibilities
+│   │       ├── source-map-management
+│   │       ├── observability
+│   │       └── version-upgrade-tests
+│   ├── react-router-framework
+│   │   ├── route-modules
+│   │   │   ├── route-config
+│   │   │   ├── generated-types
+│   │   │   ├── loader-and-client-loader
+│   │   │   ├── action-and-client-action
+│   │   │   ├── route-component
+│   │   │   ├── headers-and-meta
+│   │   │   └── error-boundary
+│   │   ├── data-workflows
+│   │   │   ├── form-and-fetcher
+│   │   │   ├── pending-navigation
+│   │   │   ├── optimistic-pending-data
+│   │   │   ├── revalidation-control
+│   │   │   ├── sessions-and-cookies
+│   │   │   ├── resource-routes
+│   │   │   └── redirect-and-not-found
+│   │   └── build-and-deploy
+│   │       ├── vite-framework-plugin
+│   │       ├── ssr-or-spa-mode
+│   │       ├── prerendering
+│   │       ├── server-build-entry
+│   │       ├── deployment-adapters
+│   │       ├── static-asset-paths
+│   │       └── server-runtime-compatibility
+│   ├── tanstack-start-orientation
+│   │   ├── tanstack-router-foundation
+│   │   ├── typed-routes
+│   │   ├── server-functions
+│   │   ├── client-server-boundaries
+│   │   ├── data-query-integration
+│   │   ├── hydration-and-ssr
+│   │   └── release-and-adapter-verification
+│   ├── react-with-astro
+│   │   ├── content-first-pages
+│   │   ├── react-islands
+│   │   ├── hydration-directives
+│   │   ├── shared-island-state-boundaries
+│   │   ├── server-rendered-static-content
+│   │   ├── asset-delivery
+│   │   └── integration-tradeoffs
+│   ├── backend-separated-react
+│   │   ├── react-spa-with-rest
+│   │   ├── react-spa-with-graphql
+│   │   ├── java-spring-integration
+│   │   ├── nodejs-bff
+│   │   ├── cookie-and-cors-boundary
+│   │   ├── independent-deployments
+│   │   └── api-contract-testing
+│   ├── framework-boundary-discipline
+│   │   ├── react-api-versus-framework-api
+│   │   ├── framework-cache-versus-query-cache
+│   │   ├── router-owned-loader-responsibility
+│   │   ├── server-code-exclusion
+│   │   ├── edge-versus-node-constraints
+│   │   ├── feature-support-matrix
+│   │   └── avoiding-framework-internal-dependencies
+│   └── framework-labs
+│       ├── same-feature-in-spa-and-ssr
+│       ├── server-client-payload-comparison
+│       ├── direct-link-and-refresh-tests
+│       ├── session-and-cache-isolation
+│       ├── streaming-behavior-observation
+│       ├── deployment-target-comparison
+│       └── upgrade-rehearsal
+├── animation-and-visual-interaction
+│   ├── motion-design-foundations
+│   │   ├── purposeful-feedback
+│   │   ├── state-change-continuity
+│   │   ├── timing-and-easing
+│   │   ├── spatial-continuity
+│   │   ├── reduced-motion
+│   │   ├── alternative-non-motion-feedback
+│   │   └── animation-performance-budget
+│   ├── css-driven-motion
+│   │   ├── state-driven-class-changes
+│   │   ├── transitions-and-keyframes
+│   │   ├── transform-and-opacity
+│   │   ├── layout-animation-cost
+│   │   ├── enter-and-exit-lifetime
+│   │   ├── animation-end-events
+│   │   └── cleanup-on-unmount
+│   ├── react-view-transition
+│   │   ├── view-transition-boundary
+│   │   ├── enter-exit-update-share
+│   │   ├── transition-triggered-animation
+│   │   ├── named-shared-elements
+│   │   ├── suspense-reveal-integration
+│   │   ├── deferred-update-integration
+│   │   └── browser-support-fallback
+│   ├── transition-customization
+│   │   ├── transition-classes
+│   │   ├── add-transition-type
+│   │   ├── directional-navigation
+│   │   ├── event-prop-animation-hooks
+│   │   ├── nested-transition-boundaries
+│   │   ├── activity-visibility-transitions
+│   │   └── reduced-motion-style-policy
+│   ├── motion-library-integration
+│   │   ├── motion-for-react
+│   │   ├── component-animation-props
+│   │   ├── presence-management
+│   │   ├── layout-animation
+│   │   ├── gesture-animation
+│   │   ├── animation-control
+│   │   └── teardown-and-version-compatibility
+│   ├── scroll-and-observer-animation
+│   │   ├── intersection-driven-reveal
+│   │   ├── scroll-progress
+│   │   ├── external-scroll-subscription
+│   │   ├── animation-frame-scheduling
+│   │   ├── passive-listener-policy
+│   │   ├── virtualized-content-coordination
+│   │   └── reduced-motion-scroll-behavior
+│   ├── drag-and-drop
+│   │   ├── pointer-and-keyboard-sensors
+│   │   ├── reorder-state
+│   │   ├── preview-and-drop-targets
+│   │   ├── cancellation-and-escape
+│   │   ├── sortable-item-identity
+│   │   ├── accessible-announcements
+│   │   └── server-persistence-after-drop
+│   └── animation-testing
+│       ├── preference-matrix
+│       ├── deterministic-motion-tests
+│       ├── focus-retention
+│       ├── interruption-and-reversal
+│       ├── unmount-during-animation
+│       ├── layout-shift-check
+│       └── slow-device-profiling
+├── performance-profiling-and-react-compiler
+│   ├── measurement-first
+│   │   ├── user-visible-latency
+│   │   ├── render-cost-versus-network-cost
+│   │   ├── baseline-and-hypothesis
+│   │   ├── production-build-measurement
+│   │   ├── representative-data
+│   │   ├── low-end-device-testing
+│   │   └── optimization-regression-check
+│   ├── react-profiling
+│   │   ├── react-devtools-profiler
+│   │   ├── profiler-component
+│   │   ├── render-duration
+│   │   ├── commit-analysis
+│   │   ├── update-causes
+│   │   ├── react-performance-tracks
+│   │   └── component-stack-correlation
+│   ├── render-cost-control
+│   │   ├── state-colocation
+│   │   ├── component-boundaries
+│   │   ├── avoiding-unnecessary-effects
+│   │   ├── stable-data-structures
+│   │   ├── expensive-calculation-isolation
+│   │   ├── context-subscription-scope
+│   │   └── list-windowing
+│   ├── manual-memoization
+│   │   ├── memo
+│   │   ├── use-memo
+│   │   ├── use-callback
+│   │   ├── referential-equality
+│   │   ├── dependency-correctness
+│   │   ├── custom-comparator-cost
+│   │   └── memoization-not-correctness
+│   ├── react-compiler
+│   │   ├── compilation-model
+│   │   │   ├── build-time-analysis
+│   │   │   ├── automatic-memoization
+│   │   │   ├── component-and-hook-optimization
+│   │   │   ├── rules-of-react-preconditions
+│   │   │   ├── skipped-components
+│   │   │   ├── runtime-compatibility
+│   │   │   └── optimization-scope-limits
+│   │   ├── adoption
+│   │   │   ├── compiler-installation
+│   │   │   ├── build-tool-integration
+│   │   │   ├── lint-diagnostics
+│   │   │   ├── incremental-adoption
+│   │   │   ├── opt-in-and-opt-out-directives
+│   │   │   ├── gating-and-rollout
+│   │   │   └── compiled-output-inspection
+│   │   ├── diagnostics
+│   │   │   ├── unsupported-patterns
+│   │   │   ├── purity-violations
+│   │   │   ├── mutation-and-aliasing
+│   │   │   ├── incorrect-manual-memoization
+│   │   │   ├── incompatible-library-patterns
+│   │   │   ├── minimal-reproduction
+│   │   │   └── before-after-profiling
+│   │   └── library-delivery
+│   │       ├── compiling-shared-components
+│   │       ├── runtime-peer-compatibility
+│   │       ├── consumer-build-contract
+│   │       ├── preserving-directives
+│   │       ├── package-output-validation
+│   │       ├── compiler-and-framework-matrix
+│   │       └── regression-tests
+│   ├── bundle-and-loading
+│   │   ├── route-code-splitting
+│   │   ├── lazy-feature-loading
+│   │   ├── dependency-size-analysis
+│   │   ├── tree-shaking
+│   │   ├── dynamic-import-granularity
+│   │   ├── duplicate-dependencies
+│   │   └── preloading-policy
+│   ├── large-data-interfaces
+│   │   ├── virtualization
+│   │   ├── variable-height-measurement
+│   │   ├── stable-row-keys
+│   │   ├── server-side-filtering
+│   │   ├── deferred-filter-results
+│   │   ├── incremental-data-loading
+│   │   └── worker-offload
+│   ├── browser-performance
+│   │   ├── long-task-reduction
+│   │   ├── layout-thrashing-prevention
+│   │   ├── image-sizing
+│   │   ├── font-loading
+│   │   ├── interaction-responsiveness
+│   │   ├── layout-stability
+│   │   └── memory-retention
+│   ├── resource-loading-apis
+│   │   ├── prefetch-dns
+│   │   ├── preconnect
+│   │   ├── preload
+│   │   ├── preload-module
+│   │   ├── preinit
+│   │   ├── preinit-module
+│   │   └── framework-owned-resource-management
+│   └── performance-tradeoffs
+│       ├── over-memoization
+│       ├── cache-memory-growth
+│       ├── excessive-prefetching
+│       ├── hidden-component-work
+│       ├── hydration-cost
+│       ├── excessive-client-boundaries
+│       └── complexity-versus-measured-gain
+├── testing-and-quality-assurance
+│   ├── testing-strategy
+│   │   ├── user-behavior-over-implementation
+│   │   ├── pure-logic-unit-tests
+│   │   ├── component-integration-tests
+│   │   ├── contract-tests
+│   │   ├── end-to-end-journeys
+│   │   ├── risk-based-coverage
+│   │   └── deterministic-test-data
+│   ├── test-runtime
+│   │   ├── vitest
+│   │   ├── jest
+│   │   ├── jsdom-and-browser-environments
+│   │   ├── setup-and-cleanup
+│   │   ├── module-mocking-boundaries
+│   │   ├── fake-timer-policy
+│   │   └── browser-api-limitations
+│   ├── react-testing-library
+│   │   ├── component-rendering
+│   │   │   ├── render-and-screen
+│   │   │   ├── provider-wrappers
+│   │   │   ├── rerender-versus-remount
+│   │   │   ├── unmount-cleanup
+│   │   │   ├── render-hook-when-appropriate
+│   │   │   ├── strict-mode-tests
+│   │   │   └── isolated-state
+│   │   ├── queries
+│   │   │   ├── role-and-accessible-name
+│   │   │   ├── label-text
+│   │   │   ├── visible-text
+│   │   │   ├── within-container
+│   │   │   ├── get-query-find-distinction
+│   │   │   ├── async-element-discovery
+│   │   │   └── test-id-as-escape-hatch
+│   │   ├── interactions
+│   │   │   ├── user-event-setup
+│   │   │   ├── click-and-keyboard
+│   │   │   ├── typing-and-selection
+│   │   │   ├── tab-navigation
+│   │   │   ├── form-submission
+│   │   │   ├── pointer-interactions
+│   │   │   └── accessible-behavior-assertions
+│   │   └── async-behavior
+│   │       ├── find-by-queries
+│   │       ├── wait-for-contract
+│   │       ├── removal-observation
+│   │       ├── awaiting-user-actions
+│   │       ├── act-boundaries
+│   │       ├── timer-advancement
+│   │       └── avoiding-arbitrary-sleeps
+│   ├── network-mocking
+│   │   ├── msw-request-handlers
+│   │   ├── realistic-response-shapes
+│   │   ├── per-test-overrides
+│   │   ├── unhandled-request-failures
+│   │   ├── latency-and-failure-simulation
+│   │   ├── graphql-operation-mocks
+│   │   └── service-contract-alignment
+│   ├── state-and-data-tests
+│   │   ├── reducer-transition-tests
+│   │   ├── real-store-provider
+│   │   ├── query-client-isolation
+│   │   ├── optimistic-rollback
+│   │   ├── invalidation-after-mutation
+│   │   ├── logout-cache-reset
+│   │   └── url-state-roundtrip
+│   ├── form-and-action-tests
+│   │   ├── required-field-validation
+│   │   ├── server-field-errors
+│   │   ├── pending-submit-control
+│   │   ├── action-state-return
+│   │   ├── optimistic-form-feedback
+│   │   ├── successful-reset
+│   │   └── draft-preservation-after-failure
+│   ├── routing-and-framework-tests
+│   │   ├── memory-router-setup
+│   │   ├── loader-and-action-tests
+│   │   ├── route-error-boundaries
+│   │   ├── direct-navigation
+│   │   ├── session-aware-rendering
+│   │   ├── server-component-test-boundaries
+│   │   └── browser-tests-for-framework-behavior
+│   ├── end-to-end
+│   │   ├── playwright
+│   │   ├── cypress
+│   │   ├── authenticated-fixtures
+│   │   ├── resilient-locators
+│   │   ├── network-control
+│   │   ├── multi-tab-workflows
+│   │   └── deployment-smoke-tests
+│   ├── visual-and-accessibility
+│   │   ├── storybook-interaction-tests
+│   │   ├── visual-regression
+│   │   ├── stable-screenshots
+│   │   ├── viewport-and-theme-matrix
+│   │   ├── axe-checks
+│   │   ├── keyboard-navigation
+│   │   └── screen-reader-manual-checks
+│   └── quality-gates
+│       ├── lint-and-typecheck
+│       ├── test-coverage-interpretation
+│       ├── flaky-test-triage
+│       ├── mutation-testing-for-critical-logic
+│       ├── bundle-budget-check
+│       ├── accessibility-regression-check
+│       └── pull-request-evidence
+├── security-authentication-and-authorization
+│   ├── trust-boundaries
+│   │   ├── browser-as-untrusted-client
+│   │   ├── frontend-validation-limitations
+│   │   ├── server-side-authorization
+│   │   ├── data-access-layer
+│   │   ├── third-party-widget-boundaries
+│   │   ├── serialized-server-data
+│   │   └── tenant-and-user-isolation
+│   ├── rendering-security
+│   │   ├── jsx-text-escaping
+│   │   ├── raw-html-sanitization
+│   │   ├── safe-link-protocols
+│   │   ├── untrusted-markdown
+│   │   ├── component-prop-injection-risk
+│   │   ├── trusted-types-integration
+│   │   └── dom-sink-review
+│   ├── session-model
+│   │   ├── session-loading
+│   │   ├── authenticated-and-anonymous-states
+│   │   ├── cookie-based-session
+│   │   ├── server-session-validation
+│   │   ├── session-expiration
+│   │   ├── logout-cleanup
+│   │   └── cross-tab-session-change
+│   ├── authentication-flows
+│   │   ├── redirect-based-sign-in
+│   │   ├── oauth-and-oidc-client-boundary
+│   │   ├── authorization-code-with-pkce
+│   │   ├── library-managed-protocol-validation
+│   │   ├── return-url-validation
+│   │   ├── mfa-step-up-ui
+│   │   └── account-switching
+│   ├── authorization-ui
+│   │   ├── permission-aware-navigation
+│   │   ├── action-visibility
+│   │   ├── read-only-and-disabled-states
+│   │   ├── resource-level-policy
+│   │   ├── error-state-forbidden
+│   │   ├── server-enforcement-on-every-operation
+│   │   └── no-security-by-hidden-button
+│   ├── server-action-security
+│   │   ├── authenticate-function-invocation
+│   │   ├── authorize-target-resource
+│   │   ├── validate-and-normalize-input
+│   │   ├── data-minimization
+│   │   ├── no-client-trusted-role-flags
+│   │   ├── request-origin-protections
+│   │   └── framework-security-patches
+│   ├── browser-defense-integration
+│   │   ├── content-security-policy
+│   │   ├── nonce-and-hash-deployment
+│   │   ├── csrf-defense-coordination
+│   │   ├── same-site-cookie-policy
+│   │   ├── cors-not-authorization
+│   │   ├── clickjacking-defense
+│   │   └── headers-and-framework-configuration
+│   ├── sensitive-data-handling
+│   │   ├── no-secrets-in-client-build
+│   │   ├── public-environment-variable-audit
+│   │   ├── no-tokens-in-urls
+│   │   ├── storage-risk-review
+│   │   ├── source-map-access-policy
+│   │   ├── log-redaction
+│   │   └── private-cache-scoping
+│   ├── supply-chain-and-runtime
+│   │   ├── dependency-audits
+│   │   ├── lockfile-review
+│   │   ├── trusted-package-sources
+│   │   ├── package-update-testing
+│   │   ├── third-party-script-inventory
+│   │   ├── least-privilege-ci
+│   │   └── version-alignment
+│   └── security-validation
+│       ├── unauthorized-deep-link
+│       ├── forbidden-mutation
+│       ├── expired-session-during-edit
+│       ├── cross-tenant-cache-test
+│       ├── malicious-rich-text-fixture
+│       ├── safe-redirect-tests
+│       └── sensitive-payload-inspection
+├── internationalization-and-content-delivery
+│   ├── internationalization-model
+│   │   ├── locale-versus-language
+│   │   ├── translation-versus-formatting
+│   │   ├── source-message-design
+│   │   ├── locale-selection
+│   │   ├── fallback-policy
+│   │   ├── server-client-locale-agreement
+│   │   └── content-ownership
+│   ├── message-management
+│   │   ├── message-identifiers
+│   │   ├── translation-catalogs
+│   │   ├── interpolation
+│   │   ├── plural-forms
+│   │   ├── contextual-messages
+│   │   ├── translator-context
+│   │   └── avoiding-fragmented-sentences
+│   ├── react-i18n-integration
+│   │   ├── react-i18next
+│   │   ├── formatjs-react-intl
+│   │   ├── provider-scoping
+│   │   ├── namespace-loading
+│   │   ├── locale-switch-updates
+│   │   ├── rich-text-message-components
+│   │   └── framework-i18n-adapter
+│   ├── locale-aware-formatting
+│   │   ├── intl-number-format
+│   │   ├── currency-and-percentage
+│   │   ├── intl-date-time-format
+│   │   ├── time-zone-selection
+│   │   ├── relative-time
+│   │   ├── list-format
+│   │   └── collation-and-sorting
+│   ├── bidirectional-and-regional-ui
+│   │   ├── document-direction
+│   │   ├── logical-css-properties
+│   │   ├── icon-mirroring
+│   │   ├── keyboard-direction-behavior
+│   │   ├── mixed-direction-content
+│   │   ├── locale-specific-input
+│   │   └── text-expansion
+│   ├── localized-routing
+│   │   ├── language-prefixed-routes
+│   │   ├── translated-slugs
+│   │   ├── alternate-language-links
+│   │   ├── locale-persistence
+│   │   ├── redirect-policy
+│   │   ├── language-switcher-navigation
+│   │   └── localized-not-found-pages
+│   ├── metadata-and-discovery
+│   │   ├── page-title-and-description
+│   │   ├── native-react-metadata-elements
+│   │   ├── framework-metadata-api
+│   │   ├── canonical-url
+│   │   ├── social-preview-data
+│   │   ├── structured-data-safety
+│   │   └── crawlable-navigation
+│   ├── content-integration
+│   │   ├── headless-cms-adapter
+│   │   ├── content-schema
+│   │   ├── preview-mode
+│   │   ├── sanitized-rich-text
+│   │   ├── mdx-trust-boundary
+│   │   ├── content-versioning
+│   │   └── cache-invalidation-on-publish
+│   ├── search-and-documentation-ui
+│   │   ├── full-text-search-integration
+│   │   ├── heading-anchor-navigation
+│   │   ├── result-highlighting-safe-rendering
+│   │   ├── table-of-contents
+│   │   ├── code-block-rendering
+│   │   ├── content-loading-states
+│   │   └── no-results-guidance
+│   └── localization-tests
+│       ├── pseudo-localization
+│       ├── missing-key-detection
+│       ├── locale-fallback-tests
+│       ├── rtl-layout-tests
+│       ├── timezone-hydration-tests
+│       ├── long-content-tests
+│       └── localized-screen-reader-output
+├── advanced-browser-and-platform-integration
+│   ├── browser-capability-boundaries
+│   │   ├── browser-api-feature-detection
+│   │   ├── secure-context-requirements
+│   │   ├── user-permission-flows
+│   │   ├── server-safe-imports
+│   │   ├── progressive-enhancement
+│   │   ├── cleanup-ownership
+│   │   └── unsupported-feature-feedback
+│   ├── storage-and-offline
+│   │   ├── local-storage-adapter
+│   │   ├── indexeddb-adapter
+│   │   ├── schema-migration
+│   │   ├── offline-read-model
+│   │   ├── persisted-query-policy
+│   │   ├── sync-queue-and-conflicts
+│   │   └── private-data-cleanup
+│   ├── service-worker-integration
+│   │   ├── application-shell-caching
+│   │   ├── asset-versioning
+│   │   ├── runtime-cache-policy
+│   │   ├── update-available-ui
+│   │   ├── stale-client-recovery
+│   │   ├── worker-message-channel
+│   │   └── offline-fallback-route
+│   ├── workers-and-computation
+│   │   ├── worker-lifecycle
+│   │   ├── message-contract
+│   │   ├── structured-clone
+│   │   ├── transferables
+│   │   ├── task-cancellation
+│   │   ├── bounded-result-updates
+│   │   └── error-and-termination-handling
+│   ├── realtime-collaboration
+│   │   ├── websocket-session-lifecycle
+│   │   ├── server-sent-event-subscription
+│   │   ├── presence-state
+│   │   ├── reconnect-and-backoff
+│   │   ├── duplicate-event-filtering
+│   │   ├── ordering-and-resynchronization
+│   │   └── collaborative-conflict-model
+│   ├── files-and-clipboard
+│   │   ├── file-picker
+│   │   ├── drag-and-drop-file-input
+│   │   ├── object-url-preview
+│   │   ├── clipboard-permission
+│   │   ├── file-download
+│   │   ├── browser-stream-consumption
+│   │   └── resource-revocation
+│   ├── media-and-device-interop
+│   │   ├── audio-video-control
+│   │   ├── media-stream-permission
+│   │   ├── track-stop-cleanup
+│   │   ├── fullscreen-events
+│   │   ├── picture-in-picture-state
+│   │   ├── device-unavailability
+│   │   └── permission-revocation
+│   ├── visualization-and-editor-interop
+│   │   ├── chart-library-adapter
+│   │   ├── map-library-adapter
+│   │   ├── canvas-lifecycle
+│   │   ├── webgl-resource-cleanup
+│   │   ├── rich-text-editor-controlled-boundary
+│   │   ├── resize-coordination
+│   │   └── accessibility-alternatives
+│   ├── web-components-and-existing-sites
+│   │   ├── custom-element-props-and-events
+│   │   ├── shadow-dom-style-boundaries
+│   │   ├── isolated-react-roots
+│   │   ├── multiple-root-state-contract
+│   │   ├── external-dom-mutation-boundary
+│   │   ├── gradual-page-enhancement
+│   │   └── embed-cleanup
+│   └── cross-platform-orientation
+│       ├── react-native-renderer-boundary
+│       ├── expo-and-web-shared-logic
+│       ├── platform-specific-components
+│       ├── browser-only-api-isolation
+│       ├── electron-renderer-boundary
+│       ├── tauri-frontend-boundary
+│       └── portable-domain-and-hook-contracts
+├── tooling-library-authoring-and-monorepos
+│   ├── build-pipeline
+│   │   ├── jsx-transform
+│   │   ├── esm-output
+│   │   ├── development-and-production-modes
+│   │   ├── asset-handling
+│   │   ├── source-maps
+│   │   ├── module-resolution
+│   │   └── browser-targets
+│   ├── build-tool-orientation
+│   │   ├── vite
+│   │   ├── rollup
+│   │   ├── esbuild
+│   │   ├── swc
+│   │   ├── babel
+│   │   ├── rspack
+│   │   └── framework-managed-bundlers
+│   ├── static-tooling
+│   │   ├── eslint-flat-configuration
+│   │   ├── react-hooks-plugin
+│   │   ├── compiler-powered-diagnostics
+│   │   ├── jsx-accessibility-plugin
+│   │   ├── typescript-build-checks
+│   │   ├── prettier
+│   │   └── import-and-boundary-lints
+│   ├── package-structure
+│   │   ├── public-entry-points
+│   │   ├── export-maps
+│   │   ├── react-as-peer-dependency
+│   │   ├── externalizing-react
+│   │   ├── esm-and-commonjs-consumer-policy
+│   │   ├── side-effects-metadata
+│   │   └── css-entry-points
+│   ├── react-library-authoring
+│   │   ├── component-api-contract
+│   │   ├── hook-api-contract
+│   │   ├── ref-contract
+│   │   ├── type-declarations
+│   │   ├── runtime-peer-support
+│   │   ├── server-client-directive-preservation
+│   │   └── compiled-library-output
+│   ├── consumer-validation
+│   │   ├── vite-consumer-fixture
+│   │   ├── framework-consumer-fixture
+│   │   ├── ssr-import-test
+│   │   ├── typecheck-fixture
+│   │   ├── tree-shaking-inspection
+│   │   ├── css-inclusion-test
+│   │   └── duplicate-react-check
+│   ├── monorepo-design
+│   │   ├── workspace-packages
+│   │   ├── shared-ui-package
+│   │   ├── shared-domain-package
+│   │   ├── app-versus-package-boundaries
+│   │   ├── task-graph
+│   │   ├── dependency-version-policy
+│   │   └── package-boundary-tests
+│   ├── build-orchestration
+│   │   ├── pnpm-workspaces
+│   │   ├── npm-workspaces
+│   │   ├── turborepo
+│   │   ├── nx
+│   │   ├── cache-input-correctness
+│   │   ├── environment-aware-build-cache
+│   │   └── affected-project-checks
+│   ├── release-management
+│   │   ├── semantic-versioning
+│   │   ├── changesets
+│   │   ├── release-notes
+│   │   ├── prerelease-testing
+│   │   ├── package-provenance
+│   │   ├── deprecation-and-migration-guides
+│   │   └── consumer-upgrade-validation
+│   └── documentation-and-handoff
+│       ├── storybook-docs
+│       ├── usage-recipes
+│       ├── live-examples
+│       ├── accessibility-contract
+│       ├── contribution-guide
+│       ├── architecture-decisions
+│       └── supported-version-matrix
+├── deployment-observability-and-operations
+│   ├── deployment-model
+│   │   ├── static-spa-hosting
+│   │   ├── static-generated-site
+│   │   ├── node-ssr-server
+│   │   ├── serverless-functions
+│   │   ├── edge-runtime
+│   │   ├── containerized-server
+│   │   └── framework-managed-hosting
+│   ├── production-build
+│   │   ├── reproducible-build
+│   │   ├── public-config-injection
+│   │   ├── secret-scanning
+│   │   ├── output-artifact-inspection
+│   │   ├── minification-and-source-maps
+│   │   ├── chunk-splitting-review
+│   │   └── asset-base-path
+│   ├── static-hosting
+│   │   ├── history-api-fallback
+│   │   ├── real-not-found-policy
+│   │   ├── content-type-headers
+│   │   ├── compressed-assets
+│   │   ├── immutable-hashed-assets
+│   │   ├── html-cache-policy
+│   │   └── deployment-under-subpath
+│   ├── server-deployment
+│   │   ├── request-time-configuration
+│   │   ├── server-resource-limits
+│   │   ├── streaming-proxy-compatibility
+│   │   ├── session-storage
+│   │   ├── cache-topology
+│   │   ├── graceful-shutdown
+│   │   └── per-request-data-isolation
+│   ├── release-delivery
+│   │   ├── ci-quality-gates
+│   │   ├── preview-deployments
+│   │   ├── environment-promotion
+│   │   ├── deployment-identifiers
+│   │   ├── atomic-asset-publication
+│   │   ├── canary-release
+│   │   └── rollback-and-cache-recovery
+│   ├── client-observability
+│   │   ├── error-boundary-reporting
+│   │   ├── root-error-callbacks
+│   │   ├── unhandled-rejection-monitoring
+│   │   ├── source-map-symbolication
+│   │   ├── release-tagging
+│   │   ├── user-safe-logging
+│   │   └── sampling-and-consent
+│   ├── performance-observability
+│   │   ├── core-web-vitals
+│   │   ├── real-user-monitoring
+│   │   ├── navigation-timing
+│   │   ├── resource-timing
+│   │   ├── long-task-observation
+│   │   ├── custom-interaction-measurement
+│   │   └── performance-budget-alerts
+│   ├── application-telemetry
+│   │   ├── route-and-feature-usage
+│   │   ├── task-completion-metrics
+│   │   ├── api-latency-and-error-rates
+│   │   ├── session-expiry-rate
+│   │   ├── failed-form-submissions
+│   │   ├── correlation-with-backend
+│   │   └── privacy-aware-events
+│   ├── production-incidents
+│   │   ├── blank-screen-investigation
+│   │   ├── chunk-load-error-recovery
+│   │   ├── hydration-regression
+│   │   ├── memory-growth-diagnosis
+│   │   ├── stale-cache-after-release
+│   │   ├── authentication-loop
+│   │   └── third-party-service-failure
+│   └── operational-handover
+│       ├── deployment-runbook
+│       ├── incident-triage-guide
+│       ├── rollback-drill
+│       ├── monitoring-ownership
+│       ├── dependency-patch-process
+│       ├── service-level-objectives
+│       └── post-incident-regression-test
+├── migration-compatibility-and-professional-practice
+│   ├── existing-application-assessment
+│   │   ├── dependency-inventory
+│   │   ├── react-and-renderer-alignment
+│   │   ├── routing-and-data-map
+│   │   ├── class-and-hook-inventory
+│   │   ├── test-coverage-baseline
+│   │   ├── browser-support-target
+│   │   └── incremental-migration-plan
+│   ├── class-component-maintenance
+│   │   ├── class-state-and-set-state
+│   │   ├── lifecycle-method-reading
+│   │   ├── instance-method-binding
+│   │   ├── class-error-boundaries
+│   │   ├── pure-component-semantics
+│   │   ├── lifecycle-to-synchronization-redesign
+│   │   └── class-support-versus-legacy-api-distinction
+│   ├── legacy-api-migration
+│   │   ├── react-dom-render-to-create-root
+│   │   ├── hydrate-to-hydrate-root
+│   │   ├── find-dom-node-removal
+│   │   ├── string-ref-removal
+│   │   ├── legacy-context-replacement
+│   │   ├── forward-ref-to-ref-prop-evaluation
+│   │   └── removed-prop-types-behavior-review
+│   ├── project-tooling-migration
+│   │   ├── create-react-app-to-supported-toolchain
+│   │   ├── build-config-translation
+│   │   ├── public-asset-paths
+│   │   ├── environment-variable-renaming
+│   │   ├── test-runner-transition
+│   │   ├── deployment-fallback-preservation
+│   │   └── output-parity-tests
+│   ├── state-and-effect-refactoring
+│   │   ├── duplicated-derived-state-removal
+│   │   ├── effect-chain-removal
+│   │   ├── reducer-extraction
+│   │   ├── state-colocation
+│   │   ├── server-cache-extraction
+│   │   ├── mutation-removal
+│   │   └── cleanup-correctness
+│   ├── framework-and-library-upgrades
+│   │   ├── release-note-review
+│   │   ├── codemod-review
+│   │   ├── router-upgrade
+│   │   ├── react-types-upgrade
+│   │   ├── compiler-rollout
+│   │   ├── server-component-compatibility
+│   │   └── dependency-peer-range-check
+│   ├── version-and-feature-governance
+│   │   ├── stable-canary-and-experimental-channels
+│   │   ├── feature-availability-check
+│   │   ├── supported-browser-matrix
+│   │   ├── framework-support-matrix
+│   │   ├── public-api-versus-internals
+│   │   ├── security-advisory-review
+│   │   └── upgrade-sandbox
+│   ├── professional-workflow
+│   │   ├── requirements-to-ui-states
+│   │   ├── acceptance-criteria
+│   │   ├── small-vertical-slices
+│   │   ├── code-review-checklist
+│   │   ├── accessible-design-handoff
+│   │   ├── test-evidence
+│   │   └── performance-evidence
+│   ├── collaboration-and-debugging
+│   │   ├── minimal-reproduction
+│   │   ├── bug-report-with-environment
+│   │   ├── root-cause-versus-symptom
+│   │   ├── pairing-on-browser-evidence
+│   │   ├── architecture-tradeoff-records
+│   │   ├── incident-communication
+│   │   └── reproducible-demo
+│   └── portfolio-and-interview-preparation
+│       ├── component-design-explanation
+│       ├── state-ownership-explanation
+│       ├── effect-correctness-demonstration
+│       ├── accessibility-walkthrough
+│       ├── performance-before-after
+│       ├── full-stack-boundary-explanation
+│       └── project-retrospective
+├── real-world-application-patterns
+│   ├── crud-management-ui
+│   │   ├── list-detail-edit-routes
+│   │   ├── server-pagination
+│   │   ├── filter-and-sort-url-state
+│   │   ├── optimistic-edit
+│   │   ├── field-level-error-mapping
+│   │   ├── deletion-confirmation
+│   │   └── permission-aware-actions
+│   ├── enterprise-data-table
+│   │   ├── typed-column-definition
+│   │   ├── sorting-and-filtering
+│   │   ├── column-visibility
+│   │   ├── row-selection
+│   │   ├── bulk-actions
+│   │   ├── virtualized-rows
+│   │   └── server-query-coordination
+│   ├── search-and-discovery
+│   │   ├── debounced-input
+│   │   ├── cancellable-query
+│   │   ├── faceted-filters
+│   │   ├── cursor-pagination
+│   │   ├── empty-and-error-states
+│   │   ├── result-navigation
+│   │   └── accessible-autocomplete
+│   ├── authenticated-dashboard
+│   │   ├── login-and-session-bootstrap
+│   │   ├── protected-layout
+│   │   ├── server-checked-permissions
+│   │   ├── user-and-tenant-switching
+│   │   ├── scoped-query-cache
+│   │   ├── role-aware-navigation
+│   │   └── logout-cleanup
+│   ├── approval-and-workflow-ui
+│   │   ├── draft-submitted-approved-rejected-state
+│   │   ├── action-availability-policy
+│   │   ├── server-validated-transition
+│   │   ├── reviewer-comment
+│   │   ├── version-conflict-handling
+│   │   ├── pending-action-feedback
+│   │   └── audit-history-view
+│   ├── ecommerce-interface
+│   │   ├── product-variant-selection
+│   │   ├── cart-state
+│   │   ├── stock-and-price-refresh
+│   │   ├── checkout-form
+│   │   ├── payment-provider-boundary
+│   │   ├── order-confirmation
+│   │   └── failed-payment-recovery
+│   ├── collaborative-workspace
+│   │   ├── presence-indicators
+│   │   ├── optimistic-document-change
+│   │   ├── remote-update-reconciliation
+│   │   ├── connection-status
+│   │   ├── unsaved-draft-preservation
+│   │   ├── conflict-resolution-ui
+│   │   └── activity-feed
+│   ├── content-and-learning-platform
+│   │   ├── hierarchical-navigation
+│   │   ├── content-search
+│   │   ├── chapter-progress-state
+│   │   ├── reading-layout
+│   │   ├── quiz-interaction
+│   │   ├── media-player-state
+│   │   └── language-and-theme-settings
+│   ├── streaming-assistant-interface
+│   │   ├── incremental-message-rendering
+│   │   ├── abort-generation-ui
+│   │   ├── tool-result-display
+│   │   ├── safe-markdown-rendering
+│   │   ├── message-history-state
+│   │   ├── pending-and-error-states
+│   │   └── citation-and-source-navigation
+│   └── local-first-productivity
+│       ├── offline-read-view
+│       ├── persisted-drafts
+│       ├── queued-mutations
+│       ├── reconnect-sync
+│       ├── conflict-notification
+│       ├── cross-tab-consistency
+│       └── data-export-and-reset
+└── practice-projects
+    ├── component-and-jsx-lab
+    │   ├── static-page-decomposition
+    │   ├── props-and-children
+    │   ├── list-and-conditional-rendering
+    │   ├── semantic-markup
+    │   ├── controlled-variants
+    │   ├── component-contract-tests
+    │   └── accessibility-smoke-test
+    ├── state-and-identity-lab
+    │   ├── state-snapshot-experiments
+    │   ├── queued-update-experiments
+    │   ├── immutable-object-and-array-updates
+    │   ├── keyed-list-reordering
+    │   ├── controlled-reset
+    │   ├── nested-component-remount-reproduction
+    │   └── behavior-test-report
+    ├── effect-and-resource-lifecycle-lab
+    │   ├── external-subscription-adapter
+    │   ├── setup-cleanup-symmetry
+    │   ├── stale-closure-reproduction
+    │   ├── abortable-request
+    │   ├── strict-mode-replay
+    │   ├── effect-event-separation
+    │   └── leak-and-race-regression-tests
+    ├── accessible-task-manager
+    │   ├── task-domain-model
+    │   ├── reducer-and-context
+    │   ├── filters-in-url
+    │   ├── inline-editing
+    │   ├── keyboard-task-actions
+    │   ├── persisted-preferences
+    │   ├── empty-and-error-states
+    │   └── interaction-tests
+    ├── typed-component-library
+    │   ├── button-input-and-dialog-contracts
+    │   ├── typescript-prop-models
+    │   ├── ref-and-slot-composition
+    │   ├── theme-tokens
+    │   ├── storybook-documentation
+    │   ├── accessibility-checks
+    │   ├── package-consumer-tests
+    │   └── versioned-release
+    ├── search-and-catalog-application
+    │   ├── query-parameter-model
+    │   ├── debounced-search
+    │   ├── tanstack-query-cache
+    │   ├── paginated-results
+    │   ├── detail-prefetch
+    │   ├── suspense-and-error-boundaries
+    │   ├── keyboard-navigation
+    │   └── request-race-tests
+    ├── multi-step-form-workflow
+    │   ├── native-form-semantics
+    │   ├── field-array-model
+    │   ├── schema-validation
+    │   ├── draft-persistence
+    │   ├── use-action-state
+    │   ├── pending-submit-ui
+    │   ├── server-validation-mapping
+    │   ├── optimistic-feedback
+    │   └── form-recovery-tests
+    ├── react-router-data-application
+    │   ├── nested-route-design
+    │   ├── loaders-and-actions
+    │   ├── fetcher-mutations
+    │   ├── session-aware-layout
+    │   ├── route-error-boundaries
+    │   ├── revalidation-policy
+    │   ├── deep-link-tests
+    │   └── deployment-fallback-check
+    ├── redux-toolkit-admin-console
+    │   ├── feature-slices
+    │   ├── normalized-entities
+    │   ├── memoized-selectors
+    │   ├── rtk-query-api
+    │   ├── optimistic-update-policy
+    │   ├── role-aware-controls
+    │   ├── real-store-tests
+    │   └── devtools-debugging-demo
+    ├── workflow-state-machine
+    │   ├── domain-transition-table
+    │   ├── guarded-events
+    │   ├── async-invocation
+    │   ├── cancellation-and-retry
+    │   ├── persisted-checkpoint
+    │   ├── react-state-binding
+    │   ├── transition-invariant-tests
+    │   └── workflow-visualization
+    ├── enterprise-data-table
+    │   ├── server-side-pagination
+    │   ├── typed-columns
+    │   ├── filters-and-sorting
+    │   ├── selected-row-actions
+    │   ├── virtualized-rendering
+    │   ├── keyboard-grid-behavior
+    │   ├── query-cache-coordination
+    │   └── load-and-accessibility-tests
+    ├── optimistic-collaborative-board
+    │   ├── sortable-card-identity
+    │   ├── keyboard-reordering
+    │   ├── optimistic-state-overlay
+    │   ├── realtime-event-subscription
+    │   ├── conflict-and-version-feedback
+    │   ├── reconnect-reconciliation
+    │   ├── rollback-tests
+    │   └── focus-retention-tests
+    ├── authentication-and-tenant-workspace
+    │   ├── sign-in-and-session-bootstrap
+    │   ├── tenant-scoped-routes
+    │   ├── server-enforced-resource-policy
+    │   ├── tenant-scoped-query-keys
+    │   ├── permission-aware-navigation
+    │   ├── session-expiry-recovery
+    │   ├── logout-data-cleanup
+    │   └── cross-tenant-isolation-tests
+    ├── java-spring-backend-integration
+    │   ├── openapi-contract
+    │   ├── generated-client-adapter
+    │   ├── pagination-and-error-mapping
+    │   ├── cookie-and-cors-setup
+    │   ├── role-aware-ui
+    │   ├── file-upload-flow
+    │   ├── contract-and-browser-tests
+    │   └── deployment-smoke-test
+    ├── streaming-ssr-and-hydration-lab
+    │   ├── server-rendering-entry
+    │   ├── suspense-shell
+    │   ├── streamed-sections
+    │   ├── request-scoped-data
+    │   ├── hydrate-root-setup
+    │   ├── deliberate-mismatch-cases
+    │   ├── browser-only-widget
+    │   └── recoverable-error-monitoring
+    ├── server-component-content-site
+    │   ├── server-client-module-boundaries
+    │   ├── server-data-access
+    │   ├── interactive-client-leaves
+    │   ├── serializable-props
+    │   ├── promise-handoff
+    │   ├── server-function-form
+    │   ├── authorized-mutation
+    │   ├── server-payload-review
+    │   └── no-javascript-baseline
+    ├── nextjs-full-stack-portal
+    │   ├── app-router-layouts
+    │   ├── server-client-component-split
+    │   ├── data-access-layer
+    │   ├── cache-and-revalidation-policy
+    │   ├── secure-server-functions
+    │   ├── metadata-and-discovery
+    │   ├── streaming-loading-states
+    │   └── deployment-and-end-to-end-tests
+    ├── react-router-framework-portal
+    │   ├── typed-route-modules
+    │   ├── loader-and-action-contracts
+    │   ├── progressive-form-submission
+    │   ├── resource-routes
+    │   ├── session-integration
+    │   ├── prerender-and-ssr-choice
+    │   ├── route-errors
+    │   └── hosting-adapter-validation
+    ├── activity-and-view-transition-lab
+    │   ├── preserved-tab-state
+    │   ├── hidden-effect-cleanup
+    │   ├── background-content-preparation
+    │   ├── animated-navigation
+    │   ├── shared-element-transition
+    │   ├── fragment-ref-focus-control
+    │   ├── reduced-motion-fallback
+    │   └── interruption-and-reentry-tests
+    ├── performance-and-compiler-lab
+    │   ├── representative-slow-ui
+    │   ├── production-profile-baseline
+    │   ├── render-cause-analysis
+    │   ├── compiler-adoption
+    │   ├── manual-memoization-comparison
+    │   ├── list-virtualization
+    │   ├── bundle-analysis
+    │   └── measured-regression-report
+    ├── internationalized-content-platform
+    │   ├── translation-catalog
+    │   ├── locale-routing
+    │   ├── server-client-locale-consistency
+    │   ├── rtl-components
+    │   ├── localized-form-errors
+    │   ├── content-search
+    │   ├── metadata-per-language
+    │   └── pseudo-localization-tests
+    ├── accessible-checkout-interface
+    │   ├── product-and-cart-model
+    │   ├── shipping-and-billing-form
+    │   ├── server-authoritative-totals
+    │   ├── keyboard-completion
+    │   ├── payment-sandbox-adapter
+    │   ├── duplicate-submit-protection
+    │   ├── recoverable-failure
+    │   └── confirmation-and-receipt-view
+    ├── offline-notes-workspace
+    │   ├── indexeddb-repository
+    │   ├── local-draft-state
+    │   ├── service-worker-update-ui
+    │   ├── offline-read-mode
+    │   ├── queued-sync
+    │   ├── conflict-resolution
+    │   ├── cross-tab-events
+    │   ├── private-data-reset
+    │   └── offline-browser-tests
+    ├── realtime-support-console
+    │   ├── ticket-list-and-detail
+    │   ├── event-stream-subscription
+    │   ├── optimistic-status-update
+    │   ├── assignment-permission-check
+    │   ├── reconnect-and-resync
+    │   ├── live-announcement-throttling
+    │   ├── incident-timeline
+    │   └── network-fault-tests
+    ├── streaming-assistant-client
+    │   ├── message-and-run-state
+    │   ├── authenticated-backend-adapter
+    │   ├── incremental-stream-parser
+    │   ├── bounded-render-frequency
+    │   ├── safe-content-rendering
+    │   ├── source-and-citation-view
+    │   ├── abort-and-retry
+    │   └── model-error-and-offline-feedback
+    ├── legacy-react-modernization
+    │   ├── baseline-behavior-tests
+    │   ├── class-component-assessment
+    │   ├── obsolete-api-replacement
+    │   ├── effect-and-state-refactor
+    │   ├── tooling-migration
+    │   ├── ref-prop-contract-review
+    │   ├── incremental-compiler-adoption
+    │   └── bundle-and-accessibility-comparison
+    ├── production-resilience-lab
+    │   ├── intentional-render-and-network-failures
+    │   ├── root-and-boundary-reporting
+    │   ├── chunk-load-failure-drill
+    │   ├── stale-client-deployment-simulation
+    │   ├── session-expiry-during-edit
+    │   ├── draft-recovery
+    │   ├── monitoring-dashboard
+    │   └── incident-runbook
+    └── end-to-end-react-capstone
+        ├── requirements-and-design
+        │   ├── user-journeys
+        │   ├── domain-and-api-contracts
+        │   ├── component-hierarchy
+        │   ├── state-ownership-map
+        │   ├── accessibility-and-localization-plan
+        │   └── rendering-and-deployment-decisions
+        ├── implementation
+        │   ├── typed-feature-modules
+        │   ├── accessible-design-system
+        │   ├── routing-and-data-layer
+        │   ├── native-forms-and-actions
+        │   ├── authorized-backend-integration
+        │   └── responsive-and-offline-behavior
+        └── validation-and-delivery
+            ├── component-and-browser-tests
+            ├── threat-and-data-boundary-review
+            ├── performance-and-compiler-profile
+            ├── deployment-pipeline
+            ├── operational-monitoring
+            ├── rollback-and-recovery-drill
+            └── results-and-retrospective

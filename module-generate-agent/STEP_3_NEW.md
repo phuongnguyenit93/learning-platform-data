@@ -8,8 +8,8 @@ STEP 3 NEW thiết kế Menu **hai cấp**, dành cho việc viết Markdown doc
 
 Hai script chính:
 
-- `script/module/step3/generate_menu_skeleton.py`: khởi tạo `menu.yml` và `menu-level-1-slug.yml` nếu chưa có.
-- `script/module/step3/generate_menu_detail.py`: kiểm tra Menu và Slug, sinh `menu-detail-status.yml` cùng các cặp YAML/Markdown của từng bài. Các helper dùng chung và xử lý field detail được gộp trực tiếp trong file này.
+- `script/module-generate/step3/generate_menu_skeleton.py`: khởi tạo `menu.yml` và `menu-level-1-slug.yml` nếu chưa có.
+- `script/module-generate/step3/generate_menu_detail.py`: kiểm tra Menu và Slug, sinh `menu-detail-status.yml` cùng các cặp YAML/Markdown của từng bài. Các helper dùng chung và xử lý field detail được gộp trực tiếp trong file này.
 
 ## 0. Prime preflight
 
@@ -24,8 +24,8 @@ Hai script chính:
 Chạy từ root `java-learning`:
 
 ```powershell
-python script/module/step3/generate_menu_skeleton.py --module "<MODULE_LOCATION>" --lang vi --dry-run
-python script/module/step3/generate_menu_skeleton.py --module "<MODULE_LOCATION>" --lang vi
+python script/module-generate/step3/generate_menu_skeleton.py --module "<MODULE_LOCATION>" --lang vi --dry-run
+python script/module-generate/step3/generate_menu_skeleton.py --module "<MODULE_LOCATION>" --lang vi
 ```
 
 Chỉ tạo hai file còn thiếu, với nội dung khởi tạo `menu: []`:
@@ -99,8 +99,8 @@ Worker chỉ sửa `menu-level-1-slug.yml`. Prime QA toàn bộ title/slug/index
 ## 4. Prime chạy generate_menu_detail.py
 
 ```powershell
-python script/module/step3/generate_menu_detail.py --module "<MODULE_LOCATION>" --lang vi --dry-run
-python script/module/step3/generate_menu_detail.py --module "<MODULE_LOCATION>" --lang vi
+python script/module-generate/step3/generate_menu_detail.py --module "<MODULE_LOCATION>" --lang vi --dry-run
+python script/module-generate/step3/generate_menu_detail.py --module "<MODULE_LOCATION>" --lang vi
 ```
 
 Script xác minh schema/thứ tự/slug/đường dẫn, tạo cây:

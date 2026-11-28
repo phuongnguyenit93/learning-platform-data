@@ -1,0 +1,3743 @@
+module
+├── foundation
+│   ├── python-overview
+│   │   ├── language-and-ecosystem
+│   │   ├── readability-and-productivity
+│   │   ├── dynamic-and-strong-typing
+│   │   ├── multi-paradigm-programming
+│   │   ├── scripting-and-applications
+│   │   ├── use-cases-and-tradeoffs
+│   │   └── learning-path
+│   ├── platform-boundaries
+│   │   ├── python-language
+│   │   ├── cpython-implementation
+│   │   ├── standard-library
+│   │   ├── third-party-packages
+│   │   ├── operating-system-services
+│   │   ├── virtual-environments
+│   │   └── application-frameworks
+│   ├── programming-mental-model
+│   │   ├── source-to-execution
+│   │   ├── expressions-and-statements
+│   │   ├── names-and-objects
+│   │   ├── input-processing-output
+│   │   ├── state-and-side-effects
+│   │   ├── control-flow
+│   │   ├── data-flow
+│   │   └── errors-and-observations
+│   ├── interpreter-basics
+│   │   ├── interactive-repl
+│   │   ├── script-execution
+│   │   ├── module-execution
+│   │   ├── command-line-arguments
+│   │   ├── exit-status
+│   │   ├── interactive-help
+│   │   └── interpreter-information
+│   ├── program-lifecycle
+│   │   ├── parse
+│   │   ├── compile
+│   │   ├── import
+│   │   ├── initialize
+│   │   ├── call
+│   │   ├── return
+│   │   ├── cleanup
+│   │   └── terminate
+│   ├── pythonic-reasoning
+│   │   ├── explicit-over-implicit
+│   │   ├── iteration-over-indexing
+│   │   ├── composition-over-boilerplate
+│   │   ├── protocols-over-type-checking
+│   │   ├── readability-over-cleverness
+│   │   ├── practicality-and-tradeoffs
+│   │   └── evidence-based-decisions
+│   ├── cross-language-orientation
+│   │   ├── python-and-java
+│   │   ├── python-and-javascript
+│   │   ├── references-and-aliasing
+│   │   ├── dynamic-dispatch
+│   │   ├── runtime-type-hints
+│   │   ├── indentation-and-blocks
+│   │   └── exceptions-and-resource-lifetimes
+│   ├── documentation-and-exploration
+│   │   ├── tutorial-navigation
+│   │   ├── library-reference
+│   │   ├── language-reference
+│   │   ├── python-enhancement-proposals
+│   │   ├── help-and-docstrings
+│   │   ├── minimal-reproductions
+│   │   └── release-notes
+│   ├── application-paths
+│   │   ├── automation-and-cli
+│   │   ├── backend-and-apis
+│   │   ├── data-analysis
+│   │   ├── scientific-computing
+│   │   ├── data-engineering
+│   │   ├── ai-and-machine-learning
+│   │   └── desktop-and-embedded
+│   └── learning-evidence
+│       ├── executable-examples
+│       ├── observable-output
+│       ├── assertions-and-tests
+│       ├── bug-reproductions
+│       ├── experiment-notes
+│       ├── limitations-and-assumptions
+│       └── independent-practice
+├── environment-and-project-workflow
+│   ├── interpreter-installation
+│   │   ├── windows-installation
+│   │   ├── macos-installation
+│   │   ├── linux-installation
+│   │   ├── architecture-selection
+│   │   ├── executable-discovery
+│   │   ├── python-launchers
+│   │   └── installation-verification
+│   ├── interpreter-selection
+│   │   ├── system-and-project-python
+│   │   ├── version-managers
+│   │   ├── supported-version-selection
+│   │   ├── version-pinning
+│   │   ├── path-resolution
+│   │   ├── interpreter-shebangs
+│   │   └── editor-interpreter-matching
+│   ├── virtual-environments
+│   │   ├── venv-creation
+│   │   ├── activation-and-direct-execution
+│   │   ├── environment-isolation
+│   │   ├── site-packages
+│   │   ├── environment-recreation
+│   │   ├── virtualenv-tooling
+│   │   └── shared-environment-risks
+│   ├── package-installation
+│   │   ├── python-m-pip
+│   │   ├── package-indexes
+│   │   ├── install-and-uninstall
+│   │   ├── editable-installations
+│   │   ├── package-inspection
+│   │   ├── cache-behavior
+│   │   └── externally-managed-environments
+│   ├── project-layout
+│   │   ├── single-file-script
+│   │   ├── importable-package
+│   │   ├── src-layout
+│   │   ├── tests-layout
+│   │   ├── resources-and-fixtures
+│   │   ├── configuration-files
+│   │   └── generated-output-boundaries
+│   ├── editor-and-terminal
+│   │   ├── language-server
+│   │   ├── completion-and-navigation
+│   │   ├── integrated-debugger
+│   │   ├── terminal-encoding
+│   │   ├── shell-quoting
+│   │   ├── environment-variables
+│   │   └── working-directory
+│   ├── development-cycle
+│   │   ├── initialize
+│   │   ├── edit
+│   │   ├── run
+│   │   ├── inspect
+│   │   ├── test
+│   │   ├── lint
+│   │   ├── type-check
+│   │   └── package
+│   ├── interactive-computing
+│   │   ├── ipython
+│   │   ├── jupyter-kernels
+│   │   ├── notebooks-and-scripts
+│   │   ├── kernel-environment-selection
+│   │   ├── execution-order
+│   │   ├── hidden-state
+│   │   └── reproducible-restarts
+│   ├── cross-platform-behavior
+│   │   ├── path-separators
+│   │   ├── filename-case
+│   │   ├── newline-conventions
+│   │   ├── permissions-and-executability
+│   │   ├── process-start-differences
+│   │   ├── platform-markers
+│   │   └── portable-temporary-files
+│   └── reproducibility-basics
+│       ├── declared-dependencies
+│       ├── locked-application-environments
+│       ├── tool-version-pinning
+│       ├── configuration-examples
+│       ├── clean-environment-smoke-tests
+│       ├── deterministic-inputs
+│       └── environment-diagnostics
+├── syntax-and-control-flow
+│   ├── lexical-structure
+│   │   ├── indentation
+│   │   ├── whitespace-and-tabs
+│   │   ├── logical-and-physical-lines
+│   │   ├── comments
+│   │   ├── identifiers
+│   │   ├── keywords-and-soft-keywords
+│   │   └── source-encoding
+│   ├── expressions-and-statements
+│   │   ├── literals
+│   │   ├── expression-evaluation
+│   │   ├── assignment
+│   │   ├── chained-assignment
+│   │   ├── augmented-assignment
+│   │   ├── annotated-assignment
+│   │   └── expression-statements
+│   ├── operators
+│   │   ├── arithmetic
+│   │   ├── comparison
+│   │   ├── identity
+│   │   ├── membership
+│   │   ├── boolean
+│   │   ├── bitwise
+│   │   └── precedence-and-associativity
+│   ├── truth-and-conditions
+│   │   ├── truth-value-testing
+│   │   ├── boolean-short-circuiting
+│   │   ├── chained-comparisons
+│   │   ├── if-elif-else
+│   │   ├── conditional-expressions
+│   │   ├── explicit-none-checks
+│   │   └── ambiguity-of-array-truth
+│   ├── iteration-statements
+│   │   ├── for-loops
+│   │   ├── while-loops
+│   │   ├── break
+│   │   ├── continue
+│   │   ├── loop-else
+│   │   ├── nested-loops
+│   │   └── safe-loop-termination
+│   ├── unpacking
+│   │   ├── sequence-unpacking
+│   │   ├── starred-assignment
+│   │   ├── iterable-expansion
+│   │   ├── mapping-expansion
+│   │   ├── nested-unpacking
+│   │   ├── duplicate-key-behavior
+│   │   └── evaluation-order
+│   ├── comprehensions
+│   │   ├── list-comprehensions
+│   │   ├── set-comprehensions
+│   │   ├── dict-comprehensions
+│   │   ├── generator-expressions
+│   │   ├── filtering-and-transformation
+│   │   ├── nested-comprehensions
+│   │   └── scope-and-readability
+│   ├── structural-pattern-matching
+│   │   ├── match-and-case
+│   │   ├── literal-patterns
+│   │   ├── capture-and-wildcard
+│   │   ├── sequence-patterns
+│   │   ├── mapping-patterns
+│   │   ├── class-patterns
+│   │   ├── or-and-as-patterns
+│   │   └── guards-and-order
+│   ├── assignment-expressions
+│   │   ├── walrus-syntax
+│   │   ├── conditional-binding
+│   │   ├── comprehension-restrictions
+│   │   ├── scope-effects
+│   │   ├── readability-tradeoffs
+│   │   └── repeated-work-elimination
+│   └── common-syntax-failures
+│       ├── missing-colons
+│       ├── indentation-errors
+│       ├── unterminated-strings
+│       ├── invalid-assignment-targets
+│       ├── accidental-tuples
+│       ├── mutable-default-traps
+│       └── ineffective-loop-else
+├── objects-values-and-memory-semantics
+│   ├── object-model
+│   │   ├── identity
+│   │   ├── type
+│   │   ├── value
+│   │   ├── references
+│   │   ├── bindings
+│   │   ├── object-lifetime
+│   │   └── reachable-objects
+│   ├── binding-and-assignment
+│   │   ├── rebinding
+│   │   ├── shared-references
+│   │   ├── assignment-not-copying
+│   │   ├── container-aliasing
+│   │   ├── argument-passing-by-sharing
+│   │   ├── deletion-of-names
+│   │   └── mutation-through-aliases
+│   ├── mutability
+│   │   ├── mutable-objects
+│   │   ├── immutable-objects
+│   │   ├── nested-mutability
+│   │   ├── mutable-default-arguments
+│   │   ├── shared-class-attributes
+│   │   ├── defensive-copying
+│   │   └── ownership-contracts
+│   ├── identity-and-equality
+│   │   ├── is-and-equality
+│   │   ├── object-id
+│   │   ├── equality-protocol
+│   │   ├── notimplemented-result
+│   │   ├── singleton-checks
+│   │   ├── interning-as-implementation-detail
+│   │   └── value-comparison-design
+│   ├── copying
+│   │   ├── shallow-copy
+│   │   ├── deep-copy
+│   │   ├── copy-module
+│   │   ├── custom-copy-hooks
+│   │   ├── cycles-and-memoization
+│   │   ├── immutable-replacement
+│   │   └── copy-cost-analysis
+│   ├── hashability
+│   │   ├── hash-contract
+│   │   ├── equality-and-hash
+│   │   ├── immutable-keys
+│   │   ├── mutable-key-risks
+│   │   ├── hash-randomization
+│   │   ├── deterministic-external-identifiers
+│   │   └── custom-hash-design
+│   ├── value-categories
+│   │   ├── none-and-absence
+│   │   ├── booleans
+│   │   ├── numeric-values
+│   │   ├── text-and-bytes
+│   │   ├── containers
+│   │   ├── callable-objects
+│   │   └── sentinels
+│   ├── memory-lifetime
+│   │   ├── reference-counting-model
+│   │   ├── cyclic-garbage-collection
+│   │   ├── reference-cycles
+│   │   ├── weak-references
+│   │   ├── finalization-limitations
+│   │   ├── explicit-resource-cleanup
+│   │   └── implementation-differences
+│   ├── mutation-traps
+│   │   ├── nested-list-repetition
+│   │   ├── shared-default-dictionaries
+│   │   ├── mutation-during-iteration
+│   │   ├── in-place-method-return-values
+│   │   ├── view-versus-copy
+│   │   ├── accidental-global-state
+│   │   └── retained-closures
+│   └── boundary-design
+│       ├── immutable-input-contracts
+│       ├── mutable-output-ownership
+│       ├── missing-versus-null
+│       ├── snapshot-versus-live-view
+│       ├── defensive-normalization
+│       ├── explicit-lifetime-tests
+│       └── serialization-boundaries
+├── numbers-text-and-binary-data
+│   ├── integers
+│   │   ├── arbitrary-precision-integers
+│   │   ├── numeric-literals
+│   │   ├── base-conversion
+│   │   ├── division-and-modulo
+│   │   ├── bit-length
+│   │   ├── bit-operations
+│   │   └── overflow-in-native-interfaces
+│   ├── floating-point
+│   │   ├── binary-representation
+│   │   ├── rounding-error
+│   │   ├── nan-and-infinity
+│   │   ├── signed-zero
+│   │   ├── approximate-comparison
+│   │   ├── accumulation-error
+│   │   └── numerical-stability
+│   ├── exact-and-specialized-numbers
+│   │   ├── decimal-contexts
+│   │   ├── decimal-quantization
+│   │   ├── fractions
+│   │   ├── complex-numbers
+│   │   ├── numeric-conversion
+│   │   ├── precision-versus-performance
+│   │   └── money-representation
+│   ├── mathematics-and-randomness
+│   │   ├── math-functions
+│   │   ├── statistics-module
+│   │   ├── deterministic-random-generators
+│   │   ├── seeds-and-reproducibility
+│   │   ├── random-distributions
+│   │   ├── secrets-for-security
+│   │   └── uuid-identifiers
+│   ├── string-model
+│   │   ├── unicode-code-points
+│   │   ├── immutability
+│   │   ├── indexing-and-slicing
+│   │   ├── normalization
+│   │   ├── casefolding
+│   │   ├── grapheme-boundaries
+│   │   └── string-ordering
+│   ├── text-operations
+│   │   ├── searching
+│   │   ├── splitting-and-joining
+│   │   ├── stripping
+│   │   ├── prefixes-and-suffixes
+│   │   ├── replacement
+│   │   ├── translation-tables
+│   │   └── line-processing
+│   ├── string-formatting
+│   │   ├── f-strings
+│   │   ├── format-specification
+│   │   ├── alignment-and-padding
+│   │   ├── numeric-formatting
+│   │   ├── conversion-flags
+│   │   ├── escaped-braces
+│   │   └── formatting-untrusted-values
+│   ├── template-strings
+│   │   ├── template-string-literals
+│   │   ├── interpolation-objects
+│   │   ├── processor-design
+│   │   ├── separation-of-values-and-template
+│   │   ├── escaping-responsibility
+│   │   ├── version-compatibility
+│   │   └── safe-rendering-tests
+│   ├── regular-expressions
+│   │   ├── patterns-and-flags
+│   │   ├── groups-and-captures
+│   │   ├── search-and-match
+│   │   ├── fullmatch-and-validation
+│   │   ├── substitution
+│   │   ├── finditer
+│   │   ├── compiled-patterns
+│   │   └── catastrophic-backtracking-awareness
+│   ├── binary-data
+│   │   ├── bytes
+│   │   ├── bytearray
+│   │   ├── memoryview
+│   │   ├── buffer-protocol
+│   │   ├── struct-packing
+│   │   ├── endianness
+│   │   ├── text-encoding-and-decoding
+│   │   └── error-handling-policies
+│   └── encoding-and-transport
+│       ├── utf-8
+│       ├── explicit-file-encoding
+│       ├── base64
+│       ├── hexadecimal
+│       ├── percent-encoding
+│       ├── byte-order-marks
+│       └── binary-versus-text-streams
+├── collections-and-data-structures
+│   ├── lists
+│   │   ├── construction
+│   │   ├── indexing
+│   │   ├── slicing
+│   │   ├── slice-assignment
+│   │   ├── append-and-extend
+│   │   ├── insert-and-remove
+│   │   ├── in-place-sorting
+│   │   └── nested-list-aliasing
+│   ├── tuples-and-records
+│   │   ├── tuple-packing
+│   │   ├── singleton-tuples
+│   │   ├── immutable-sequences
+│   │   ├── named-tuples
+│   │   ├── unpacking-records
+│   │   ├── record-versus-sequence-design
+│   │   └── nested-mutable-members
+│   ├── dictionaries
+│   │   ├── insertion-order
+│   │   ├── key-lookup
+│   │   ├── get-and-setdefault
+│   │   ├── updates-and-merges
+│   │   ├── dictionary-views
+│   │   ├── iteration-patterns
+│   │   ├── missing-key-handling
+│   │   └── dictionary-comprehensions
+│   ├── sets-and-frozen-sets
+│   │   ├── uniqueness
+│   │   ├── membership
+│   │   ├── union
+│   │   ├── intersection
+│   │   ├── difference
+│   │   ├── symmetric-difference
+│   │   └── hashable-set-members
+│   ├── collection-helpers
+│   │   ├── counter
+│   │   ├── defaultdict
+│   │   ├── deque
+│   │   ├── chainmap
+│   │   ├── ordered-dict
+│   │   ├── use-case-selection
+│   │   └── memory-and-complexity-tradeoffs
+│   ├── abstract-collections
+│   │   ├── iterable
+│   │   ├── iterator
+│   │   ├── collection
+│   │   ├── sequence
+│   │   ├── mapping
+│   │   ├── mutable-mapping
+│   │   └── set-protocol
+│   ├── sorting-and-searching
+│   │   ├── sorted-and-list-sort
+│   │   ├── key-functions
+│   │   ├── stable-sorting
+│   │   ├── multi-key-sorting
+│   │   ├── reverse-order
+│   │   ├── bisect
+│   │   └── binary-search-assumptions
+│   ├── specialized-containers
+│   │   ├── heapq-priority-queues
+│   │   ├── array-module
+│   │   ├── queue-module
+│   │   ├── weak-key-dictionaries
+│   │   ├── weak-value-dictionaries
+│   │   ├── mapping-proxies
+│   │   └── immutable-mapping-availability
+│   ├── transformation-patterns
+│   │   ├── filtering
+│   │   ├── grouping
+│   │   ├── indexing
+│   │   ├── flattening
+│   │   ├── partitioning
+│   │   ├── deduplication
+│   │   └── frequency-counting
+│   └── collection-correctness
+│       ├── deterministic-order
+│       ├── mutation-during-traversal
+│       ├── shallow-copy-boundaries
+│       ├── iterator-invalidation
+│       ├── hashability-errors
+│       ├── empty-input-behavior
+│       └── large-input-memory
+├── algorithms-and-problem-solving
+│   ├── complexity-analysis
+│   │   ├── time-complexity
+│   │   ├── space-complexity
+│   │   ├── amortized-cost
+│   │   ├── worst-and-average-cases
+│   │   ├── input-size-models
+│   │   ├── profiling-versus-asymptotics
+│   │   └── algorithmic-tradeoffs
+│   ├── array-and-string-patterns
+│   │   ├── two-pointers
+│   │   ├── sliding-windows
+│   │   ├── prefix-sums
+│   │   ├── frequency-maps
+│   │   ├── in-place-transformation
+│   │   ├── stable-deduplication
+│   │   └── boundary-cases
+│   ├── searching-and-ordering
+│   │   ├── linear-search
+│   │   ├── binary-search
+│   │   ├── partitioning
+│   │   ├── merge-sort
+│   │   ├── quicksort-concepts
+│   │   ├── heap-selection
+│   │   └── top-k-problems
+│   ├── stacks-and-queues
+│   │   ├── expression-balancing
+│   │   ├── monotonic-stack
+│   │   ├── breadth-first-frontier
+│   │   ├── work-queues
+│   │   ├── deque-operations
+│   │   ├── priority-scheduling
+│   │   └── bounded-buffers
+│   ├── recursion-and-backtracking
+│   │   ├── base-cases
+│   │   ├── call-stack
+│   │   ├── tree-traversal
+│   │   ├── permutation-search
+│   │   ├── pruning
+│   │   ├── memoization
+│   │   └── iterative-alternatives
+│   ├── trees-and-graphs
+│   │   ├── adjacency-lists
+│   │   ├── depth-first-search
+│   │   ├── breadth-first-search
+│   │   ├── topological-sorting
+│   │   ├── shortest-paths
+│   │   ├── connected-components
+│   │   └── cycle-detection
+│   ├── dynamic-programming
+│   │   ├── subproblem-definition
+│   │   ├── state-transitions
+│   │   ├── memoized-recursion
+│   │   ├── bottom-up-tables
+│   │   ├── space-reduction
+│   │   ├── reconstruction
+│   │   └── knapsack-and-sequence-problems
+│   ├── practical-algorithms
+│   │   ├── interval-merging
+│   │   ├── dependency-resolution
+│   │   ├── file-deduplication
+│   │   ├── scheduling
+│   │   ├── pagination
+│   │   ├── tradeoff-analysis
+│   │   └── streaming-aggregation
+│   └── correctness-evidence
+│       ├── invariants
+│       ├── preconditions
+│       ├── postconditions
+│       ├── property-based-examples
+│       ├── adversarial-inputs
+│       ├── randomized-cross-checks
+│       └── reference-implementations
+├── functions-scope-and-call-semantics
+│   ├── function-definition
+│   │   ├── def-and-call
+│   │   ├── return-values
+│   │   ├── implicit-none
+│   │   ├── function-objects
+│   │   ├── docstrings
+│   │   ├── annotations
+│   │   └── first-class-functions
+│   ├── parameter-kinds
+│   │   ├── positional-only
+│   │   ├── positional-or-keyword
+│   │   ├── keyword-only
+│   │   ├── default-values
+│   │   ├── variadic-positional
+│   │   ├── variadic-keyword
+│   │   └── argument-binding
+│   ├── call-behavior
+│   │   ├── argument-evaluation-order
+│   │   ├── unpacked-arguments
+│   │   ├── duplicate-arguments
+│   │   ├── default-evaluation-time
+│   │   ├── mutation-versus-rebinding
+│   │   ├── exception-propagation
+│   │   └── call-signatures
+│   ├── namespaces-and-scope
+│   │   ├── local-scope
+│   │   ├── enclosing-scope
+│   │   ├── global-scope
+│   │   ├── builtins-scope
+│   │   ├── global-statement
+│   │   ├── nonlocal-statement
+│   │   └── name-resolution
+│   ├── closures
+│   │   ├── captured-bindings
+│   │   ├── late-binding
+│   │   ├── loop-variable-capture
+│   │   ├── closure-factories
+│   │   ├── nonlocal-state
+│   │   ├── closure-lifetime
+│   │   └── testing-closure-behavior
+│   ├── function-design
+│   │   ├── single-responsibility
+│   │   ├── pure-core
+│   │   ├── input-validation
+│   │   ├── meaningful-return-contracts
+│   │   ├── side-effect-boundaries
+│   │   ├── early-return
+│   │   └── readable-signatures
+│   ├── higher-order-functions
+│   │   ├── functions-as-arguments
+│   │   ├── returned-functions
+│   │   ├── callbacks
+│   │   ├── predicates
+│   │   ├── key-functions
+│   │   ├── strategy-functions
+│   │   └── composition
+│   ├── recursion
+│   │   ├── recursive-contracts
+│   │   ├── stack-depth
+│   │   ├── recursion-limits
+│   │   ├── tree-and-directory-recursion
+│   │   ├── iterative-rewrites
+│   │   ├── tail-call-limitations
+│   │   └── cycle-prevention
+│   ├── introspection
+│   │   ├── inspect-signature
+│   │   ├── argument-binding
+│   │   ├── function-metadata
+│   │   ├── source-inspection
+│   │   ├── closure-inspection
+│   │   ├── builtins-limitations
+│   │   └── callable-detection
+│   └── function-pitfalls
+│       ├── mutable-defaults
+│       ├── shadowing-builtins
+│       ├── hidden-global-dependencies
+│       ├── overly-flexible-kwargs
+│       ├── inconsistent-return-types
+│       ├── late-binding-bugs
+│       └── misleading-type-annotations
+├── functional-programming-and-decorators
+│   ├── functional-foundations
+│   │   ├── referential-transparency
+│   │   ├── immutable-transformations
+│   │   ├── pure-and-impure-boundaries
+│   │   ├── higher-order-abstractions
+│   │   ├── composition
+│   │   ├── partial-application
+│   │   └── functional-core-imperative-shell
+│   ├── functional-builtins
+│   │   ├── map
+│   │   ├── filter
+│   │   ├── zip
+│   │   ├── enumerate
+│   │   ├── any-and-all
+│   │   ├── sum-and-extrema
+│   │   └── comprehension-alternatives
+│   ├── functools
+│   │   ├── partial
+│   │   ├── reduce
+│   │   ├── wraps
+│   │   ├── update-wrapper
+│   │   ├── singledispatch
+│   │   ├── singledispatchmethod
+│   │   └── total-ordering
+│   ├── decorator-fundamentals
+│   │   ├── decoration-time
+│   │   ├── wrapper-functions
+│   │   ├── decorator-syntax
+│   │   ├── metadata-preservation
+│   │   ├── closure-based-decorators
+│   │   ├── stacked-decorators
+│   │   └── execution-order
+│   ├── parameterized-decorators
+│   │   ├── decorator-factories
+│   │   ├── configuration-validation
+│   │   ├── callable-objects
+│   │   ├── optional-arguments
+│   │   ├── decorator-state
+│   │   ├── lifetime-and-concurrency
+│   │   └── signature-preservation
+│   ├── method-and-class-decoration
+│   │   ├── method-binding
+│   │   ├── staticmethod
+│   │   ├── classmethod
+│   │   ├── class-decorators
+│   │   ├── descriptor-interaction
+│   │   ├── inheritance-interaction
+│   │   └── decorator-order
+│   ├── caching-and-memoization
+│   │   ├── cache
+│   │   ├── lru-cache
+│   │   ├── cached-property
+│   │   ├── hashable-arguments
+│   │   ├── cache-invalidation
+│   │   ├── retained-references
+│   │   └── concurrency-and-stale-data
+│   ├── async-and-generator-wrappers
+│   │   ├── coroutine-wrapping
+│   │   ├── async-function-detection
+│   │   ├── generator-preservation
+│   │   ├── context-propagation
+│   │   ├── cancellation-preservation
+│   │   ├── cleanup-order
+│   │   └── wrapper-testing
+│   ├── practical-decorator-patterns
+│   │   ├── timing-and-tracing
+│   │   ├── registration
+│   │   ├── input-contracts
+│   │   ├── bounded-retry
+│   │   ├── authorization-boundary-review
+│   │   ├── transaction-boundary-review
+│   │   └── testing-side-effects
+│   └── abstraction-limits
+│       ├── hidden-control-flow
+│       ├── import-time-side-effects
+│       ├── global-registries
+│       ├── overdecorating
+│       ├── debugging-wrappers
+│       ├── alternatives-with-context-managers
+│       └── composition-over-magic
+├── iterators-generators-and-lazy-processing
+│   ├── iteration-protocol
+│   │   ├── iterable-versus-iterator
+│   │   ├── iter-and-next
+│   │   ├── stopiteration
+│   │   ├── single-pass-consumption
+│   │   ├── re-iterability
+│   │   ├── sentinel-iteration
+│   │   └── custom-iterators
+│   ├── generator-functions
+│   │   ├── yield
+│   │   ├── suspension-and-resumption
+│   │   ├── generator-state
+│   │   ├── lazy-execution
+│   │   ├── return-values
+│   │   ├── exhaustion
+│   │   └── multiple-consumers
+│   ├── generator-expressions
+│   │   ├── lazy-comprehension
+│   │   ├── evaluation-timing
+│   │   ├── enclosing-scope
+│   │   ├── memory-benefits
+│   │   ├── consumed-inputs
+│   │   ├── one-shot-results
+│   │   └── debug-observability
+│   ├── generator-control
+│   │   ├── send
+│   │   ├── throw
+│   │   ├── close
+│   │   ├── yield-from
+│   │   ├── delegation
+│   │   ├── generator-return-values
+│   │   └── exception-propagation
+│   ├── itertools
+│   │   ├── chain
+│   │   ├── islice
+│   │   ├── count-and-repeat
+│   │   ├── cycle
+│   │   ├── accumulate
+│   │   ├── pairwise
+│   │   ├── batched
+│   │   └── zip-longest
+│   ├── combinatorics-and-grouping
+│   │   ├── product
+│   │   ├── permutations
+│   │   ├── combinations
+│   │   ├── groupby
+│   │   ├── sorted-group-input
+│   │   ├── tee-buffering
+│   │   └── bounded-combinatorial-work
+│   ├── streaming-pipelines
+│   │   ├── source-transform-sink
+│   │   ├── bounded-memory
+│   │   ├── backpressure-concepts
+│   │   ├── chunking
+│   │   ├── incremental-parsing
+│   │   ├── cancellation-and-cleanup
+│   │   └── partial-failure
+│   ├── asynchronous-iteration
+│   │   ├── async-iterators
+│   │   ├── async-generators
+│   │   ├── async-for
+│   │   ├── aiter-and-anext
+│   │   ├── asynchronous-comprehensions
+│   │   ├── generator-finalization
+│   │   └── async-stream-boundaries
+│   └── iterator-correctness
+│       ├── exhaustion-contracts
+│       ├── accidental-materialization
+│       ├── mutation-during-iteration
+│       ├── resource-ownership
+│       ├── side-effect-timing
+│       ├── iterator-reuse
+│       └── thread-safety-boundaries
+├── exceptions-and-resource-management
+│   ├── exception-model
+│   │   ├── exception-hierarchy
+│   │   ├── exception-instances
+│   │   ├── traceback
+│   │   ├── stack-unwinding
+│   │   ├── syntax-versus-runtime-errors
+│   │   ├── baseexception-boundaries
+│   │   └── control-flow-exceptions
+│   ├── exception-handling
+│   │   ├── try-except
+│   │   ├── except-order
+│   │   ├── else-clauses
+│   │   ├── finally-clauses
+│   │   ├── reraising
+│   │   ├── narrow-handler-scopes
+│   │   └── recovery-versus-propagation
+│   ├── exception-design
+│   │   ├── custom-exception-types
+│   │   ├── domain-errors
+│   │   ├── error-payloads
+│   │   ├── exception-chaining
+│   │   ├── preserving-causes
+│   │   ├── adding-notes
+│   │   └── public-error-contracts
+│   ├── grouped-failures
+│   │   ├── exceptiongroup
+│   │   ├── baseexceptiongroup
+│   │   ├── except-star
+│   │   ├── subgroup-matching
+│   │   ├── nested-groups
+│   │   ├── concurrent-failures
+│   │   └── compatibility-testing
+│   ├── context-manager-protocol
+│   │   ├── with-statement
+│   │   ├── enter-and-exit
+│   │   ├── exception-suppression
+│   │   ├── multiple-context-managers
+│   │   ├── nesting-order
+│   │   ├── reusable-versus-reentrant
+│   │   └── explicit-cleanup
+│   ├── contextlib
+│   │   ├── contextmanager
+│   │   ├── asynccontextmanager
+│   │   ├── exitstack
+│   │   ├── asyncexitstack
+│   │   ├── closing-and-aclosing
+│   │   ├── suppress
+│   │   └── nullcontext
+│   ├── resource-lifetimes
+│   │   ├── file-handles
+│   │   ├── database-connections
+│   │   ├── network-sessions
+│   │   ├── locks
+│   │   ├── temporary-directories
+│   │   ├── subprocesses
+│   │   └── cleanup-on-cancellation
+│   ├── warning-management
+│   │   ├── warnings-categories
+│   │   ├── filters
+│   │   ├── catch-warnings
+│   │   ├── deprecation-warnings
+│   │   ├── warning-as-error
+│   │   ├── context-and-thread-behavior
+│   │   └── user-actionable-messages
+│   ├── robust-error-handling
+│   │   ├── cleanup-without-masking-errors
+│   │   ├── bounded-retries
+│   │   ├── retryable-versus-permanent-errors
+│   │   ├── partial-success
+│   │   ├── rollback-compensation
+│   │   ├── diagnostic-context
+│   │   └── safe-termination
+│   └── anti-patterns
+│       ├── bare-except
+│       ├── swallowing-errors
+│       ├── return-in-finally
+│       ├── exception-driven-guessing
+│       ├── assertions-for-input-validation
+│       ├── catch-and-log-twice
+│       └── leaked-resources
+├── modules-imports-and-package-organization
+│   ├── module-fundamentals
+│   │   ├── module-namespace
+│   │   ├── import-statements
+│   │   ├── from-import
+│   │   ├── aliases
+│   │   ├── module-cache
+│   │   ├── import-time-execution
+│   │   └── module-as-script
+│   ├── package-layout
+│   │   ├── regular-packages
+│   │   ├── init-files
+│   │   ├── subpackages
+│   │   ├── namespace-packages
+│   │   ├── relative-imports
+│   │   ├── absolute-imports
+│   │   └── public-import-surface
+│   ├── import-resolution
+│   │   ├── sys-path
+│   │   ├── working-directory-effects
+│   │   ├── site-packages
+│   │   ├── import-shadowing
+│   │   ├── module-search-order
+│   │   ├── path-hooks
+│   │   └── import-debugging
+│   ├── module-lifecycle
+│   │   ├── initialization-order
+│   │   ├── sys-modules
+│   │   ├── circular-imports
+│   │   ├── partially-initialized-modules
+│   │   ├── reload-limitations
+│   │   ├── startup-side-effects
+│   │   └── lazy-initialization
+│   ├── importlib-and-discovery
+│   │   ├── import-module
+│   │   ├── find-spec
+│   │   ├── importlib-resources
+│   │   ├── importlib-metadata
+│   │   ├── distribution-metadata
+│   │   ├── entry-point-discovery
+│   │   └── plugin-loading
+│   ├── import-performance
+│   │   ├── import-time-measurement
+│   │   ├── local-import-tradeoffs
+│   │   ├── optional-dependencies
+│   │   ├── delayed-loading
+│   │   ├── startup-budget
+│   │   ├── import-graph-analysis
+│   │   └── eager-initialization-tests
+│   ├── lazy-imports-versioned
+│   │   ├── explicit-lazy-imports
+│   │   ├── module-scope-restrictions
+│   │   ├── deferred-failures
+│   │   ├── import-side-effect-contracts
+│   │   ├── compatibility-opt-ins
+│   │   ├── eager-fallbacks
+│   │   └── dependency-readiness
+│   ├── execution-entrypoints
+│   │   ├── main-guard
+│   │   ├── python-m
+│   │   ├── package-main-module
+│   │   ├── console-entry-points
+│   │   ├── import-safe-functions
+│   │   ├── multiprocessing-entrypoint
+│   │   └── script-versus-library
+│   ├── dependency-direction
+│   │   ├── layered-imports
+│   │   ├── stable-public-modules
+│   │   ├── dependency-inversion
+│   │   ├── dependency-cycle-detection
+│   │   ├── application-composition
+│   │   ├── package-boundaries
+│   │   └── import-contract-tests
+│   └── import-security
+│       ├── untrusted-search-paths
+│       ├── dependency-name-collisions
+│       ├── executable-package-initialization
+│       ├── dynamic-import-allowlists
+│       ├── trusted-plugin-sources
+│       ├── isolated-runtime-boundaries
+│       └── package-integrity
+├── classes-and-object-oriented-design
+│   ├── class-fundamentals
+│   │   ├── class-statements
+│   │   ├── instances
+│   │   ├── instance-attributes
+│   │   ├── class-attributes
+│   │   ├── methods
+│   │   ├── self
+│   │   └── constructor-initialization
+│   ├── object-construction
+│   │   ├── new-versus-init
+│   │   ├── allocation-and-initialization
+│   │   ├── alternative-constructors
+│   │   ├── initialization-invariants
+│   │   ├── immutable-subclasses
+│   │   ├── object-factories
+│   │   └── construction-failures
+│   ├── attribute-design
+│   │   ├── public-and-internal-names
+│   │   ├── name-mangling
+│   │   ├── properties
+│   │   ├── getters-and-setters
+│   │   ├── computed-attributes
+│   │   ├── validation-boundaries
+│   │   └── encapsulation-without-boilerplate
+│   ├── method-binding
+│   │   ├── bound-methods
+│   │   ├── unbound-functions
+│   │   ├── instance-methods
+│   │   ├── class-methods
+│   │   ├── static-methods
+│   │   ├── callable-instances
+│   │   └── method-references
+│   ├── inheritance
+│   │   ├── single-inheritance
+│   │   ├── overriding
+│   │   ├── super
+│   │   ├── method-resolution-order
+│   │   ├── cooperative-inheritance
+│   │   ├── mixins
+│   │   └── multiple-inheritance-tradeoffs
+│   ├── interfaces-and-polymorphism
+│   │   ├── duck-typing
+│   │   ├── abstract-base-classes
+│   │   ├── abstract-methods
+│   │   ├── virtual-subclasses
+│   │   ├── structural-protocols
+│   │   ├── composition-versus-inheritance
+│   │   └── substitutability
+│   ├── dataclasses
+│   │   ├── generated-methods
+│   │   ├── field-defaults
+│   │   ├── default-factories
+│   │   ├── frozen-records
+│   │   ├── slots
+│   │   ├── keyword-only-fields
+│   │   ├── post-init
+│   │   └── init-only-variables
+│   ├── dataclass-design
+│   │   ├── equality-and-ordering
+│   │   ├── hashing-and-mutability
+│   │   ├── field-metadata
+│   │   ├── recursive-conversion
+│   │   ├── replace-and-copy
+│   │   ├── inheritance-rules
+│   │   └── validation-limitations
+│   ├── enums-and-domain-values
+│   │   ├── enum
+│   │   ├── intenum
+│   │   ├── strenum
+│   │   ├── flag-and-intflag
+│   │   ├── auto-values
+│   │   ├── aliases
+│   │   ├── parsing-and-serialization
+│   │   └── domain-state-models
+│   ├── object-design-patterns
+│   │   ├── value-objects
+│   │   ├── entities
+│   │   ├── aggregates
+│   │   ├── services
+│   │   ├── adapters
+│   │   ├── strategies
+│   │   └── composition-roots
+│   └── object-lifecycle-pitfalls
+│       ├── shared-class-mutable-state
+│       ├── fragile-base-classes
+│       ├── deep-inheritance
+│       ├── constructor-side-effects
+│       ├── finalizer-dependence
+│       ├── overuse-of-singletons
+│       └── overengineering-small-functions
+├── data-model-protocols-and-metaprogramming
+│   ├── data-model-overview
+│   │   ├── special-method-contracts
+│   │   ├── implicit-special-method-lookup
+│   │   ├── operator-dispatch
+│   │   ├── protocols-and-duck-typing
+│   │   ├── builtin-integration
+│   │   ├── supported-operations
+│   │   └── explicit-invariants
+│   ├── representation-and-comparison
+│   │   ├── repr
+│   │   ├── str
+│   │   ├── format
+│   │   ├── equality
+│   │   ├── ordering
+│   │   ├── hash
+│   │   └── notimplemented
+│   ├── container-protocols
+│   │   ├── len
+│   │   ├── getitem
+│   │   ├── setitem
+│   │   ├── delitem
+│   │   ├── contains
+│   │   ├── iter
+│   │   └── reversed
+│   ├── numeric-and-callable-protocols
+│   │   ├── arithmetic-operators
+│   │   ├── reflected-operators
+│   │   ├── in-place-operators
+│   │   ├── bool
+│   │   ├── index
+│   │   ├── numeric-conversions
+│   │   └── call
+│   ├── descriptor-protocol
+│   │   ├── get
+│   │   ├── set
+│   │   ├── delete
+│   │   ├── set-name
+│   │   ├── data-descriptors
+│   │   ├── non-data-descriptors
+│   │   └── lookup-precedence
+│   ├── attribute-access
+│   │   ├── getattribute
+│   │   ├── getattr
+│   │   ├── setattr
+│   │   ├── delattr
+│   │   ├── instance-dictionary
+│   │   ├── slots
+│   │   └── descriptor-interaction
+│   ├── class-creation-hooks
+│   │   ├── init-subclass
+│   │   ├── class-decorators
+│   │   ├── prepare-namespace
+│   │   ├── new-on-metaclasses
+│   │   ├── metaclass-call
+│   │   ├── classcell-and-super
+│   │   └── registration-without-metaclasses
+│   ├── runtime-introspection
+│   │   ├── inspect-module
+│   │   ├── signature-binding
+│   │   ├── members-and-attributes
+│   │   ├── source-and-code-objects
+│   │   ├── runtime-type-inspection
+│   │   ├── annotations-and-evaluation
+│   │   └── introspection-security
+│   ├── dynamic-types-and-dispatch
+│   │   ├── type-construction
+│   │   ├── types-module
+│   │   ├── dynamic-method-binding
+│   │   ├── singledispatch-registries
+│   │   ├── plugin-contracts
+│   │   ├── explicit-registration
+│   │   └── dynamic-code-alternatives
+│   └── metaprogramming-boundaries
+│       ├── eval-and-exec-risk
+│       ├── ast-based-inspection
+│       ├── monkeypatch-scope
+│       ├── import-hook-complexity
+│       ├── debugging-generated-behavior
+│       ├── runtime-sandbox-limitations
+│       └── simpler-alternatives
+├── type-hints-and-static-analysis
+│   ├── typing-mental-model
+│   │   ├── annotations-not-runtime-enforcement
+│   │   ├── gradual-typing
+│   │   ├── static-and-runtime-contracts
+│   │   ├── inferred-types
+│   │   ├── assignability
+│   │   ├── structural-versus-nominal-typing
+│   │   └── checker-version-boundaries
+│   ├── everyday-annotations
+│   │   ├── scalars
+│   │   ├── collections
+│   │   ├── unions
+│   │   ├── optional-values
+│   │   ├── callable-types
+│   │   ├── class-types
+│   │   └── none-return
+│   ├── precise-data-models
+│   │   ├── literal
+│   │   ├── typed-dict
+│   │   ├── required-and-notrequired
+│   │   ├── readonly-fields
+│   │   ├── namedtuple
+│   │   ├── dataclass
+│   │   ├── newtype
+│   │   └── annotated
+│   ├── generic-types
+│   │   ├── type-parameters
+│   │   ├── type-variables
+│   │   ├── bounds
+│   │   ├── constraints
+│   │   ├── defaults
+│   │   ├── generic-functions
+│   │   ├── generic-classes
+│   │   └── type-aliases
+│   ├── variance-and-subtyping
+│   │   ├── covariance
+│   │   ├── contravariance
+│   │   ├── invariance
+│   │   ├── mutable-container-safety
+│   │   ├── read-only-protocols
+│   │   ├── callable-variance
+│   │   └── inference-limitations
+│   ├── protocols-and-abcs
+│   │   ├── protocol-members
+│   │   ├── structural-matching
+│   │   ├── callback-protocols
+│   │   ├── runtime-checkable-limitations
+│   │   ├── abstract-base-class-contracts
+│   │   ├── protocol-composition
+│   │   └── dependency-injection-contracts
+│   ├── advanced-function-typing
+│   │   ├── overload
+│   │   ├── paramspec
+│   │   ├── concatenate
+│   │   ├── typevartuple
+│   │   ├── unpack
+│   │   ├── self
+│   │   └── override
+│   ├── narrowing-and-exhaustiveness
+│   │   ├── isinstance-narrowing
+│   │   ├── literal-narrowing
+│   │   ├── typeguard
+│   │   ├── typeis
+│   │   ├── never-and-noreturn
+│   │   ├── assert-never
+│   │   └── discriminated-unions
+│   ├── annotation-runtime
+│   │   ├── forward-references
+│   │   ├── type-checking-guard
+│   │   ├── deferred-annotation-evaluation
+│   │   ├── annotationlib
+│   │   ├── get-type-hints
+│   │   ├── namespace-resolution
+│   │   └── annotation-evaluation-security
+│   ├── checker-workflows
+│   │   ├── mypy
+│   │   ├── pyright
+│   │   ├── checker-configuration
+│   │   ├── strictness-rollout
+│   │   ├── reveal-type
+│   │   ├── assert-type
+│   │   └── suppression-with-rationale
+│   ├── typed-library-delivery
+│   │   ├── py-typed-marker
+│   │   ├── stub-files
+│   │   ├── stub-packages
+│   │   ├── typing-extensions
+│   │   ├── minimum-python-version
+│   │   ├── consumer-type-tests
+│   │   └── public-signature-compatibility
+│   └── typing-pitfalls
+│       ├── any-propagation
+│       ├── object-versus-any
+│       ├── casts-without-validation
+│       ├── optional-overuse
+│       ├── unsound-mutation
+│       ├── erased-generics
+│       └── misleading-runtime-checks
+├── standard-library-and-system-integration
+│   ├── standard-library-navigation
+│   │   ├── builtins-and-modules
+│   │   ├── documentation-index
+│   │   ├── platform-availability
+│   │   ├── version-added-notes
+│   │   ├── deprecated-api-review
+│   │   ├── implementation-specific-apis
+│   │   └── dependency-selection
+│   ├── operating-system-interface
+│   │   ├── os-environ
+│   │   ├── process-environment
+│   │   ├── user-and-home-directories
+│   │   ├── filesystem-metadata
+│   │   ├── permissions
+│   │   ├── platform-detection
+│   │   └── filesystem-encoding
+│   ├── interpreter-services
+│   │   ├── sys-argv
+│   │   ├── sys-executable
+│   │   ├── sys-path
+│   │   ├── sys-streams
+│   │   ├── sys-exit
+│   │   ├── sys-version-info
+│   │   └── sysconfig
+│   ├── process-execution
+│   │   ├── subprocess-run
+│   │   ├── popen
+│   │   ├── argument-lists
+│   │   ├── shell-false-default
+│   │   ├── output-capture
+│   │   ├── timeouts
+│   │   └── return-code-handling
+│   ├── process-lifecycle
+│   │   ├── stdin-and-pipes
+│   │   ├── streaming-output
+│   │   ├── process-groups
+│   │   ├── signals
+│   │   ├── graceful-shutdown
+│   │   ├── child-reaping
+│   │   └── platform-specific-termination
+│   ├── runtime-context
+│   │   ├── contextvars
+│   │   ├── context-propagation
+│   │   ├── thread-local-storage
+│   │   ├── task-local-context
+│   │   ├── request-correlation
+│   │   ├── context-copying
+│   │   └── lifetime-isolation
+│   ├── utility-modules
+│   │   ├── collections
+│   │   ├── functools
+│   │   ├── itertools
+│   │   ├── operator
+│   │   ├── pprint
+│   │   ├── reprlib
+│   │   └── textwrap
+│   ├── identity-and-integrity
+│   │   ├── uuid
+│   │   ├── hashlib
+│   │   ├── hmac
+│   │   ├── secrets
+│   │   ├── checksums-versus-authentication
+│   │   ├── secure-random-tokens
+│   │   └── comparison-safety
+│   ├── archives-and-compression
+│   │   ├── zipfile
+│   │   ├── tarfile
+│   │   ├── gzip
+│   │   ├── bz2
+│   │   ├── lzma
+│   │   ├── zstandard-availability
+│   │   ├── decompression-limits
+│   │   └── safe-extraction
+│   └── system-automation-boundaries
+│       ├── filesystem-permissions
+│       ├── executable-resolution
+│       ├── temporary-path-security
+│       ├── subprocess-injection
+│       ├── privileged-operation-review
+│       ├── dry-run-modes
+│       └── cleanup-after-failure
+├── files-streams-and-serialization
+│   ├── path-modeling
+│   │   ├── pathlib
+│   │   ├── path-versus-string
+│   │   ├── absolute-and-relative-paths
+│   │   ├── path-resolution
+│   │   ├── globbing
+│   │   ├── symlinks
+│   │   └── path-traversal-boundaries
+│   ├── file-operations
+│   │   ├── open-modes
+│   │   ├── text-and-binary-files
+│   │   ├── explicit-encoding
+│   │   ├── newline-handling
+│   │   ├── reading-and-writing
+│   │   ├── append-and-truncate
+│   │   └── context-managed-files
+│   ├── stream-processing
+│   │   ├── buffering
+│   │   ├── file-like-objects
+│   │   ├── stringio
+│   │   ├── bytesio
+│   │   ├── seek-and-tell
+│   │   ├── incremental-reading
+│   │   └── line-oriented-processing
+│   ├── directory-workflows
+│   │   ├── directory-traversal
+│   │   ├── scandir
+│   │   ├── file-copying
+│   │   ├── safe-renaming
+│   │   ├── filesystem-metadata
+│   │   ├── temporary-files
+│   │   └── atomic-replacement
+│   ├── json-and-json-lines
+│   │   ├── encoding-and-decoding
+│   │   ├── custom-encoders
+│   │   ├── numeric-precision
+│   │   ├── unicode-handling
+│   │   ├── streaming-records
+│   │   ├── schema-versioning
+│   │   └── size-limits
+│   ├── csv-and-delimited-data
+│   │   ├── dialects
+│   │   ├── delimiter-and-quoting
+│   │   ├── dictreader-and-dictwriter
+│   │   ├── newline-configuration
+│   │   ├── missing-values
+│   │   ├── type-conversion
+│   │   └── formula-injection-prevention
+│   ├── structured-formats
+│   │   ├── tomllib
+│   │   ├── yaml-safe-loading
+│   │   ├── xml-elementtree
+│   │   ├── xml-parser-hardening
+│   │   ├── parquet-with-pyarrow
+│   │   ├── avro-and-protobuf
+│   │   └── format-selection
+│   ├── python-specific-serialization
+│   │   ├── pickle-trust-boundary
+│   │   ├── pickle-protocols
+│   │   ├── object-compatibility
+│   │   ├── shelve-limitations
+│   │   ├── marshal-internal-use
+│   │   ├── safe-alternatives
+│   │   └── untrusted-load-prevention
+│   ├── file-pipeline-reliability
+│   │   ├── partial-writes
+│   │   ├── atomic-publication
+│   │   ├── checkpoints
+│   │   ├── checksums
+│   │   ├── record-level-errors
+│   │   ├── resumable-processing
+│   │   └── idempotent-output
+│   ├── large-file-strategies
+│   │   ├── generators
+│   │   ├── memory-mapping
+│   │   ├── chunked-processing
+│   │   ├── bounded-buffers
+│   │   ├── external-sorting
+│   │   ├── compression-tradeoffs
+│   │   └── file-descriptor-budgets
+│   └── file-testing
+│       ├── temporary-directories
+│       ├── encoding-fixtures
+│       ├── malformed-inputs
+│       ├── permission-errors
+│       ├── disk-full-simulation
+│       ├── interruption-tests
+│       └── deterministic-output
+├── date-time-localization-and-configuration
+│   ├── temporal-types
+│   │   ├── date
+│   │   ├── time
+│   │   ├── datetime
+│   │   ├── timedelta
+│   │   ├── timestamps
+│   │   ├── durations
+│   │   └── calendar-values
+│   ├── timezone-model
+│   │   ├── naive-versus-aware
+│   │   ├── utc-storage
+│   │   ├── local-presentation
+│   │   ├── zoneinfo
+│   │   ├── iana-timezones
+│   │   ├── daylight-saving-transitions
+│   │   └── ambiguous-and-nonexistent-times
+│   ├── temporal-operations
+│   │   ├── parsing-and-formatting
+│   │   ├── iso-formats
+│   │   ├── timestamp-conversion
+│   │   ├── arithmetic-and-offsets
+│   │   ├── calendar-versus-duration
+│   │   ├── boundaries-and-rounding
+│   │   └── leap-year-cases
+│   ├── clocks-and-scheduling
+│   │   ├── wall-clock
+│   │   ├── monotonic-clock
+│   │   ├── perf-counter
+│   │   ├── timeout-deadlines
+│   │   ├── clock-skew
+│   │   ├── scheduling-timezones
+│   │   └── testable-clock-abstractions
+│   ├── localization
+│   │   ├── locale-boundaries
+│   │   ├── gettext
+│   │   ├── message-catalogs
+│   │   ├── unicode-normalization
+│   │   ├── date-and-number-formatting
+│   │   ├── babel-integration
+│   │   └── translation-testing
+│   ├── configuration-sources
+│   │   ├── command-line-options
+│   │   ├── environment-variables
+│   │   ├── toml-files
+│   │   ├── ini-configparser
+│   │   ├── json-configuration
+│   │   ├── secret-stores
+│   │   └── defaults-and-overrides
+│   ├── configuration-design
+│   │   ├── precedence-rules
+│   │   ├── typed-settings
+│   │   ├── startup-validation
+│   │   ├── immutable-snapshots
+│   │   ├── redaction
+│   │   ├── environment-specific-values
+│   │   └── configuration-schema
+│   ├── settings-tooling
+│   │   ├── pydantic-settings
+│   │   ├── dataclass-settings
+│   │   ├── dotenv-development-use
+│   │   ├── dependency-injected-config
+│   │   ├── config-migration
+│   │   ├── unknown-key-handling
+│   │   └── configuration-tests
+│   └── operational-configuration
+│       ├── feature-flags
+│       ├── runtime-reload-boundaries
+│       ├── secret-rotation
+│       ├── connection-configuration
+│       ├── deployment-contracts
+│       ├── nonsecret-examples
+│       └── fail-fast-diagnostics
+├── dependency-management-and-packaging
+│   ├── packaging-concepts
+│   │   ├── import-package-versus-distribution
+│   │   ├── source-distributions
+│   │   ├── wheels
+│   │   ├── package-indexes
+│   │   ├── metadata
+│   │   ├── dependency-resolution
+│   │   └── application-versus-library-pinning
+│   ├── project-metadata
+│   │   ├── pyproject-toml
+│   │   ├── project-name
+│   │   ├── version
+│   │   ├── requires-python
+│   │   ├── dependencies
+│   │   ├── optional-dependencies
+│   │   ├── dependency-groups
+│   │   └── license-metadata
+│   ├── build-system
+│   │   ├── build-backends
+│   │   ├── build-frontends
+│   │   ├── isolated-builds
+│   │   ├── build-requirements
+│   │   ├── setuptools
+│   │   ├── hatchling
+│   │   ├── flit
+│   │   └── uv-build
+│   ├── dependency-specification
+│   │   ├── version-specifiers
+│   │   ├── environment-markers
+│   │   ├── extras
+│   │   ├── constraints
+│   │   ├── direct-references
+│   │   ├── hashes
+│   │   └── platform-specific-dependencies
+│   ├── environment-tools
+│   │   ├── pip-and-venv
+│   │   ├── uv-projects
+│   │   ├── pip-tools
+│   │   ├── poetry
+│   │   ├── pdm
+│   │   ├── conda-and-mamba
+│   │   └── tool-selection-and-interoperability
+│   ├── reproducible-installation
+│   │   ├── lockfiles
+│   │   ├── locked-sync
+│   │   ├── transitive-dependencies
+│   │   ├── platform-lock-behavior
+│   │   ├── offline-wheelhouses
+│   │   ├── private-index-authentication
+│   │   └── resolver-conflict-diagnostics
+│   ├── distribution-layout
+│   │   ├── src-layout
+│   │   ├── package-discovery
+│   │   ├── package-data
+│   │   ├── importlib-resources
+│   │   ├── entry-points
+│   │   ├── console-scripts
+│   │   └── editable-installation-behavior
+│   ├── build-validation
+│   │   ├── build-wheel-and-sdist
+│   │   ├── install-built-wheel
+│   │   ├── inspect-archive-contents
+│   │   ├── metadata-checks
+│   │   ├── isolated-import-smoke-tests
+│   │   ├── platform-matrix
+│   │   └── dependency-bound-checks
+│   ├── publishing
+│   │   ├── testpypi
+│   │   ├── trusted-publishing
+│   │   ├── scoped-credentials
+│   │   ├── immutable-release-artifacts
+│   │   ├── release-tags
+│   │   ├── attestations-and-provenance
+│   │   └── yanked-release-handling
+│   ├── compatibility-and-supply-chain
+│   │   ├── dependency-vulnerabilities
+│   │   ├── typosquatting
+│   │   ├── dependency-confusion
+│   │   ├── index-priority
+│   │   ├── license-inventory
+│   │   ├── binary-wheel-trust
+│   │   └── minimum-supported-python
+│   └── packaging-modernization
+│       ├── setup-py-command-migration
+│       ├── standardized-metadata
+│       ├── legacy-namespace-packages
+│       ├── requirements-versus-project-dependencies
+│       ├── deprecation-removal
+│       ├── rollback-plan
+│       └── consumer-install-tests
+├── testing-and-quality-assurance
+│   ├── testing-foundations
+│   │   ├── test-pyramid
+│   │   ├── unit-tests
+│   │   ├── integration-tests
+│   │   ├── contract-tests
+│   │   ├── end-to-end-tests
+│   │   ├── regression-tests
+│   │   └── deterministic-tests
+│   ├── standard-library-testing
+│   │   ├── unittest
+│   │   ├── test-cases
+│   │   ├── setup-and-teardown
+│   │   ├── subtests
+│   │   ├── unittest-mock
+│   │   ├── doctest
+│   │   └── test-discovery
+│   ├── pytest-core
+│   │   ├── assertion-introspection
+│   │   ├── test-collection
+│   │   ├── parametrization
+│   │   ├── marks
+│   │   ├── skip-and-xfail
+│   │   ├── configuration
+│   │   ├── cli-selection
+│   │   └── failure-reporting
+│   ├── pytest-fixtures
+│   │   ├── fixture-dependencies
+│   │   ├── fixture-scopes
+│   │   ├── yield-teardown
+│   │   ├── autouse-boundaries
+│   │   ├── conftest-layout
+│   │   ├── factories
+│   │   ├── tmp-path
+│   │   └── monkeypatch
+│   ├── mocking-and-fakes
+│   │   ├── patch-where-looked-up
+│   │   ├── autospec
+│   │   ├── spec-set
+│   │   ├── fake-adapters
+│   │   ├── dependency-injection
+│   │   ├── spy-versus-stub
+│   │   └── overmocking-risks
+│   ├── property-based-testing
+│   │   ├── hypothesis
+│   │   ├── strategies
+│   │   ├── invariants
+│   │   ├── shrinking
+│   │   ├── stateful-testing
+│   │   ├── malformed-input-generation
+│   │   └── regression-seeds
+│   ├── asynchronous-and-concurrent-tests
+│   │   ├── async-test-runners
+│   │   ├── event-loop-lifetimes
+│   │   ├── cancellation-tests
+│   │   ├── race-reproduction
+│   │   ├── queue-draining
+│   │   ├── process-cleanup
+│   │   └── timing-independent-assertions
+│   ├── data-and-service-tests
+│   │   ├── database-fixtures
+│   │   ├── transaction-rollback
+│   │   ├── testcontainers
+│   │   ├── http-client-mocks
+│   │   ├── schema-contracts
+│   │   ├── migration-tests
+│   │   └── service-boundary-failures
+│   ├── quality-toolchain
+│   │   ├── ruff-lint
+│   │   ├── ruff-format
+│   │   ├── black
+│   │   ├── compatibility-of-formatters
+│   │   ├── pre-commit
+│   │   ├── coverage-py
+│   │   ├── branch-coverage
+│   │   └── mutation-testing
+│   ├── test-suite-operations
+│   │   ├── parallel-execution
+│   │   ├── hermetic-environments
+│   │   ├── flaky-test-diagnosis
+│   │   ├── seed-reporting
+│   │   ├── test-duration-analysis
+│   │   ├── warning-as-error
+│   │   └── ci-failure-artifacts
+│   └── test-design
+│       ├── behavior-versus-implementation
+│       ├── edge-case-matrices
+│       ├── golden-data-review
+│       ├── clock-control
+│       ├── random-control
+│       ├── side-effect-isolation
+│       └── meaningful-assertions
+├── debugging-logging-and-observability
+│   ├── debugging-workflow
+│   │   ├── reproduce
+│   │   ├── minimize
+│   │   ├── inspect
+│   │   ├── hypothesize
+│   │   ├── instrument
+│   │   ├── verify-fix
+│   │   └── regression-test
+│   ├── exception-diagnostics
+│   │   ├── traceback-reading
+│   │   ├── chained-exceptions
+│   │   ├── exception-groups
+│   │   ├── source-context
+│   │   ├── exception-notes
+│   │   ├── sensitive-data-redaction
+│   │   └── root-cause-versus-symptom
+│   ├── interactive-debugging
+│   │   ├── breakpoint
+│   │   ├── pdb
+│   │   ├── debugger-stepping
+│   │   ├── conditional-breakpoints
+│   │   ├── stack-frames
+│   │   ├── variable-inspection
+│   │   └── remote-debug-security
+│   ├── logging-core
+│   │   ├── loggers
+│   │   ├── handlers
+│   │   ├── formatters
+│   │   ├── levels
+│   │   ├── propagation
+│   │   ├── filters
+│   │   └── logging-configuration
+│   ├── structured-logging
+│   │   ├── structured-events
+│   │   ├── json-output
+│   │   ├── correlation-ids
+│   │   ├── contextvars
+│   │   ├── structlog
+│   │   ├── loguru-tradeoffs
+│   │   └── schema-consistency
+│   ├── logging-reliability
+│   │   ├── lazy-formatting
+│   │   ├── redaction
+│   │   ├── no-duplicate-handlers
+│   │   ├── queue-handlers
+│   │   ├── multiprocess-log-collection
+│   │   ├── log-volume-budgets
+│   │   └── exception-logging-boundaries
+│   ├── metrics
+│   │   ├── counters
+│   │   ├── gauges
+│   │   ├── histograms
+│   │   ├── latency-distributions
+│   │   ├── cardinality-budgets
+│   │   ├── service-metrics
+│   │   └── business-metrics
+│   ├── distributed-tracing
+│   │   ├── opentelemetry
+│   │   ├── spans-and-context
+│   │   ├── async-context-propagation
+│   │   ├── database-and-http-instrumentation
+│   │   ├── sampling
+│   │   ├── baggage-privacy
+│   │   └── exporter-failure-handling
+│   ├── runtime-diagnostics
+│   │   ├── faulthandler
+│   │   ├── tracemalloc
+│   │   ├── gc-inspection
+│   │   ├── thread-dumps
+│   │   ├── asyncio-debug-mode
+│   │   ├── blocked-loop-detection
+│   │   └── resource-leak-investigation
+│   └── operational-evidence
+│       ├── health-checks
+│       ├── readiness-versus-liveness
+│       ├── request-error-rates
+│       ├── saturation-dashboards
+│       ├── diagnostic-bundles
+│       ├── incident-reproduction
+│       └── observability-tests
+├── concurrency-and-parallel-execution
+│   ├── execution-models
+│   │   ├── sequential-execution
+│   │   ├── concurrency-versus-parallelism
+│   │   ├── io-bound-work
+│   │   ├── cpu-bound-work
+│   │   ├── threads
+│   │   ├── processes
+│   │   ├── interpreters
+│   │   └── asynchronous-io
+│   ├── threading
+│   │   ├── thread-lifecycle
+│   │   ├── target-and-arguments
+│   │   ├── joining
+│   │   ├── daemon-thread-risks
+│   │   ├── cooperative-stop
+│   │   ├── thread-exceptions
+│   │   └── context-propagation
+│   ├── synchronization
+│   │   ├── lock
+│   │   ├── rlock
+│   │   ├── condition
+│   │   ├── event
+│   │   ├── semaphore
+│   │   ├── barrier
+│   │   └── race-condition-prevention
+│   ├── shared-state-design
+│   │   ├── ownership-and-mutation
+│   │   ├── queue-based-handoff
+│   │   ├── immutable-messages
+│   │   ├── lock-ordering
+│   │   ├── deadlocks
+│   │   ├── time-of-check-races
+│   │   └── compound-operation-atomicity
+│   ├── executors
+│   │   ├── threadpool-executor
+│   │   ├── processpool-executor
+│   │   ├── interpreterpool-executor
+│   │   ├── futures
+│   │   ├── submission-and-mapping
+│   │   ├── bounded-submission
+│   │   └── shutdown-and-cancellation
+│   ├── multiprocessing
+│   │   ├── start-methods
+│   │   ├── spawn-and-forkserver
+│   │   ├── fork-safety
+│   │   ├── main-guard
+│   │   ├── picklability
+│   │   ├── process-pools
+│   │   └── child-initializers
+│   ├── interprocess-communication
+│   │   ├── queues
+│   │   ├── pipes
+│   │   ├── shared-memory
+│   │   ├── managers
+│   │   ├── serialization-cost
+│   │   ├── resource-tracker
+│   │   └── cleanup-on-worker-failure
+│   ├── free-threaded-cpython
+│   │   ├── build-detection
+│   │   ├── gil-enabled-versus-disabled
+│   │   ├── extension-readiness
+│   │   ├── synchronization-requirements
+│   │   ├── race-testing
+│   │   ├── thread-scaling-measurement
+│   │   └── compatibility-matrix
+│   ├── multiple-interpreters
+│   │   ├── interpreter-isolation
+│   │   ├── isolated-module-state
+│   │   ├── shareable-data
+│   │   ├── cross-interpreter-queues
+│   │   ├── extension-compatibility
+│   │   ├── interpreterpool-tradeoffs
+│   │   └── not-a-security-sandbox
+│   ├── concurrency-failures
+│   │   ├── lost-updates
+│   │   ├── deadlocks
+│   │   ├── livelocks
+│   │   ├── starvation
+│   │   ├── oversubscription
+│   │   ├── worker-crashes
+│   │   └── leaked-processes
+│   └── parallel-performance
+│       ├── task-granularity
+│       ├── serialization-overhead
+│       ├── pool-startup-cost
+│       ├── native-library-thread-limits
+│       ├── batching
+│       ├── memory-duplication
+│       └── workload-benchmarks
+├── asyncio-and-asynchronous-io
+│   ├── async-mental-model
+│   │   ├── coroutine-functions
+│   │   ├── coroutine-objects
+│   │   ├── awaitables
+│   │   ├── event-loop
+│   │   ├── cooperative-scheduling
+│   │   ├── task-versus-future
+│   │   └── blocking-call-hazards
+│   ├── application-entrypoints
+│   │   ├── asyncio-run
+│   │   ├── asyncio-runner
+│   │   ├── loop-ownership
+│   │   ├── framework-owned-loops
+│   │   ├── notebook-loop-boundaries
+│   │   ├── async-main
+│   │   └── cleanup-at-exit
+│   ├── task-lifecycle
+│   │   ├── create-task
+│   │   ├── strong-task-references
+│   │   ├── task-naming
+│   │   ├── result-and-exception
+│   │   ├── done-callbacks
+│   │   ├── task-introspection
+│   │   └── unawaited-coroutine-diagnostics
+│   ├── structured-concurrency
+│   │   ├── taskgroup
+│   │   ├── parent-child-lifetime
+│   │   ├── sibling-failure
+│   │   ├── exceptiongroup-handling
+│   │   ├── taskgroup-cancellation
+│   │   ├── resource-scoping
+│   │   └── no-orphan-tasks
+│   ├── cancellation-and-timeouts
+│   │   ├── cancelled-error
+│   │   ├── try-finally-cleanup
+│   │   ├── timeout-context
+│   │   ├── wait-for
+│   │   ├── shield-boundaries
+│   │   ├── absolute-deadlines
+│   │   └── cancellation-propagation
+│   ├── coordination
+│   │   ├── gather
+│   │   ├── wait
+│   │   ├── as-completed
+│   │   ├── async-lock
+│   │   ├── event
+│   │   ├── condition
+│   │   ├── semaphore
+│   │   └── bounded-queues
+│   ├── asynchronous-io
+│   │   ├── streams
+│   │   ├── socket-operations
+│   │   ├── subprocess-io
+│   │   ├── async-http
+│   │   ├── database-drivers
+│   │   ├── async-iterators
+│   │   └── flow-control
+│   ├── sync-async-interop
+│   │   ├── to-thread
+│   │   ├── run-in-executor
+│   │   ├── thread-safe-scheduling
+│   │   ├── run-coroutine-threadsafe
+│   │   ├── contextvars-propagation
+│   │   ├── blocking-library-wrappers
+│   │   └── executor-limits
+│   ├── async-resource-design
+│   │   ├── async-context-managers
+│   │   ├── connection-pools
+│   │   ├── bounded-concurrency
+│   │   ├── backpressure
+│   │   ├── incremental-consumption
+│   │   ├── cancellation-safe-cleanup
+│   │   └── graceful-drain
+│   ├── production-asyncio
+│   │   ├── debug-mode
+│   │   ├── slow-callbacks
+│   │   ├── timeout-budgets
+│   │   ├── overload-control
+│   │   ├── retry-storm-prevention
+│   │   ├── event-loop-health
+│   │   └── shutdown-tests
+│   └── ecosystem-and-portability
+│       ├── anyio
+│       ├── trio
+│       ├── cancellation-model-comparison
+│       ├── backend-selection
+│       ├── async-library-contracts
+│       ├── loop-implementation-choices
+│       └── version-compatibility
+├── networking-and-http-clients
+│   ├── networking-foundations
+│   │   ├── sockets-and-ports
+│   │   ├── tcp-versus-udp
+│   │   ├── dns-resolution
+│   │   ├── tls-handshakes
+│   │   ├── connection-lifetimes
+│   │   ├── byte-stream-framing
+│   │   └── network-failure-modes
+│   ├── standard-library-networking
+│   │   ├── socket
+│   │   ├── selectors
+│   │   ├── ssl
+│   │   ├── ipaddress
+│   │   ├── urllib-parse
+│   │   ├── urllib-request
+│   │   └── http-client
+│   ├── http-fundamentals
+│   │   ├── methods-and-status
+│   │   ├── headers
+│   │   ├── query-parameters
+│   │   ├── request-bodies
+│   │   ├── response-bodies
+│   │   ├── redirects
+│   │   └── content-negotiation
+│   ├── client-libraries
+│   │   ├── requests-session
+│   │   ├── httpx-client
+│   │   ├── httpx-asyncclient
+│   │   ├── aiohttp-clientsession
+│   │   ├── client-lifetime-selection
+│   │   ├── dependency-compatibility
+│   │   └── explicit-transport-configuration
+│   ├── connection-management
+│   │   ├── connection-pooling
+│   │   ├── keep-alive
+│   │   ├── connection-timeouts
+│   │   ├── read-and-write-timeouts
+│   │   ├── pool-timeouts
+│   │   ├── connection-limits
+│   │   └── client-cleanup
+│   ├── request-and-response-data
+│   │   ├── json-payloads
+│   │   ├── form-data
+│   │   ├── multipart-upload
+│   │   ├── streaming-download
+│   │   ├── content-length-limits
+│   │   ├── compression
+│   │   └── encoding-detection
+│   ├── authentication-and-trust
+│   │   ├── bearer-tokens
+│   │   ├── basic-auth-boundaries
+│   │   ├── oauth-client-integration
+│   │   ├── tls-verification
+│   │   ├── custom-ca-bundles
+│   │   ├── proxy-configuration
+│   │   └── credential-redaction
+│   ├── resilient-clients
+│   │   ├── retry-classification
+│   │   ├── exponential-backoff
+│   │   ├── jitter
+│   │   ├── retry-after
+│   │   ├── idempotency-keys
+│   │   ├── overall-deadline
+│   │   └── circuit-breaker-boundaries
+│   ├── service-protocols
+│   │   ├── websocket-clients
+│   │   ├── server-sent-events
+│   │   ├── grpc-clients
+│   │   ├── email-smtp-and-imap
+│   │   ├── object-storage-sdks
+│   │   ├── pagination-and-cursors
+│   │   └── rate-limit-coordination
+│   └── network-testing
+│       ├── mock-transports
+│       ├── local-test-servers
+│       ├── timeout-simulation
+│       ├── malformed-response-tests
+│       ├── tls-failure-tests
+│       ├── cancellation-tests
+│       └── connection-leak-tests
+├── databases-persistence-and-caching
+│   ├── relational-foundations
+│   │   ├── tables-and-keys
+│   │   ├── constraints
+│   │   ├── transactions
+│   │   ├── indexes
+│   │   ├── query-plans
+│   │   ├── isolation-levels
+│   │   └── schema-evolution
+│   ├── database-api
+│   │   ├── dbapi-contract
+│   │   ├── connections
+│   │   ├── cursors
+│   │   ├── parameter-binding
+│   │   ├── fetch-strategies
+│   │   ├── commit-and-rollback
+│   │   └── driver-error-handling
+│   ├── database-drivers
+│   │   ├── sqlite3
+│   │   ├── psycopg
+│   │   ├── mysql-drivers
+│   │   ├── asyncpg
+│   │   ├── aiosqlite
+│   │   ├── driver-capability-checks
+│   │   └── connection-string-security
+│   ├── sqlite-practice
+│   │   ├── connection-lifetime
+│   │   ├── explicit-transactions
+│   │   ├── locking-and-busy-timeouts
+│   │   ├── wal-mode
+│   │   ├── foreign-key-enforcement
+│   │   ├── backups
+│   │   └── test-versus-production-differences
+│   ├── sqlalchemy-core
+│   │   ├── engines
+│   │   ├── connection-pools
+│   │   ├── metadata
+│   │   ├── tables
+│   │   ├── expressions
+│   │   ├── select-and-dml
+│   │   ├── bound-parameters
+│   │   └── result-consumption
+│   ├── sqlalchemy-orm
+│   │   ├── declarative-mapping
+│   │   ├── typed-mapped-attributes
+│   │   ├── relationships
+│   │   ├── session-unit-of-work
+│   │   ├── identity-map
+│   │   ├── flush-versus-commit
+│   │   ├── loading-strategies
+│   │   └── n-plus-one-detection
+│   ├── async-persistence
+│   │   ├── async-engine
+│   │   ├── async-session
+│   │   ├── per-task-session-ownership
+│   │   ├── implicit-io-hazards
+│   │   ├── cancellation-and-rollback
+│   │   ├── connection-pool-bounds
+│   │   └── sync-async-boundaries
+│   ├── migrations
+│   │   ├── alembic
+│   │   ├── revision-history
+│   │   ├── autogenerated-diff-review
+│   │   ├── data-migrations
+│   │   ├── expand-and-contract
+│   │   ├── backward-compatible-rollouts
+│   │   ├── migration-tests
+│   │   └── rollback-limits
+│   ├── document-and-key-value-stores
+│   │   ├── pymongo
+│   │   ├── document-models
+│   │   ├── query-projections
+│   │   ├── indexes-and-ttl
+│   │   ├── schema-validation
+│   │   ├── redis-py
+│   │   └── storage-selection
+│   ├── cache-design
+│   │   ├── cache-aside
+│   │   ├── ttl
+│   │   ├── invalidation
+│   │   ├── key-namespacing
+│   │   ├── stampede-prevention
+│   │   ├── stale-data-contracts
+│   │   └── serialization-trust
+│   └── persistence-correctness
+│       ├── unique-constraint-races
+│       ├── optimistic-concurrency
+│       ├── locking-boundaries
+│       ├── idempotent-writes
+│       ├── transaction-outbox
+│       ├── tenant-isolation
+│       └── reconciliation-tests
+├── web-frameworks-and-api-development
+│   ├── web-runtime-foundations
+│   │   ├── request-response-lifecycle
+│   │   ├── wsgi
+│   │   ├── asgi
+│   │   ├── sync-and-async-handlers
+│   │   ├── middleware
+│   │   ├── lifespan-hooks
+│   │   └── development-versus-production-servers
+│   ├── request-and-response-contracts
+│   │   ├── route-design
+│   │   ├── path-and-query-parameters
+│   │   ├── request-validation
+│   │   ├── response-schemas
+│   │   ├── error-models
+│   │   ├── pagination-and-filtering
+│   │   └── api-versioning
+│   ├── fastapi
+│   │   ├── application-structure
+│   │   │   ├── app-factory
+│   │   │   ├── routers
+│   │   │   ├── dependency-injection
+│   │   │   ├── lifespan
+│   │   │   ├── configuration
+│   │   │   └── openapi-contracts
+│   │   ├── validation-and-output
+│   │   │   ├── pydantic-models
+│   │   │   ├── annotated-parameters
+│   │   │   ├── response-filtering
+│   │   │   ├── file-uploads
+│   │   │   ├── streaming-responses
+│   │   │   └── custom-exception-handlers
+│   │   ├── service-boundaries
+│   │   │   ├── database-session-lifetimes
+│   │   │   ├── sync-handler-threadpools
+│   │   │   ├── async-io-discipline
+│   │   │   ├── authentication-dependencies
+│   │   │   ├── authorization-checks
+│   │   │   └── background-task-limitations
+│   │   └── quality-and-delivery
+│   │       ├── dependency-overrides
+│   │       ├── test-client
+│   │       ├── async-client-tests
+│   │       ├── schema-compatibility
+│   │       ├── worker-sizing
+│   │       └── graceful-shutdown
+│   ├── django
+│   │   ├── project-and-apps
+│   │   │   ├── project-layout
+│   │   │   ├── app-configuration
+│   │   │   ├── settings
+│   │   │   ├── url-dispatch
+│   │   │   ├── middleware
+│   │   │   └── management-commands
+│   │   ├── persistence
+│   │   │   ├── models
+│   │   │   ├── querysets
+│   │   │   ├── managers
+│   │   │   ├── relationships
+│   │   │   ├── migrations
+│   │   │   └── transaction-atomicity
+│   │   ├── server-rendered-ui
+│   │   │   ├── views
+│   │   │   ├── templates
+│   │   │   ├── forms
+│   │   │   ├── static-files
+│   │   │   ├── media-files
+│   │   │   └── admin-customization
+│   │   ├── application-services
+│   │   │   ├── authentication
+│   │   │   ├── permissions
+│   │   │   ├── sessions
+│   │   │   ├── email
+│   │   │   ├── cache
+│   │   │   └── async-boundaries
+│   │   └── api-and-testing
+│   │       ├── django-rest-framework
+│   │       ├── serializers
+│   │       ├── viewsets
+│   │       ├── api-permissions
+│   │       ├── django-test-client
+│   │       └── database-test-isolation
+│   ├── flask
+│   │   ├── application-design
+│   │   │   ├── application-factory
+│   │   │   ├── blueprints
+│   │   │   ├── request-context
+│   │   │   ├── application-context
+│   │   │   ├── configuration
+│   │   │   └── extension-initialization
+│   │   └── delivery-and-tests
+│   │       ├── jinja-templates
+│   │       ├── request-validation
+│   │       ├── error-handlers
+│   │       ├── session-security
+│   │       ├── test-client
+│   │       └── production-wsgi-server
+│   ├── api-design
+│   │   ├── rest-semantics
+│   │   ├── safe-methods
+│   │   ├── idempotency
+│   │   ├── problem-details
+│   │   ├── resource-ownership
+│   │   ├── partial-updates
+│   │   └── backward-compatibility
+│   ├── realtime-and-streaming
+│   │   ├── websocket-lifecycle
+│   │   ├── sse-streams
+│   │   ├── client-disconnects
+│   │   ├── backpressure
+│   │   ├── streaming-errors
+│   │   ├── reconnect-contracts
+│   │   └── worker-shared-state
+│   ├── backend-security
+│   │   ├── authentication-versus-authorization
+│   │   ├── secure-cookies
+│   │   ├── csrf-and-cors
+│   │   ├── upload-validation
+│   │   ├── rate-limits
+│   │   ├── tenant-boundaries
+│   │   └── sensitive-response-filtering
+│   └── service-integration
+│       ├── frontend-contracts
+│       ├── java-spring-integration
+│       ├── external-api-adapters
+│       ├── grpc-service-boundaries
+│       ├── webhook-verification
+│       ├── schema-generation
+│       └── contract-testing
+├── background-jobs-and-distributed-workflows
+│   ├── execution-boundaries
+│   │   ├── in-request-work
+│   │   ├── in-process-background-work
+│   │   ├── durable-jobs
+│   │   ├── scheduled-jobs
+│   │   ├── event-consumers
+│   │   ├── workflow-orchestration
+│   │   └── delivery-guarantees
+│   ├── task-queues
+│   │   ├── celery
+│   │   ├── rq
+│   │   ├── dramatiq
+│   │   ├── worker-lifecycle
+│   │   ├── broker-selection
+│   │   ├── result-backends
+│   │   └── deployment-boundaries
+│   ├── messaging-patterns
+│   │   ├── producer-consumer
+│   │   ├── publish-subscribe
+│   │   ├── competing-consumers
+│   │   ├── routing-and-priorities
+│   │   ├── acknowledgments
+│   │   ├── prefetch
+│   │   └── ordering-boundaries
+│   ├── reliable-job-design
+│   │   ├── idempotent-handlers
+│   │   ├── deduplication-keys
+│   │   ├── retries-and-backoff
+│   │   ├── poison-messages
+│   │   ├── dead-letter-queues
+│   │   ├── transactional-outbox
+│   │   └── checkpointing
+│   ├── scheduling
+│   │   ├── apscheduler
+│   │   ├── system-schedulers
+│   │   ├── periodic-task-overlap
+│   │   ├── distributed-scheduling-ownership
+│   │   ├── missed-runs
+│   │   ├── timezone-handling
+│   │   └── schedule-versioning
+│   ├── long-running-workflows
+│   │   ├── durable-state
+│   │   ├── checkpoints
+│   │   ├── compensation
+│   │   ├── timeout-budgets
+│   │   ├── human-approval
+│   │   ├── durable-workflow-engines
+│   │   └── workflow-versioning
+│   ├── worker-operations
+│   │   ├── concurrency-limits
+│   │   ├── per-task-resources
+│   │   ├── graceful-drain
+│   │   ├── worker-crashes
+│   │   ├── broker-unavailability
+│   │   ├── queue-depth-observability
+│   │   └── shutdown-tests
+│   ├── event-contracts
+│   │   ├── schema-validation
+│   │   ├── schema-evolution
+│   │   ├── correlation-identifiers
+│   │   ├── event-time-versus-processing-time
+│   │   ├── replay-safety
+│   │   ├── privacy-boundaries
+│   │   └── consumer-contract-tests
+│   └── distributed-correctness
+│       ├── duplicate-delivery
+│       ├── partial-failure
+│       ├── lost-response
+│       ├── ambiguity-of-success
+│       ├── side-effect-ordering
+│       ├── reconciliation
+│       └── failure-injection
+├── application-architecture-and-domain-modeling
+│   ├── application-boundaries
+│   │   ├── scripts
+│   │   ├── libraries
+│   │   ├── services
+│   │   ├── workers
+│   │   ├── notebooks
+│   │   ├── modular-monoliths
+│   │   └── distributed-services
+│   ├── domain-modeling
+│   │   ├── ubiquitous-language
+│   │   ├── entities
+│   │   ├── value-objects
+│   │   ├── aggregates
+│   │   ├── domain-invariants
+│   │   ├── domain-events
+│   │   └── explicit-state-transitions
+│   ├── layered-design
+│   │   ├── presentation
+│   │   ├── application
+│   │   ├── domain
+│   │   ├── infrastructure
+│   │   ├── dependency-direction
+│   │   ├── boundary-contracts
+│   │   └── composition-root
+│   ├── ports-and-adapters
+│   │   ├── protocol-based-ports
+│   │   ├── repository-interfaces
+│   │   ├── http-adapters
+│   │   ├── persistence-adapters
+│   │   ├── message-adapters
+│   │   ├── fake-adapters
+│   │   └── dependency-injection
+│   ├── business-transactions
+│   │   ├── service-layer
+│   │   ├── unit-of-work
+│   │   ├── transaction-scope
+│   │   ├── idempotency
+│   │   ├── audit-events
+│   │   ├── compensation
+│   │   └── concurrency-conflicts
+│   ├── data-boundary-models
+│   │   ├── dataclasses
+│   │   ├── pydantic-models
+│   │   ├── transport-schemas
+│   │   ├── persistence-models
+│   │   ├── mapping-functions
+│   │   ├── validation-versus-coercion
+│   │   └── schema-evolution
+│   ├── design-patterns
+│   │   ├── strategy
+│   │   ├── factory
+│   │   ├── adapter
+│   │   ├── facade
+│   │   ├── observer
+│   │   ├── command
+│   │   └── state
+│   ├── configuration-and-lifetimes
+│   │   ├── application-scoped-resources
+│   │   ├── request-scoped-resources
+│   │   ├── task-scoped-resources
+│   │   ├── lazy-initialization
+│   │   ├── explicit-startup
+│   │   ├── dependency-cleanup
+│   │   └── shared-state-avoidance
+│   ├── evolution-and-modularity
+│   │   ├── feature-oriented-layout
+│   │   ├── plugin-boundaries
+│   │   ├── public-api-limits
+│   │   ├── architecture-tests
+│   │   ├── extracting-services
+│   │   ├── avoiding-premature-abstraction
+│   │   └── change-impact-analysis
+│   └── architecture-evidence
+│       ├── decision-records
+│       ├── dependency-graphs
+│       ├── integration-tests
+│       ├── operational-failure-models
+│       ├── performance-budgets
+│       ├── security-review
+│       └── maintainability-tradeoffs
+├── security-and-trust-boundaries
+│   ├── threat-modeling
+│   │   ├── assets
+│   │   ├── entry-points
+│   │   ├── trust-boundaries
+│   │   ├── attacker-controlled-input
+│   │   ├── least-privilege
+│   │   ├── abuse-cases
+│   │   └── defense-in-depth
+│   ├── input-and-output
+│   │   ├── schema-validation
+│   │   ├── size-and-depth-limits
+│   │   ├── canonicalization
+│   │   ├── context-aware-escaping
+│   │   ├── log-injection
+│   │   ├── output-redaction
+│   │   └── content-type-validation
+│   ├── injection-prevention
+│   │   ├── parameterized-sql
+│   │   ├── shell-argument-lists
+│   │   ├── template-escaping
+│   │   ├── no-untrusted-eval
+│   │   ├── safe-dynamic-dispatch
+│   │   ├── command-allowlists
+│   │   └── injection-regression-tests
+│   ├── serialization-and-parsers
+│   │   ├── unsafe-pickle-loading
+│   │   ├── yaml-safe-load
+│   │   ├── xml-entity-attacks
+│   │   ├── decompression-bombs
+│   │   ├── archive-path-traversal
+│   │   ├── json-resource-exhaustion
+│   │   └── trusted-model-artifacts
+│   ├── filesystem-security
+│   │   ├── path-confinement
+│   │   ├── symlink-races
+│   │   ├── safe-temporary-files
+│   │   ├── atomic-writes
+│   │   ├── permission-checks
+│   │   ├── user-upload-isolation
+│   │   └── untrusted-filenames
+│   ├── network-security
+│   │   ├── tls-verification
+│   │   ├── ssrf-prevention
+│   │   ├── url-allowlists
+│   │   ├── redirect-revalidation
+│   │   ├── private-network-boundaries
+│   │   ├── webhook-signatures
+│   │   └── replay-protection
+│   ├── identity-and-secrets
+│   │   ├── secrets-module
+│   │   ├── password-hashing-libraries
+│   │   ├── token-expiry
+│   │   ├── session-management
+│   │   ├── credential-storage
+│   │   ├── secret-rotation
+│   │   └── constant-time-comparison
+│   ├── dependency-security
+│   │   ├── pip-audit
+│   │   ├── package-provenance
+│   │   ├── pinned-dependencies
+│   │   ├── trusted-indexes
+│   │   ├── build-isolation
+│   │   ├── secret-free-distributions
+│   │   └── vulnerability-remediation
+│   ├── runtime-isolation
+│   │   ├── process-isolation
+│   │   ├── container-boundaries
+│   │   ├── resource-quotas
+│   │   ├── restricted-service-accounts
+│   │   ├── plugin-trust-model
+│   │   ├── subinterpreter-limitations
+│   │   └── no-python-only-sandbox-assumption
+│   └── security-validation
+│       ├── negative-tests
+│       ├── fuzzing
+│       ├── safe-test-environments
+│       ├── audit-logging
+│       ├── authorization-matrix
+│       ├── tenant-isolation-tests
+│       └── incident-response
+├── performance-and-runtime-internals
+│   ├── performance-method
+│   │   ├── representative-workloads
+│   │   ├── baseline-measurements
+│   │   ├── warmup-and-variance
+│   │   ├── latency-versus-throughput
+│   │   ├── memory-versus-speed
+│   │   ├── bottleneck-identification
+│   │   └── regression-budgets
+│   ├── measurement-tools
+│   │   ├── timeit
+│   │   ├── pyperf
+│   │   ├── cprofile
+│   │   ├── pstats
+│   │   ├── sampling-profilers
+│   │   ├── tracemalloc
+│   │   └── allocation-profiling
+│   ├── algorithmic-optimization
+│   │   ├── better-data-structures
+│   │   ├── work-elimination
+│   │   ├── precomputation
+│   │   ├── memoization
+│   │   ├── batching
+│   │   ├── vectorization
+│   │   └── streaming
+│   ├── cpython-execution
+│   │   ├── tokenization
+│   │   ├── parsing
+│   │   ├── ast
+│   │   ├── bytecode
+│   │   ├── code-objects
+│   │   ├── frames
+│   │   └── evaluation-loop
+│   ├── interpreter-specialization
+│   │   ├── adaptive-bytecode
+│   │   ├── inline-caches
+│   │   ├── specialization-measurement
+│   │   ├── dis-module
+│   │   ├── experimental-jit-evaluation
+│   │   ├── implementation-specific-assumptions
+│   │   └── versioned-benchmarks
+│   ├── memory-performance
+│   │   ├── object-overhead
+│   │   ├── container-overhead
+│   │   ├── slots
+│   │   ├── reference-cycles
+│   │   ├── allocator-behavior
+│   │   ├── memory-fragmentation
+│   │   └── retained-object-analysis
+│   ├── io-performance
+│   │   ├── connection-reuse
+│   │   ├── buffered-io
+│   │   ├── async-concurrency
+│   │   ├── file-batching
+│   │   ├── database-query-optimization
+│   │   ├── serialization-cost
+│   │   └── compression-tradeoffs
+│   ├── cpu-parallel-strategies
+│   │   ├── process-pools
+│   │   ├── free-threaded-builds
+│   │   ├── native-extensions
+│   │   ├── numpy-threading
+│   │   ├── interpreter-pools
+│   │   ├── oversubscription-controls
+│   │   └── scaling-efficiency
+│   ├── startup-and-imports
+│   │   ├── importtime-profiling
+│   │   ├── dependency-pruning
+│   │   ├── lazy-import-evaluation
+│   │   ├── module-initialization-cost
+│   │   ├── cli-startup-budget
+│   │   ├── cold-start-measurement
+│   │   └── optional-feature-loading
+│   └── optimization-correctness
+│       ├── numerical-precision
+│       ├── thread-safety
+│       ├── cache-validity
+│       ├── deterministic-output
+│       ├── semantic-equivalence
+│       ├── error-behavior
+│       └── performance-test-review
+├── native-extensions-and-interoperability
+│   ├── integration-options
+│   │   ├── subprocess-protocols
+│   │   ├── ctypes
+│   │   ├── cffi
+│   │   ├── c-api-extensions
+│   │   ├── cython
+│   │   ├── pybind11
+│   │   └── rust-pyo3
+│   ├── ffi-fundamentals
+│   │   ├── abi-contracts
+│   │   ├── calling-conventions
+│   │   ├── data-layout
+│   │   ├── pointers-and-lifetimes
+│   │   ├── memory-ownership
+│   │   ├── error-translation
+│   │   └── callback-lifetimes
+│   ├── cpython-c-api
+│   │   ├── reference-ownership
+│   │   ├── error-indicators
+│   │   ├── object-conversion
+│   │   ├── module-initialization
+│   │   ├── extension-state
+│   │   ├── buffer-protocol
+│   │   └── limited-api
+│   ├── extension-safety
+│   │   ├── reference-leaks
+│   │   ├── use-after-free
+│   │   ├── bounds-checking
+│   │   ├── gil-management
+│   │   ├── free-threading-audit
+│   │   ├── multiple-interpreter-support
+│   │   └── native-crash-diagnostics
+│   ├── compiled-acceleration
+│   │   ├── cython-typed-code
+│   │   ├── cython-memoryviews
+│   │   ├── numpy-c-api
+│   │   ├── numba-workload-fit
+│   │   ├── compilation-overhead
+│   │   ├── cross-boundary-cost
+│   │   └── benchmark-validation
+│   ├── rust-integration
+│   │   ├── pyo3-bindings
+│   │   ├── maturin-builds
+│   │   ├── borrowed-and-owned-values
+│   │   ├── exception-mapping
+│   │   ├── buffer-sharing
+│   │   ├── free-threading-compatibility
+│   │   └── wheel-tests
+│   ├── binary-distribution
+│   │   ├── platform-tags
+│   │   ├── manylinux-and-musllinux
+│   │   ├── macos-architectures
+│   │   ├── windows-toolchains
+│   │   ├── stable-abi
+│   │   ├── versioned-abi-compatibility
+│   │   └── cibuildwheel
+│   ├── language-interoperability
+│   │   ├── java-http-and-grpc
+│   │   ├── jpype-embedding-boundaries
+│   │   ├── javascript-json-contracts
+│   │   ├── r-interoperability
+│   │   ├── shared-protobuf-schemas
+│   │   ├── process-isolation
+│   │   └── data-format-contracts
+│   ├── alternative-platforms
+│   │   ├── pypy-compatibility
+│   │   ├── graalpy-evaluation
+│   │   ├── pyodide
+│   │   ├── wasm-runtime-boundaries
+│   │   ├── micropython
+│   │   ├── circuitpython
+│   │   └── supported-library-subsets
+│   └── extension-validation
+│       ├── native-build-matrix
+│       ├── sanitizer-tests
+│       ├── abi-compatibility-tests
+│       ├── installation-smoke-tests
+│       ├── memory-stress-tests
+│       ├── failure-isolation
+│       └── pure-python-fallback
+├── automation-cli-and-developer-tools
+│   ├── command-line-design
+│   │   ├── commands-and-subcommands
+│   │   ├── positional-arguments
+│   │   ├── options-and-flags
+│   │   ├── help-text
+│   │   ├── exit-codes
+│   │   ├── stdin-stdout-stderr
+│   │   └── machine-readable-output
+│   ├── cli-libraries
+│   │   ├── argparse
+│   │   ├── click
+│   │   ├── typer
+│   │   ├── rich
+│   │   ├── textual
+│   │   ├── selection-tradeoffs
+│   │   └── dependency-footprint
+│   ├── interactive-behavior
+│   │   ├── prompts
+│   │   ├── confirmations
+│   │   ├── noninteractive-mode
+│   │   ├── terminal-detection
+│   │   ├── color-and-accessibility
+│   │   ├── progress-reporting
+│   │   └── keyboard-interruption
+│   ├── filesystem-automation
+│   │   ├── inventory-and-discovery
+│   │   ├── batch-renaming
+│   │   ├── content-search
+│   │   ├── safe-copying
+│   │   ├── duplicate-detection
+│   │   ├── cleanup-planning
+│   │   └── atomic-manifests
+│   ├── document-and-office-workflows
+│   │   ├── openpyxl
+│   │   ├── xlsxwriter
+│   │   ├── python-docx
+│   │   ├── pdf-text-extraction
+│   │   ├── document-template-rendering
+│   │   ├── csv-interchange
+│   │   └── output-validation
+│   ├── system-automation
+│   │   ├── subprocess-orchestration
+│   │   ├── process-health-checks
+│   │   ├── log-rotation
+│   │   ├── notification-adapters
+│   │   ├── safe-remote-commands
+│   │   ├── environment-inventory
+│   │   └── cross-platform-execution
+│   ├── developer-productivity
+│   │   ├── repository-checks
+│   │   ├── code-generation
+│   │   ├── ast-inspection
+│   │   ├── project-templates
+│   │   ├── test-orchestration
+│   │   ├── release-automation
+│   │   └── changelog-generation
+│   ├── automation-safety
+│   │   ├── dry-run
+│   │   ├── preview-diff
+│   │   ├── backups
+│   │   ├── idempotency
+│   │   ├── bounded-retries
+│   │   ├── rollback-or-compensation
+│   │   └── protected-path-checks
+│   ├── cli-testing-and-distribution
+│   │   ├── command-runner-tests
+│   │   ├── captured-output
+│   │   ├── golden-help-tests
+│   │   ├── temporary-workspaces
+│   │   ├── entry-point-install-tests
+│   │   ├── pipx-and-uv-tool
+│   │   └── packaging-for-end-users
+│   └── workflow-resilience
+│       ├── resumable-state
+│       ├── per-item-results
+│       ├── partial-failure-reporting
+│       ├── timeout-and-cancellation
+│       ├── lock-files
+│       ├── concurrent-run-prevention
+│       └── audit-trails
+├── web-collection-and-browser-automation
+│   ├── collection-boundaries
+│   │   ├── official-api-first
+│   │   ├── permission-and-terms
+│   │   ├── robots-policy
+│   │   ├── rate-limits
+│   │   ├── personal-data-minimization
+│   │   ├── no-access-control-bypass
+│   │   └── source-attribution
+│   ├── html-parsing
+│   │   ├── beautifulsoup
+│   │   ├── lxml
+│   │   ├── css-selectors
+│   │   ├── xpath
+│   │   ├── relative-url-resolution
+│   │   ├── malformed-html
+│   │   └── handling-encoding
+│   ├── extraction-design
+│   │   ├── data-schema
+│   │   ├── normalized-fields
+│   │   ├── stable-identifiers
+│   │   ├── duplicate-detection
+│   │   ├── pagination
+│   │   ├── incremental-crawl
+│   │   └── provenance
+│   ├── scrapy
+│   │   ├── spiders
+│   │   ├── requests-and-responses
+│   │   ├── selectors
+│   │   ├── item-pipelines
+│   │   ├── downloader-middleware
+│   │   ├── throttling
+│   │   └── persistent-job-state
+│   ├── browser-automation
+│   │   ├── playwright-browser-contexts
+│   │   ├── semantic-locators
+│   │   ├── auto-waiting
+│   │   ├── form-interaction
+│   │   ├── downloads
+│   │   ├── network-inspection
+│   │   └── deterministic-browser-tests
+│   ├── selenium-interop
+│   │   ├── webdriver
+│   │   ├── sessions
+│   │   ├── explicit-waits
+│   │   ├── page-objects
+│   │   ├── browser-drivers
+│   │   ├── migration-tradeoffs
+│   │   └── browser-compatibility
+│   ├── collection-reliability
+│   │   ├── retry-budgets
+│   │   ├── timeout-policies
+│   │   ├── blocked-page-detection
+│   │   ├── schema-drift
+│   │   ├── empty-result-validation
+│   │   ├── checkpointing
+│   │   └── resumable-downloads
+│   ├── data-quality
+│   │   ├── parse-validation
+│   │   ├── required-fields
+│   │   ├── cross-record-consistency
+│   │   ├── extraction-fixtures
+│   │   ├── source-snapshots
+│   │   ├── change-detection
+│   │   └── rejected-record-review
+│   └── safe-operations
+│       ├── secret-free-traces
+│       ├── authorized-accounts
+│       ├── bounded-browser-pools
+│       ├── resource-cleanup
+│       ├── request-budgets
+│       ├── retention-controls
+│       └── audit-evidence
+├── data-analysis-and-scientific-computing
+│   ├── numerical-computing-foundations
+│   │   ├── arrays-versus-python-lists
+│   │   ├── shapes-and-axes
+│   │   ├── dtypes
+│   │   ├── broadcasting
+│   │   ├── vectorization
+│   │   ├── numerical-stability
+│   │   └── reproducibility
+│   ├── numpy
+│   │   ├── array-creation
+│   │   ├── indexing-and-masks
+│   │   ├── views-and-copies
+│   │   ├── universal-functions
+│   │   ├── reductions
+│   │   ├── linear-algebra
+│   │   └── random-generators
+│   ├── pandas
+│   │   ├── series-and-dataframes
+│   │   ├── indexing-and-alignment
+│   │   ├── nullable-dtypes
+│   │   ├── missing-data
+│   │   ├── groupby-and-aggregation
+│   │   ├── joins-and-merge-validation
+│   │   ├── reshape-and-pivot
+│   │   └── time-series
+│   ├── dataframe-correctness
+│   │   ├── chained-assignment
+│   │   ├── copy-on-write-semantics
+│   │   ├── dtype-coercion
+│   │   ├── categorical-data
+│   │   ├── duplicate-labels
+│   │   ├── timezone-aware-columns
+│   │   └── numeric-precision
+│   ├── alternative-engines
+│   │   ├── polars-expressions
+│   │   ├── lazy-query-plans
+│   │   ├── duckdb-sql
+│   │   ├── pyarrow-tables
+│   │   ├── arrow-interchange
+│   │   ├── engine-selection
+│   │   └── memory-and-execution-tradeoffs
+│   ├── scientific-tooling
+│   │   ├── scipy-optimization
+│   │   ├── scipy-statistics
+│   │   ├── scipy-integration
+│   │   ├── scipy-sparse
+│   │   ├── sympy-symbolics
+│   │   ├── xarray-labeled-arrays
+│   │   └── units-and-dimensions
+│   ├── visualization
+│   │   ├── matplotlib
+│   │   ├── plotly
+│   │   ├── altair
+│   │   ├── chart-selection
+│   │   ├── labeling-and-units
+│   │   ├── uncertainty-display
+│   │   └── accessible-exports
+│   ├── notebook-engineering
+│   │   ├── clean-kernel-execution
+│   │   ├── parameterized-notebooks
+│   │   ├── reusable-python-modules
+│   │   ├── data-provenance
+│   │   ├── environment-recording
+│   │   ├── output-size-control
+│   │   └── notebook-tests
+│   ├── analytical-validity
+│   │   ├── exploratory-versus-confirmatory-analysis
+│   │   ├── leakage-prevention
+│   │   ├── sampling-bias
+│   │   ├── missingness-assumptions
+│   │   ├── multiple-comparison-awareness
+│   │   ├── business-metric-definition
+│   │   └── sensitivity-checks
+│   └── data-delivery
+│       ├── validated-csv
+│       ├── parquet-artifacts
+│       ├── excel-reports
+│       ├── static-figures
+│       ├── interactive-dashboards
+│       ├── reproducible-analysis-pipelines
+│       └── result-review
+├── data-engineering-and-processing-pipelines
+│   ├── pipeline-foundations
+│   │   ├── source-transform-sink
+│   │   ├── batch-versus-stream
+│   │   ├── etl-versus-elt
+│   │   ├── schemas-and-contracts
+│   │   ├── idempotency
+│   │   ├── checkpoints
+│   │   └── lineage
+│   ├── extraction
+│   │   ├── file-ingestion
+│   │   ├── api-pagination
+│   │   ├── database-reads
+│   │   ├── change-data-capture-integration
+│   │   ├── object-storage
+│   │   ├── incremental-watermarks
+│   │   └── source-rate-limits
+│   ├── transformations
+│   │   ├── schema-normalization
+│   │   ├── data-type-conversion
+│   │   ├── null-handling
+│   │   ├── deduplication
+│   │   ├── reference-data-joins
+│   │   ├── enrichment
+│   │   └── record-validation
+│   ├── columnar-processing
+│   │   ├── pyarrow-parquet
+│   │   ├── partitioned-datasets
+│   │   ├── predicate-pushdown
+│   │   ├── projection-pushdown
+│   │   ├── schema-evolution
+│   │   ├── compression-selection
+│   │   └── small-file-management
+│   ├── orchestration
+│   │   ├── airflow
+│   │   ├── dagster
+│   │   ├── prefect
+│   │   ├── task-dependencies
+│   │   ├── retries-and-timeouts
+│   │   ├── parameterized-runs
+│   │   └── backfills
+│   ├── scalable-execution
+│   │   ├── chunked-local-processing
+│   │   ├── dask
+│   │   ├── pyspark
+│   │   ├── ray
+│   │   ├── process-pool-boundaries
+│   │   ├── serialization-cost
+│   │   └── workload-placement
+│   ├── streaming-workflows
+│   │   ├── kafka-clients
+│   │   ├── consumer-offsets
+│   │   ├── event-time
+│   │   ├── late-data
+│   │   ├── windowed-aggregation
+│   │   ├── state-checkpoints
+│   │   └── poison-event-handling
+│   ├── data-quality
+│   │   ├── schema-tests
+│   │   ├── uniqueness-tests
+│   │   ├── referential-tests
+│   │   ├── freshness-checks
+│   │   ├── reconciliation
+│   │   ├── quarantine-records
+│   │   └── quality-alerts
+│   ├── pipeline-operations
+│   │   ├── structured-run-logs
+│   │   ├── dataset-versioning
+│   │   ├── run-metadata
+│   │   ├── credential-management
+│   │   ├── concurrency-budgets
+│   │   ├── recovery-drills
+│   │   └── cost-observability
+│   └── delivery-correctness
+│       ├── atomic-data-publication
+│       ├── exactly-once-claims-review
+│       ├── duplicate-input-tests
+│       ├── replay-tests
+│       ├── schema-change-tests
+│       ├── partial-failure-recovery
+│       └── deterministic-reruns
+├── machine-learning-and-ai-integration
+│   ├── python-ai-boundaries
+│   │   ├── model-training
+│   │   ├── model-inference
+│   │   ├── application-orchestration
+│   │   ├── data-preprocessing
+│   │   ├── evaluation
+│   │   ├── experiment-management
+│   │   └── responsible-use
+│   ├── scikit-learn
+│   │   ├── estimators
+│   │   ├── transformers
+│   │   ├── pipelines
+│   │   ├── train-test-splits
+│   │   ├── cross-validation
+│   │   ├── hyperparameter-search
+│   │   └── model-persistence-trust
+│   ├── deep-learning-tooling
+│   │   ├── pytorch-tensors
+│   │   ├── autograd
+│   │   ├── training-loops
+│   │   ├── dataset-and-dataloader
+│   │   ├── inference-mode
+│   │   ├── device-selection
+│   │   └── checkpoint-loading-safety
+│   ├── model-integration
+│   │   ├── input-contracts
+│   │   ├── preprocessing-parity
+│   │   ├── output-validation
+│   │   ├── model-versioning
+│   │   ├── batching
+│   │   ├── timeouts
+│   │   └── fallback-behavior
+│   ├── ai-provider-clients
+│   │   ├── sdk-versus-http
+│   │   ├── authentication
+│   │   ├── configuration
+│   │   ├── streaming-responses
+│   │   ├── bounded-retries
+│   │   ├── rate-limit-handling
+│   │   └── cost-accounting
+│   ├── retrieval-applications
+│   │   ├── document-loading
+│   │   ├── chunking
+│   │   ├── embedding-adapters
+│   │   ├── vector-indexes
+│   │   ├── retrieval-filtering
+│   │   ├── reranking
+│   │   └── source-attribution
+│   ├── tool-using-applications
+│   │   ├── typed-tool-contracts
+│   │   ├── permission-scopes
+│   │   ├── explicit-approval
+│   │   ├── sandboxed-execution
+│   │   ├── output-validation
+│   │   ├── iteration-budgets
+│   │   └── prompt-injection-boundaries
+│   ├── evaluation
+│   │   ├── golden-datasets
+│   │   ├── task-specific-metrics
+│   │   ├── nondeterministic-output-tests
+│   │   ├── regression-tracking
+│   │   ├── latency-and-cost-tests
+│   │   ├── safety-checks
+│   │   └── human-review
+│   ├── ai-service-delivery
+│   │   ├── fastapi-inference-service
+│   │   ├── worker-based-inference
+│   │   ├── concurrency-limits
+│   │   ├── gpu-memory-budgets
+│   │   ├── tenant-data-isolation
+│   │   ├── observability
+│   │   └── deployment-readiness
+│   └── scope-and-governance
+│       ├── data-consent
+│       ├── personal-data-redaction
+│       ├── model-and-dataset-licenses
+│       ├── untrusted-generated-code
+│       ├── artifact-provenance
+│       ├── human-override
+│       └── dependency-and-model-security
+├── desktop-web-ui-and-creative-applications
+│   ├── gui-foundations
+│   │   ├── event-loops
+│   │   ├── widgets
+│   │   ├── layout
+│   │   ├── event-handlers
+│   │   ├── state-ownership
+│   │   ├── long-running-work
+│   │   └── main-thread-rules
+│   ├── tkinter
+│   │   ├── ttk-widgets
+│   │   ├── geometry-managers
+│   │   ├── dialogs
+│   │   ├── variables-and-bindings
+│   │   ├── after-scheduling
+│   │   ├── worker-result-handoff
+│   │   └── gui-tests
+│   ├── qt-for-python
+│   │   ├── pyside6
+│   │   ├── widgets-and-layouts
+│   │   ├── signals-and-slots
+│   │   ├── model-view-design
+│   │   ├── thread-affinity
+│   │   ├── resource-files
+│   │   └── packaging-considerations
+│   ├── python-web-ui
+│   │   ├── streamlit
+│   │   ├── gradio
+│   │   ├── dash
+│   │   ├── panel
+│   │   ├── state-lifetimes
+│   │   ├── cache-isolation
+│   │   └── authentication-boundaries
+│   ├── images-and-media
+│   │   ├── pillow
+│   │   ├── image-formats
+│   │   ├── metadata-orientation
+│   │   ├── resizing-and-compositing
+│   │   ├── image-size-limits
+│   │   ├── opencv
+│   │   └── video-processing-boundaries
+│   ├── games-and-creative-coding
+│   │   ├── pygame-ce
+│   │   ├── game-loops
+│   │   ├── input-and-events
+│   │   ├── time-step-management
+│   │   ├── sprite-and-collision
+│   │   ├── resource-loading
+│   │   └── reproducible-simulations
+│   ├── embedded-and-hardware
+│   │   ├── micropython
+│   │   ├── circuitpython
+│   │   ├── serial-communication
+│   │   ├── sensor-reading
+│   │   ├── gpio-safety
+│   │   ├── board-runtime-limits
+│   │   └── hardware-mocking
+│   ├── application-packaging
+│   │   ├── pyinstaller
+│   │   ├── briefcase
+│   │   ├── bundled-resources
+│   │   ├── platform-builds
+│   │   ├── code-signing-review
+│   │   ├── installer-testing
+│   │   └── application-update-strategy
+│   └── ui-quality
+│       ├── accessibility
+│       ├── localization
+│       ├── high-dpi-behavior
+│       ├── responsive-input
+│       ├── cancellation-and-progress
+│       ├── crash-reporting
+│       └── user-data-preservation
+├── deployment-and-production-operations
+│   ├── deployment-models
+│   │   ├── command-line-distribution
+│   │   ├── system-services
+│   │   ├── containers
+│   │   ├── virtual-machines
+│   │   ├── managed-platforms
+│   │   ├── serverless-functions
+│   │   └── batch-workers
+│   ├── runtime-configuration
+│   │   ├── supported-interpreter
+│   │   ├── immutable-artifacts
+│   │   ├── environment-settings
+│   │   ├── secret-injection
+│   │   ├── filesystem-layout
+│   │   ├── working-directory
+│   │   └── execution-user
+│   ├── web-serving
+│   │   ├── wsgi-worker-model
+│   │   ├── asgi-worker-model
+│   │   ├── uvicorn
+│   │   ├── gunicorn
+│   │   ├── reverse-proxy-contracts
+│   │   ├── trusted-forwarded-headers
+│   │   └── graceful-shutdown
+│   ├── container-engineering
+│   │   ├── minimal-base-images
+│   │   ├── multi-stage-builds
+│   │   ├── nonroot-user
+│   │   ├── dependency-layer-cache
+│   │   ├── native-library-dependencies
+│   │   ├── signal-forwarding
+│   │   └── read-only-filesystems
+│   ├── concurrency-capacity
+│   │   ├── workers-versus-threads
+│   │   ├── async-connection-limits
+│   │   ├── process-memory-budget
+│   │   ├── native-thread-oversubscription
+│   │   ├── queue-capacity
+│   │   ├── cpu-versus-io-sizing
+│   │   └── load-tests
+│   ├── deployment-pipelines
+│   │   ├── quality-gates
+│   │   ├── build-once
+│   │   ├── install-built-artifact
+│   │   ├── schema-migrations
+│   │   ├── rollout-strategy
+│   │   ├── health-verification
+│   │   └── rollback-plan
+│   ├── runtime-reliability
+│   │   ├── readiness-and-liveness
+│   │   ├── dependency-timeouts
+│   │   ├── retry-budgets
+│   │   ├── circuit-breakers
+│   │   ├── background-draining
+│   │   ├── request-id-propagation
+│   │   └── startup-failure-diagnostics
+│   ├── state-and-recovery
+│   │   ├── database-backups
+│   │   ├── object-storage-durability
+│   │   ├── migration-recovery
+│   │   ├── idempotent-jobs
+│   │   ├── checkpoint-recovery
+│   │   ├── cache-rebuild
+│   │   └── disaster-recovery-tests
+│   ├── production-diagnostics
+│   │   ├── structured-logs
+│   │   ├── metrics-and-traces
+│   │   ├── memory-leaks
+│   │   ├── connection-exhaustion
+│   │   ├── blocked-event-loops
+│   │   ├── crash-dumps
+│   │   └── incident-runbooks
+│   └── operational-security
+│       ├── debug-mode-disabled
+│       ├── secret-redaction
+│       ├── dependency-updates
+│       ├── scoped-service-identities
+│       ├── resource-quotas
+│       ├── network-boundaries
+│       └── least-privilege-deployment
+├── library-authoring-and-public-api-design
+│   ├── library-contracts
+│   │   ├── supported-use-cases
+│   │   ├── public-versus-private-apis
+│   │   ├── explicit-side-effects
+│   │   ├── return-type-consistency
+│   │   ├── error-contracts
+│   │   ├── thread-safety-contracts
+│   │   └── compatibility-policy
+│   ├── ergonomic-api-design
+│   │   ├── keyword-only-configuration
+│   │   ├── sensible-defaults
+│   │   ├── context-managed-resources
+│   │   ├── sync-and-async-surfaces
+│   │   ├── iterator-friendly-output
+│   │   ├── protocols-for-extension
+│   │   └── small-stable-surface
+│   ├── public-data-models
+│   │   ├── immutable-values
+│   │   ├── dataclass-compatibility
+│   │   ├── typed-dicts
+│   │   ├── enum-evolution
+│   │   ├── serialization-contracts
+│   │   ├── sentinel-defaults
+│   │   └── validation-ownership
+│   ├── extension-mechanisms
+│   │   ├── entry-points
+│   │   ├── protocol-based-plugins
+│   │   ├── hook-specifications
+│   │   ├── pluggy-adapters
+│   │   ├── versioned-plugin-contracts
+│   │   ├── optional-capabilities
+│   │   └── untrusted-plugin-boundaries
+│   ├── package-resources
+│   │   ├── resource-files
+│   │   ├── package-data
+│   │   ├── inclusion-tests
+│   │   ├── zip-import-behavior
+│   │   ├── namespace-package-support
+│   │   ├── metadata-discovery
+│   │   └── runtime-file-path-independence
+│   ├── typed-package-quality
+│   │   ├── py-typed-marker
+│   │   ├── annotations-versus-stubs
+│   │   ├── checker-matrix
+│   │   ├── supported-type-syntax
+│   │   ├── typing-tests
+│   │   ├── documentation-types
+│   │   └── generic-api-design
+│   ├── versioning-and-deprecation
+│   │   ├── semantic-versioning
+│   │   ├── public-change-assessment
+│   │   ├── warning-policy
+│   │   ├── migration-guides
+│   │   ├── compatibility-shims
+│   │   ├── dependency-boundaries
+│   │   └── minimum-version-tests
+│   ├── documentation-delivery
+│   │   ├── sphinx
+│   │   ├── mkdocs
+│   │   ├── docstring-conventions
+│   │   ├── executable-examples
+│   │   ├── api-reference
+│   │   ├── tutorials
+│   │   └── changelog-and-support-policy
+│   └── release-validation
+│       ├── source-and-wheel-parity
+│       ├── clean-install-tests
+│       ├── downstream-consumer-tests
+│       ├── platform-matrix
+│       ├── signature-and-provenance
+│       ├── reviewable-release-notes
+│       └── reproducible-build-checks
+├── ecosystem-compatibility-and-modernization
+│   ├── release-lifecycle
+│   │   ├── supported-python-versions
+│   │   ├── bugfix-and-security-phases
+│   │   ├── end-of-life-policy
+│   │   ├── dependency-support-matrices
+│   │   ├── minimum-and-maximum-tested-versions
+│   │   ├── preview-evaluation
+│   │   └── upgrade-scheduling
+│   ├── versioned-language-features
+│   │   ├── python-3-10
+│   │   │   ├── structural-pattern-matching
+│   │   │   ├── union-type-syntax
+│   │   │   ├── strict-zip
+│   │   │   └── match-compatibility-tests
+│   │   ├── python-3-11
+│   │   │   ├── exception-groups
+│   │   │   ├── except-star
+│   │   │   ├── taskgroup
+│   │   │   ├── asyncio-timeout
+│   │   │   ├── exception-notes
+│   │   │   └── tomllib
+│   │   ├── python-3-12
+│   │   │   ├── type-parameter-syntax
+│   │   │   ├── type-statement
+│   │   │   ├── f-string-grammar
+│   │   │   ├── typing-compatibility
+│   │   │   └── migration-diagnostics
+│   │   ├── python-3-13
+│   │   │   ├── free-threaded-build-introduction
+│   │   │   ├── experimental-jit-evaluation
+│   │   │   ├── improved-interactive-interpreter
+│   │   │   ├── typing-readonly
+│   │   │   ├── typeis
+│   │   │   └── removed-batteries-review
+│   │   ├── python-3-14
+│   │   │   ├── template-strings
+│   │   │   ├── deferred-annotations
+│   │   │   ├── annotationlib
+│   │   │   ├── concurrent-interpreters
+│   │   │   ├── interpreterpool-executor
+│   │   │   └── compression-zstd
+│   │   └── python-3-15
+│   │       ├── explicit-lazy-imports
+│   │       ├── frozendict
+│   │       ├── sentinel
+│   │       ├── utf-8-default
+│   │       ├── unpacking-in-comprehensions
+│   │       ├── profiling-package
+│   │       └── free-threaded-stable-abi
+│   ├── porting-method
+│   │   ├── read-release-notes
+│   │   ├── enable-warnings
+│   │   ├── update-toolchain
+│   │   ├── run-test-matrix
+│   │   ├── inspect-dependencies
+│   │   ├── review-behavior-changes
+│   │   └── staged-rollout
+│   ├── environment-migration
+│   │   ├── old-environment-inventory
+│   │   ├── clean-recreation
+│   │   ├── dependency-resolution
+│   │   ├── lockfile-refresh
+│   │   ├── native-wheel-availability
+│   │   ├── platform-validation
+│   │   └── rollback-environment
+│   ├── legacy-code-maintenance
+│   │   ├── python-2-migration-reading-only
+│   │   ├── obsolete-standard-library-removal
+│   │   ├── old-packaging-command-migration
+│   │   ├── unsafe-text-encoding
+│   │   ├── legacy-async-patterns
+│   │   ├── deprecated-typing-syntax
+│   │   └── supported-api-replacements
+│   ├── static-modernization
+│   │   ├── ruff-upgrade-rules
+│   │   ├── pyupgrade
+│   │   ├── lib-cst-codemods
+│   │   ├── ast-limitations
+│   │   ├── syntax-targets
+│   │   ├── semantic-equivalence-tests
+│   │   └── reviewable-diffs
+│   ├── cross-implementation-compatibility
+│   │   ├── cpython-assumptions
+│   │   ├── pypy-differences
+│   │   ├── native-extension-availability
+│   │   ├── object-finalization-timing
+│   │   ├── bytecode-nonportability
+│   │   ├── platform-api-availability
+│   │   └── implementation-contract-tests
+│   ├── ecosystem-evaluation
+│   │   ├── maintainer-health
+│   │   ├── release-cadence
+│   │   ├── license-fit
+│   │   ├── security-track-record
+│   │   ├── documentation-quality
+│   │   ├── migration-cost
+│   │   └── dependency-footprint
+│   └── upgrade-validation
+│       ├── source-import-tests
+│       ├── installed-package-tests
+│       ├── runtime-behavior-tests
+│       ├── annotation-introspection-tests
+│       ├── concurrency-tests
+│       ├── performance-baselines
+│       └── production-canaries
+├── professional-practice-and-collaboration
+│   ├── problem-solving-workflow
+│   │   ├── clarify-outcomes
+│   │   ├── define-inputs-and-outputs
+│   │   ├── select-abstractions
+│   │   ├── implement-small-slices
+│   │   ├── inspect-evidence
+│   │   ├── validate-boundaries
+│   │   └── document-tradeoffs
+│   ├── code-review
+│   │   ├── correctness
+│   │   ├── readability
+│   │   ├── public-contracts
+│   │   ├── resource-lifetimes
+│   │   ├── concurrency-behavior
+│   │   ├── security-boundaries
+│   │   └── test-quality
+│   ├── team-conventions
+│   │   ├── pep8-and-project-style
+│   │   ├── naming-and-docstrings
+│   │   ├── formatter-and-linter-config
+│   │   ├── type-checking-policy
+│   │   ├── dependency-policy
+│   │   ├── repository-layout
+│   │   └── review-checklists
+│   ├── git-and-collaboration
+│   │   ├── focused-commits
+│   │   ├── branch-workflow
+│   │   ├── pull-requests
+│   │   ├── merge-conflict-resolution
+│   │   ├── code-ownership
+│   │   ├── release-tags
+│   │   └── change-log-maintenance
+│   ├── technical-documentation
+│   │   ├── runnable-readme
+│   │   ├── setup-instructions
+│   │   ├── architecture-decisions
+│   │   ├── data-contracts
+│   │   ├── runbooks
+│   │   ├── troubleshooting-guides
+│   │   └── support-matrix
+│   ├── ai-assisted-development
+│   │   ├── small-verifiable-tasks
+│   │   ├── secret-free-prompts
+│   │   ├── generated-code-review
+│   │   ├── api-existence-checks
+│   │   ├── executable-tests
+│   │   ├── dependency-verification
+│   │   └── license-and-provenance-review
+│   ├── research-and-learning
+│   │   ├── primary-documentation
+│   │   ├── minimal-experiments
+│   │   ├── source-reading
+│   │   ├── bug-reporting
+│   │   ├── performance-evidence
+│   │   ├── reproducible-benchmarks
+│   │   └── community-contributions
+│   ├── portfolio-and-interviews
+│   │   ├── language-behavior-explanations
+│   │   ├── tested-cli-project
+│   │   ├── typed-library
+│   │   ├── api-service
+│   │   ├── data-pipeline
+│   │   ├── concurrency-lab
+│   │   └── incident-retrospective
+│   └── delivery-ownership
+│       ├── acceptance-criteria
+│       ├── reproducible-environment
+│       ├── operational-handover
+│       ├── maintenance-plan
+│       ├── deprecation-plan
+│       ├── feedback-loop
+│       └── continuous-improvement
+└── practice-projects
+    ├── python-language-behavior-lab
+    │   ├── values-and-aliasing
+    │   ├── scope-and-closures
+    │   ├── argument-binding
+    │   ├── pattern-matching
+    │   ├── iterator-exhaustion
+    │   ├── exception-traces
+    │   ├── executable-assertions
+    │   └── learning-notes
+    ├── algorithm-and-data-structure-workbench
+    │   ├── reference-solutions
+    │   ├── complexity-notes
+    │   ├── randomized-inputs
+    │   ├── boundary-cases
+    │   ├── property-tests
+    │   ├── benchmark-comparisons
+    │   ├── memory-measurement
+    │   └── reusable-utilities
+    ├── safe-file-organizer-cli
+    │   ├── path-inventory
+    │   ├── matching-rules
+    │   ├── rename-plan
+    │   ├── dry-run
+    │   ├── protected-paths
+    │   ├── atomic-manifest
+    │   ├── rollback-test
+    │   └── installable-command
+    ├── typed-domain-model-library
+    │   ├── value-objects
+    │   ├── dataclasses
+    │   ├── enums
+    │   ├── protocols
+    │   ├── invariants
+    │   ├── type-checker-tests
+    │   ├── serialization-contracts
+    │   └── wheel-install-tests
+    ├── iterable-data-processing-toolkit
+    │   ├── lazy-sources
+    │   ├── composable-transforms
+    │   ├── chunking
+    │   ├── grouped-aggregation
+    │   ├── error-records
+    │   ├── resource-lifetimes
+    │   ├── property-tests
+    │   └── memory-budget
+    ├── reusable-http-sdk
+    │   ├── typed-request-models
+    │   ├── sync-and-async-clients
+    │   ├── connection-reuse
+    │   ├── timeout-budget
+    │   ├── pagination
+    │   ├── retry-policy
+    │   ├── secret-redaction
+    │   └── mocked-and-live-contract-tests
+    ├── configuration-and-plugin-system
+    │   ├── layered-settings
+    │   ├── startup-validation
+    │   ├── entry-point-discovery
+    │   ├── versioned-plugin-contracts
+    │   ├── explicit-registration
+    │   ├── dependency-boundaries
+    │   ├── untrusted-plugin-rejection
+    │   └── compatibility-tests
+    ├── sqlite-personal-tracker
+    │   ├── schema-design
+    │   ├── parameterized-queries
+    │   ├── explicit-transactions
+    │   ├── import-export
+    │   ├── migrations
+    │   ├── backups
+    │   ├── cli-workflow
+    │   └── integration-tests
+    ├── fastapi-business-api
+    │   ├── domain-model
+    │   ├── pydantic-contracts
+    │   ├── dependency-lifetimes
+    │   ├── database-unit-of-work
+    │   ├── authentication-and-authorization
+    │   ├── pagination
+    │   ├── idempotent-mutations
+    │   ├── api-tests
+    │   └── production-container
+    ├── django-operations-portal
+    │   ├── app-boundaries
+    │   ├── models-and-migrations
+    │   ├── forms-and-views
+    │   ├── permission-matrix
+    │   ├── admin-customization
+    │   ├── background-notifications
+    │   ├── audit-trail
+    │   └── deployment-checks
+    ├── flask-server-rendered-application
+    │   ├── app-factory
+    │   ├── blueprints
+    │   ├── jinja-templates
+    │   ├── safe-forms
+    │   ├── session-security
+    │   ├── database-adapter
+    │   ├── integration-tests
+    │   └── wsgi-deployment
+    ├── python-and-java-service-integration
+    │   ├── shared-openapi-contracts
+    │   ├── python-api-client
+    │   ├── java-spring-service-boundary
+    │   ├── correlation-ids
+    │   ├── timeout-alignment
+    │   ├── idempotency
+    │   ├── error-mapping
+    │   └── contract-test-suite
+    ├── async-multi-service-aggregator
+    │   ├── taskgroup-orchestration
+    │   ├── concurrency-bounds
+    │   ├── deadline-propagation
+    │   ├── client-lifetimes
+    │   ├── partial-results
+    │   ├── cancellation-cleanup
+    │   ├── load-simulation
+    │   └── resource-leak-tests
+    ├── parallel-file-processing-service
+    │   ├── workload-baseline
+    │   ├── thread-pool-variant
+    │   ├── process-pool-variant
+    │   ├── interpreter-pool-evaluation
+    │   ├── serialization-cost
+    │   ├── bounded-submission
+    │   ├── worker-failure-tests
+    │   └── scaling-report
+    ├── free-threading-compatibility-lab
+    │   ├── interpreter-build-matrix
+    │   ├── extension-readiness
+    │   ├── shared-state-inventory
+    │   ├── synchronization-design
+    │   ├── race-reproductions
+    │   ├── correctness-tests
+    │   ├── throughput-benchmarks
+    │   └── migration-report
+    ├── durable-background-job-system
+    │   ├── job-contracts
+    │   ├── queue-and-worker
+    │   ├── idempotent-side-effects
+    │   ├── retries-and-dead-letters
+    │   ├── result-status
+    │   ├── cancellation-policy
+    │   ├── graceful-drain
+    │   └── duplicate-delivery-tests
+    ├── transactional-event-workflow
+    │   ├── business-write-and-outbox
+    │   ├── publisher-loop
+    │   ├── consumer-deduplication
+    │   ├── event-schema-evolution
+    │   ├── correlation-tracing
+    │   ├── failure-injection
+    │   ├── reconciliation
+    │   └── operational-dashboard
+    ├── ethical-web-data-collector
+    │   ├── authorized-sources
+    │   ├── request-budget
+    │   ├── extraction-schema
+    │   ├── html-fixtures
+    │   ├── pagination-and-checkpoints
+    │   ├── source-provenance
+    │   ├── data-quality-tests
+    │   └── retained-data-policy
+    ├── browser-workflow-test-suite
+    │   ├── playwright-contexts
+    │   ├── semantic-locators
+    │   ├── test-accounts
+    │   ├── form-and-upload-flows
+    │   ├── network-controls
+    │   ├── failure-artifacts
+    │   ├── parallel-test-isolation
+    │   └── secret-redaction
+    ├── office-report-automation
+    │   ├── input-validation
+    │   ├── spreadsheet-processing
+    │   ├── document-templates
+    │   ├── chart-export
+    │   ├── atomic-publication
+    │   ├── versioned-report-output
+    │   ├── regression-fixtures
+    │   └── distribution-log
+    ├── reproducible-data-analysis-project
+    │   ├── research-question
+    │   ├── source-provenance
+    │   ├── dataframe-cleaning
+    │   ├── metric-definitions
+    │   ├── numpy-and-pandas-analysis
+    │   ├── accessible-visualizations
+    │   ├── clean-kernel-run
+    │   └── findings-and-limitations
+    ├── incremental-etl-pipeline
+    │   ├── source-connectors
+    │   ├── watermark-contract
+    │   ├── schema-normalization
+    │   ├── parquet-output
+    │   ├── quality-gates
+    │   ├── orchestrated-runs
+    │   ├── replay-tests
+    │   └── backfill-and-recovery
+    ├── streaming-event-analyzer
+    │   ├── event-contract
+    │   ├── consumer-offsets
+    │   ├── windowed-aggregation
+    │   ├── late-event-policy
+    │   ├── bounded-state
+    │   ├── poison-event-quarantine
+    │   ├── restart-recovery
+    │   └── latency-metrics
+    ├── scientific-simulation-package
+    │   ├── mathematical-model
+    │   ├── numerical-method
+    │   ├── parameter-validation
+    │   ├── seeded-randomness
+    │   ├── unit-and-property-tests
+    │   ├── convergence-study
+    │   ├── performance-profile
+    │   └── documented-package
+    ├── machine-learning-inference-api
+    │   ├── dataset-split
+    │   ├── preprocessing-pipeline
+    │   ├── baseline-model
+    │   ├── safe-artifact-loading
+    │   ├── validated-inference-contract
+    │   ├── model-versioning
+    │   ├── evaluation-suite
+    │   └── inference-observability
+    ├── document-retrieval-assistant
+    │   ├── approved-document-ingestion
+    │   ├── retrieval-index
+    │   ├── access-filtering
+    │   ├── citation-contract
+    │   ├── provider-adapter
+    │   ├── prompt-injection-tests
+    │   ├── evaluation-dataset
+    │   └── latency-and-cost-budgets
+    ├── desktop-task-manager
+    │   ├── gui-model
+    │   ├── event-handlers
+    │   ├── background-worker
+    │   ├── progress-and-cancellation
+    │   ├── local-persistence
+    │   ├── accessibility-review
+    │   ├── packaged-build
+    │   └── smoke-tests
+    ├── native-acceleration-experiment
+    │   ├── pure-python-baseline
+    │   ├── hotspot-profile
+    │   ├── cython-or-pyo3-extension
+    │   ├── ownership-contract
+    │   ├── binary-wheel-build
+    │   ├── equivalence-tests
+    │   ├── speedup-measurement
+    │   └── fallback-strategy
+    ├── typed-pypi-library-release
+    │   ├── public-api-design
+    │   ├── pyproject-metadata
+    │   ├── documentation-site
+    │   ├── type-hint-validation
+    │   ├── wheel-and-sdist-validation
+    │   ├── testpypi-publication
+    │   ├── trusted-release-pipeline
+    │   └── consumer-install-matrix
+    ├── production-diagnostics-lab
+    │   ├── memory-leak-reproduction
+    │   ├── blocked-event-loop
+    │   ├── connection-pool-exhaustion
+    │   ├── structured-telemetry
+    │   ├── profiler-evidence
+    │   ├── root-cause-fix
+    │   ├── regression-tests
+    │   └── incident-runbook
+    ├── legacy-python-modernization
+    │   ├── runtime-and-dependency-inventory
+    │   ├── warning-baseline
+    │   ├── typing-increment
+    │   ├── modern-packaging
+    │   ├── async-boundary-review
+    │   ├── version-matrix
+    │   ├── performance-comparison
+    │   └── staged-release
+    └── end-to-end-python-capstone
+        ├── requirements-and-design
+        │   ├── user-workflows
+        │   ├── domain-and-data-contracts
+        │   ├── module-boundaries
+        │   ├── runtime-selection
+        │   ├── concurrency-model
+        │   ├── threat-model
+        │   └── operational-objectives
+        ├── implementation
+        │   ├── typed-domain-library
+        │   ├── api-and-cli-interfaces
+        │   ├── persistence-and-migrations
+        │   ├── durable-background-jobs
+        │   ├── external-service-adapters
+        │   ├── bounded-async-work
+        │   └── configuration-and-observability
+        └── validation-and-delivery
+            ├── unit-and-contract-tests
+            ├── concurrency-and-failure-tests
+            ├── security-review
+            ├── performance-and-memory-evidence
+            ├── wheel-and-container-artifacts
+            ├── ci-cd-pipeline
+            ├── recovery-drill
+            ├── operational-handover
+            └── retrospective

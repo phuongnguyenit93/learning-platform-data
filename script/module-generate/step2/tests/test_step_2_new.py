@@ -15,7 +15,7 @@ import unittest
 from unittest.mock import patch
 
 
-REPO = Path(__file__).resolve().parents[4]
+REPO = Path(__file__).resolve().parents[5]
 
 
 def load_script(label: str, filename: Path):
@@ -27,16 +27,16 @@ def load_script(label: str, filename: Path):
 
 
 SKELETON = load_script(
-    "step2_skeleton_new", REPO / "script/module-generate/step2/generate-basic-info-skeleton.py"
+    "step2_skeleton_new", REPO / "learning-platform-data/script/module-generate/step2/generate-basic-info-skeleton.py"
 )
 ROADMAP = load_script(
-    "step2_roadmap_new", REPO / "script/module-generate/step2/import-module-roadmaps.py"
+    "step2_roadmap_new", REPO / "learning-platform-data/script/module-generate/step2/import-module-roadmaps.py"
 )
 REFERENCE = load_script(
-    "step2_reference_new", REPO / "script/module-generate/step2/import-module-references.py"
+    "step2_reference_new", REPO / "learning-platform-data/script/module-generate/step2/import-module-references.py"
 )
 OVERVIEW = load_script(
-    "step2_overview_new", REPO / "script/module-generate/step2/import-module-overviews.py"
+    "step2_overview_new", REPO / "learning-platform-data/script/module-generate/step2/import-module-overviews.py"
 )
 
 

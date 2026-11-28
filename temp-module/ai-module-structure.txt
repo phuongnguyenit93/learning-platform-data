@@ -1,0 +1,3504 @@
+module
+├── foundation
+│   ├── ai-overview
+│   │   ├── intelligence-and-behavior
+│   │   ├── artificial-intelligence-and-machine-learning
+│   │   ├── machine-learning-and-deep-learning
+│   │   ├── predictive-and-generative-ai
+│   │   ├── symbolic-and-statistical-ai
+│   │   ├── narrow-capabilities-and-generalization
+│   │   ├── human-and-machine-collaboration
+│   │   └── learning-path
+│   ├── mental-model
+│   │   ├── agents-and-environments
+│   │   ├── perception-representation-and-action
+│   │   ├── models-data-and-objectives
+│   │   ├── training-and-inference
+│   │   ├── parameters-and-hyperparameters
+│   │   ├── predictions-and-decisions
+│   │   ├── capabilities-and-limitations
+│   │   └── uncertainty-and-evidence
+│   ├── problem-landscape
+│   │   ├── classification
+│   │   ├── regression
+│   │   ├── clustering
+│   │   ├── retrieval
+│   │   ├── ranking
+│   │   ├── generation
+│   │   ├── planning
+│   │   ├── sequential-decision-making
+│   │   └── anomaly-detection
+│   ├── ai-system-lifecycle
+│   │   ├── problem-discovery
+│   │   ├── data-acquisition
+│   │   ├── baseline-design
+│   │   ├── experimentation
+│   │   ├── deployment
+│   │   ├── monitoring
+│   │   ├── feedback-and-maintenance
+│   │   └── retirement
+│   ├── learning-and-career-paths
+│   │   ├── ai-literacy
+│   │   ├── applied-machine-learning
+│   │   ├── deep-learning-engineering
+│   │   ├── generative-ai-engineering
+│   │   ├── research-engineering
+│   │   ├── ai-platform-engineering
+│   │   └── responsible-ai-practice
+│   ├── prerequisite-map
+│   │   ├── programming-readiness
+│   │   ├── mathematical-readiness
+│   │   ├── statistical-readiness
+│   │   ├── data-literacy
+│   │   ├── software-engineering-readiness
+│   │   └── domain-knowledge
+│   ├── evidence-and-misconceptions
+│   │   ├── benchmarks-and-real-world-utility
+│   │   ├── correlation-and-causation
+│   │   ├── memorization-and-generalization
+│   │   ├── accuracy-and-business-value
+│   │   ├── anthropomorphism-and-capability-claims
+│   │   ├── model-output-and-ground-truth
+│   │   └── automation-and-accountability
+│   └── documentation-and-exploration
+│       ├── primary-papers
+│       ├── official-documentation
+│       ├── model-cards
+│       ├── dataset-cards
+│       ├── minimal-reproductions
+│       ├── experiment-notebooks
+│       └── terminology-and-concept-maps
+├── mathematics-and-statistics
+│   ├── linear-algebra
+│   │   ├── vectors-and-matrices
+│   │   │   ├── shapes-and-dimensions
+│   │   │   ├── vector-spaces
+│   │   │   ├── linear-transformations
+│   │   │   ├── dot-products
+│   │   │   ├── matrix-multiplication
+│   │   │   └── broadcasting-and-tensors
+│   │   ├── geometry-and-decomposition
+│   │   │   ├── norms-and-distances
+│   │   │   ├── projections
+│   │   │   ├── orthogonality
+│   │   │   ├── eigenvalues-and-eigenvectors
+│   │   │   ├── singular-value-decomposition
+│   │   │   └── positive-semidefinite-matrices
+│   │   └── numerical-linear-algebra
+│   │       ├── conditioning
+│   │       ├── matrix-factorization
+│   │       ├── least-squares-solvers
+│   │       ├── sparse-matrices
+│   │       ├── low-rank-approximation
+│   │       └── numerical-stability
+│   ├── calculus-and-differentiation
+│   │   ├── derivatives-and-partials
+│   │   ├── gradients-and-jacobians
+│   │   ├── hessians
+│   │   ├── chain-rule
+│   │   ├── directional-derivatives
+│   │   ├── taylor-approximation
+│   │   ├── automatic-differentiation
+│   │   └── finite-difference-checks
+│   ├── probability
+│   │   ├── foundations
+│   │   │   ├── random-variables
+│   │   │   ├── probability-distributions
+│   │   │   ├── joint-and-conditional-probability
+│   │   │   ├── independence
+│   │   │   ├── bayes-rule
+│   │   │   ├── expectation-and-variance
+│   │   │   └── covariance-and-correlation
+│   │   ├── distribution-families
+│   │   │   ├── bernoulli-and-binomial
+│   │   │   ├── categorical-and-multinomial
+│   │   │   ├── gaussian-and-multivariate-gaussian
+│   │   │   ├── poisson-and-exponential
+│   │   │   ├── beta-and-dirichlet
+│   │   │   └── heavy-tailed-distributions
+│   │   └── convergence-and-sampling
+│   │       ├── law-of-large-numbers
+│   │       ├── central-limit-theorem
+│   │       ├── monte-carlo-estimation
+│   │       ├── importance-sampling
+│   │       ├── rejection-sampling
+│   │       └── sampling-error
+│   ├── statistical-inference
+│   │   ├── population-and-sample
+│   │   ├── estimators-and-bias
+│   │   ├── likelihood-and-log-likelihood
+│   │   ├── maximum-likelihood
+│   │   ├── maximum-a-posteriori
+│   │   ├── confidence-and-credible-intervals
+│   │   ├── hypothesis-testing
+│   │   ├── effect-sizes
+│   │   ├── bootstrap-and-permutation-tests
+│   │   └── multiple-testing
+│   ├── information-theory
+│   │   ├── entropy
+│   │   ├── conditional-entropy
+│   │   ├── cross-entropy
+│   │   ├── kl-divergence
+│   │   ├── mutual-information
+│   │   ├── information-bottleneck
+│   │   └── coding-and-compression
+│   ├── optimization-foundations
+│   │   ├── objective-functions
+│   │   ├── constraints-and-feasible-sets
+│   │   ├── convexity
+│   │   ├── lagrange-multipliers
+│   │   ├── gradient-based-optimization
+│   │   ├── stochastic-optimization
+│   │   └── numerical-solver-diagnostics
+│   ├── discrete-mathematics
+│   │   ├── sets-and-relations
+│   │   ├── logic-and-proof-techniques
+│   │   ├── graphs-and-trees
+│   │   ├── combinatorics
+│   │   ├── recurrence-relations
+│   │   ├── dynamic-programming
+│   │   └── asymptotic-complexity
+│   ├── decision-theory-and-game-theory
+│   │   ├── utility-and-risk
+│   │   ├── expected-loss
+│   │   ├── bayesian-decisions
+│   │   ├── multi-objective-tradeoffs
+│   │   ├── pareto-frontiers
+│   │   ├── strategic-interaction
+│   │   └── equilibrium-concepts
+│   └── mathematical-practice
+│       ├── vectorized-linear-regression
+│       ├── gradient-checking
+│       ├── probability-simulations
+│       ├── optimization-visualizations
+│       ├── entropy-experiments
+│       └── uncertainty-calculations
+├── programming-and-computing
+│   ├── python-for-ai
+│   │   ├── language-fundamentals
+│   │   ├── functions-and-modules
+│   │   ├── collections-and-iteration
+│   │   ├── classes-and-dataclasses
+│   │   ├── type-hints
+│   │   ├── exceptions-and-context-managers
+│   │   ├── generators-and-streaming
+│   │   └── testing-and-debugging
+│   ├── numerical-computing
+│   │   ├── array-shapes-and-dtypes
+│   │   ├── indexing-and-masking
+│   │   ├── broadcasting
+│   │   ├── vectorization
+│   │   ├── linear-algebra-operations
+│   │   ├── random-number-generators
+│   │   ├── numerical-overflow-and-underflow
+│   │   └── memory-layout-and-copying
+│   ├── tabular-data-computing
+│   │   ├── dataframe-operations
+│   │   ├── joins-and-grouping
+│   │   ├── missing-data-handling
+│   │   ├── categorical-data
+│   │   ├── window-operations
+│   │   ├── columnar-execution
+│   │   └── lazy-query-plans
+│   ├── scientific-visualization
+│   │   ├── distribution-plots
+│   │   ├── relationship-plots
+│   │   ├── learning-curves
+│   │   ├── confusion-matrices
+│   │   ├── embedding-visualizations
+│   │   ├── uncertainty-visualization
+│   │   └── misleading-chart-prevention
+│   ├── software-engineering
+│   │   ├── package-layout
+│   │   ├── configuration-management
+│   │   ├── dependency-pinning
+│   │   ├── reproducible-environments
+│   │   ├── version-control
+│   │   ├── code-review
+│   │   ├── unit-and-integration-tests
+│   │   └── documentation-and-interfaces
+│   ├── notebooks-and-scripts
+│   │   ├── notebook-state-and-order
+│   │   ├── exploratory-to-production-refactoring
+│   │   ├── parameterized-experiments
+│   │   ├── command-line-interfaces
+│   │   ├── automated-notebook-checks
+│   │   └── artifact-management
+│   ├── databases-and-storage
+│   │   ├── sql-for-analysis
+│   │   ├── columnar-formats
+│   │   ├── object-storage
+│   │   ├── local-analytical-databases
+│   │   ├── relational-and-document-storage
+│   │   ├── vector-storage-basics
+│   │   └── data-access-patterns
+│   ├── systems-prerequisites
+│   │   ├── linux-and-shell
+│   │   ├── processes-and-threads
+│   │   ├── networking-and-http
+│   │   ├── containers
+│   │   ├── memory-and-storage-hierarchy
+│   │   ├── cpu-gpu-execution
+│   │   └── profiling-and-resource-limits
+│   ├── language-interoperability
+│   │   ├── python-and-native-extensions
+│   │   ├── java-ai-service-integration
+│   │   ├── javascript-and-typescript-clients
+│   │   ├── rust-and-cpp-bindings
+│   │   ├── model-exchange-formats
+│   │   └── serialization-contracts
+│   └── reproducible-computation
+│       ├── seeds-and-random-state
+│       ├── deterministic-execution-limits
+│       ├── environment-fingerprints
+│       ├── input-hashes
+│       ├── experiment-manifests
+│       └── hardware-and-library-versions
+├── data-engineering-and-datasets
+│   ├── data-sourcing
+│   │   ├── first-party-data
+│   │   ├── public-datasets
+│   │   ├── licensed-data
+│   │   ├── partner-data
+│   │   ├── sensor-and-event-data
+│   │   ├── web-data-permissions
+│   │   ├── synthetic-data-sources
+│   │   └── provenance-and-consent
+│   ├── data-modeling
+│   │   ├── observation-units
+│   │   ├── entity-identifiers
+│   │   ├── feature-and-target-definitions
+│   │   ├── event-time-and-processing-time
+│   │   ├── schemas-and-contracts
+│   │   ├── annotation-ontologies
+│   │   └── multimodal-alignment
+│   ├── ingestion-pipelines
+│   │   ├── batch-ingestion
+│   │   ├── streaming-ingestion
+│   │   ├── incremental-loading
+│   │   ├── change-data-capture
+│   │   ├── idempotent-processing
+│   │   ├── retries-and-dead-letter-handling
+│   │   └── data-lineage
+│   ├── data-quality
+│   │   ├── schema-validation
+│   │   ├── completeness-and-consistency
+│   │   ├── duplicates-and-near-duplicates
+│   │   ├── invalid-values
+│   │   ├── label-quality
+│   │   ├── sampling-bias
+│   │   ├── distribution-checks
+│   │   └── source-drift
+│   ├── data-cleaning
+│   │   ├── missingness-mechanisms
+│   │   ├── imputation-strategies
+│   │   ├── outlier-investigation
+│   │   ├── normalization-and-standardization
+│   │   ├── text-and-unicode-cleaning
+│   │   ├── timestamp-alignment
+│   │   └── duplicate-resolution
+│   ├── annotation-and-labeling
+│   │   ├── annotation-guidelines
+│   │   ├── annotator-training
+│   │   ├── inter-annotator-agreement
+│   │   ├── adjudication-and-review
+│   │   ├── weak-supervision
+│   │   ├── programmatic-labeling
+│   │   ├── human-in-the-loop-labeling
+│   │   └── active-label-acquisition
+│   ├── active-learning-workflows
+│   │   ├── uncertainty-sampling
+│   │   ├── query-by-committee
+│   │   ├── diversity-aware-selection
+│   │   ├── batch-querying
+│   │   ├── labeling-cost-aware-selection
+│   │   ├── human-adjudication
+│   │   └── adaptive-data-selection-evaluation
+│   ├── dataset-construction
+│   │   ├── inclusion-and-exclusion-criteria
+│   │   ├── representative-sampling
+│   │   ├── class-balance
+│   │   ├── entity-level-splitting
+│   │   ├── temporal-splitting
+│   │   ├── contamination-prevention
+│   │   ├── dataset-versioning
+│   │   └── test-set-isolation
+│   ├── modality-specific-pipelines
+│   │   ├── image-decoding-and-augmentation
+│   │   ├── audio-segmentation-and-resampling
+│   │   ├── text-extraction-and-tokenization
+│   │   ├── video-frame-sampling
+│   │   ├── document-layout-extraction
+│   │   ├── graph-construction
+│   │   └── tabular-type-inference
+│   ├── data-governance
+│   │   ├── ownership-and-stewardship
+│   │   ├── licensing-and-usage-rights
+│   │   ├── sensitive-data-classification
+│   │   ├── retention-and-deletion
+│   │   ├── access-control
+│   │   ├── lineage-and-audit
+│   │   └── dataset-documentation
+│   └── scalable-data-processing
+│       ├── partitioning-and-sharding
+│       ├── distributed-transformations
+│       ├── streaming-datasets
+│       ├── data-loader-throughput
+│       ├── caching-and-prefetching
+│       ├── data-locality
+│       └── backfill-and-replay
+├── problem-formulation-and-learning-theory
+│   ├── business-to-learning-problem
+│   │   ├── stakeholder-goals
+│   │   ├── decision-context
+│   │   ├── target-definition
+│   │   ├── available-information
+│   │   ├── baseline-and-non-ai-alternatives
+│   │   ├── cost-of-errors
+│   │   └── feasibility-and-stop-criteria
+│   ├── learning-paradigms
+│   │   ├── supervised-learning
+│   │   ├── unsupervised-learning
+│   │   ├── semi-supervised-learning
+│   │   ├── self-supervised-learning
+│   │   ├── reinforcement-learning
+│   │   ├── online-learning
+│   │   ├── transfer-learning
+│   │   └── active-learning
+│   ├── prediction-problem-design
+│   │   ├── unit-of-prediction
+│   │   ├── prediction-horizon
+│   │   ├── label-generation
+│   │   ├── label-delay
+│   │   ├── censoring-and-missing-targets
+│   │   ├── proxy-target-risks
+│   │   └── feedback-loop-effects
+│   ├── hypothesis-and-inductive-bias
+│   │   ├── hypothesis-spaces
+│   │   ├── model-capacity
+│   │   ├── assumptions-and-priors
+│   │   ├── invariance-and-equivariance
+│   │   ├── simplicity-and-complexity
+│   │   └── representation-choice
+│   ├── empirical-risk-and-generalization
+│   │   ├── population-and-empirical-risk
+│   │   ├── loss-functions
+│   │   ├── approximation-error
+│   │   ├── estimation-error
+│   │   ├── optimization-error
+│   │   ├── overfitting-and-underfitting
+│   │   └── regularization-and-capacity-control
+│   ├── statistical-learning-theory
+│   │   ├── pac-learning
+│   │   ├── vc-dimension
+│   │   ├── rademacher-complexity
+│   │   ├── generalization-bounds
+│   │   ├── sample-complexity
+│   │   ├── no-free-lunch-theorems
+│   │   └── limitations-of-theoretical-bounds
+│   ├── distribution-shift
+│   │   ├── covariate-shift
+│   │   ├── label-shift
+│   │   ├── concept-drift
+│   │   ├── domain-shift
+│   │   ├── selection-bias
+│   │   ├── out-of-distribution-inputs
+│   │   └── nonstationary-environments
+│   ├── data-efficiency
+│   │   ├── learning-curves
+│   │   ├── sample-size-planning
+│   │   ├── transfer-and-pretraining
+│   │   ├── few-shot-learning
+│   │   ├── weak-labels
+│   │   ├── active-data-selection
+│   │   └── diminishing-returns
+│   └── objective-and-metric-alignment
+│       ├── surrogate-losses
+│       ├── prediction-versus-decision-metrics
+│       ├── class-dependent-costs
+│       ├── constrained-objectives
+│       ├── delayed-outcomes
+│       └── multi-objective-selection
+├── search-planning-and-symbolic-ai
+│   ├── intelligent-agents
+│   │   ├── reflex-agents
+│   │   ├── model-based-agents
+│   │   ├── goal-based-agents
+│   │   ├── utility-based-agents
+│   │   ├── partially-observable-environments
+│   │   └── performance-measures
+│   ├── state-space-search
+│   │   ├── problem-representation
+│   │   │   ├── states-actions-and-transitions
+│   │   │   ├── initial-and-goal-states
+│   │   │   ├── path-cost
+│   │   │   ├── graph-and-tree-search
+│   │   │   ├── duplicate-state-handling
+│   │   │   └── complexity-and-completeness
+│   │   ├── uninformed-search
+│   │   │   ├── breadth-first-search
+│   │   │   ├── depth-first-search
+│   │   │   ├── uniform-cost-search
+│   │   │   ├── depth-limited-search
+│   │   │   ├── iterative-deepening
+│   │   │   └── bidirectional-search
+│   │   └── informed-search
+│   │       ├── heuristic-functions
+│   │       ├── admissibility-and-consistency
+│   │       ├── greedy-best-first-search
+│   │       ├── a-star-search
+│   │       ├── memory-bounded-search
+│   │       └── heuristic-design-and-evaluation
+│   ├── local-and-evolutionary-search
+│   │   ├── hill-climbing
+│   │   ├── simulated-annealing
+│   │   ├── local-beam-search
+│   │   ├── tabu-search
+│   │   ├── genetic-algorithms
+│   │   ├── evolutionary-strategies
+│   │   └── particle-swarm-optimization
+│   ├── adversarial-search
+│   │   ├── minimax
+│   │   ├── alpha-beta-pruning
+│   │   ├── expectimax
+│   │   ├── evaluation-functions
+│   │   ├── iterative-deepening-game-search
+│   │   ├── monte-carlo-tree-search
+│   │   └── imperfect-information-games
+│   ├── constraint-satisfaction
+│   │   ├── variables-domains-and-constraints
+│   │   ├── backtracking-search
+│   │   ├── variable-and-value-ordering
+│   │   ├── arc-consistency
+│   │   ├── constraint-propagation
+│   │   ├── local-search-for-csp
+│   │   └── constraint-programming
+│   ├── knowledge-representation
+│   │   ├── propositional-logic
+│   │   ├── first-order-logic
+│   │   ├── rules-and-facts
+│   │   ├── ontologies
+│   │   ├── description-logics
+│   │   ├── semantic-networks
+│   │   └── open-and-closed-world-assumptions
+│   ├── symbolic-inference
+│   │   ├── forward-chaining
+│   │   ├── backward-chaining
+│   │   ├── unification
+│   │   ├── resolution
+│   │   ├── satisfiability-solving
+│   │   ├── satisfiability-modulo-theories
+│   │   └── theorem-proving
+│   ├── automated-planning
+│   │   ├── classical-planning
+│   │   ├── action-preconditions-and-effects
+│   │   ├── planning-domain-models
+│   │   ├── partial-order-planning
+│   │   ├── hierarchical-task-networks
+│   │   ├── temporal-and-resource-planning
+│   │   └── replanning-under-change
+│   ├── fuzzy-logic-and-soft-computing
+│   │   ├── membership-functions
+│   │   ├── fuzzy-sets
+│   │   ├── fuzzy-rules
+│   │   ├── fuzzy-inference
+│   │   ├── defuzzification
+│   │   ├── neuro-fuzzy-models
+│   │   └── fuzzy-and-probabilistic-uncertainty
+│   └── hybrid-reasoning
+│       ├── rules-with-learned-models
+│       ├── neural-symbolic-interfaces
+│       ├── differentiable-constraints
+│       ├── logic-guided-validation
+│       ├── solver-assisted-generation
+│       └── knowledge-consistency-checks
+├── probabilistic-modeling-and-causal-inference
+│   ├── bayesian-modeling
+│   │   ├── priors-and-posteriors
+│   │   ├── likelihood-design
+│   │   ├── conjugacy
+│   │   ├── posterior-predictive-checks
+│   │   ├── hierarchical-models
+│   │   ├── bayesian-model-comparison
+│   │   └── prior-sensitivity
+│   ├── graphical-models
+│   │   ├── bayesian-networks
+│   │   ├── markov-random-fields
+│   │   ├── factor-graphs
+│   │   ├── conditional-independence
+│   │   ├── d-separation
+│   │   ├── latent-variable-models
+│   │   └── graph-structure-learning
+│   ├── probabilistic-inference
+│   │   ├── variable-elimination
+│   │   ├── belief-propagation
+│   │   ├── sampling-based-inference
+│   │   ├── markov-chain-monte-carlo
+│   │   ├── hamiltonian-monte-carlo
+│   │   ├── variational-inference
+│   │   └── convergence-diagnostics
+│   ├── sequential-probabilistic-models
+│   │   ├── hidden-markov-models
+│   │   ├── forward-backward-inference
+│   │   ├── viterbi-decoding
+│   │   ├── state-space-models
+│   │   ├── kalman-filters
+│   │   ├── extended-and-unscented-filters
+│   │   └── particle-filters
+│   ├── causal-foundations
+│   │   ├── association-intervention-and-counterfactuals
+│   │   ├── structural-causal-models
+│   │   ├── causal-graphs
+│   │   ├── confounding
+│   │   ├── colliders-and-mediators
+│   │   ├── selection-bias
+│   │   └── identifiability
+│   ├── causal-effect-estimation
+│   │   ├── randomized-experiments
+│   │   ├── backdoor-adjustment
+│   │   ├── propensity-scores
+│   │   ├── inverse-probability-weighting
+│   │   ├── doubly-robust-estimation
+│   │   ├── instrumental-variables
+│   │   ├── difference-in-differences
+│   │   └── regression-discontinuity
+│   ├── causal-machine-learning
+│   │   ├── heterogeneous-treatment-effects
+│   │   ├── causal-forests
+│   │   ├── double-machine-learning
+│   │   ├── uplift-modeling
+│   │   ├── causal-representation-learning
+│   │   ├── sensitivity-analysis
+│   │   └── transportability
+│   ├── uncertainty-aware-decisions
+│   │   ├── posterior-predictive-distributions
+│   │   ├── value-of-information
+│   │   ├── bayesian-decision-rules
+│   │   ├── risk-sensitive-decisions
+│   │   ├── model-misspecification
+│   │   └── uncertainty-communication
+│   └── probabilistic-programming
+│       ├── model-specification
+│       ├── inference-engine-selection
+│       ├── sampling-diagnostics
+│       ├── posterior-visualization
+│       ├── model-checking
+│       └── reproducible-probabilistic-workflows
+├── supervised-learning
+│   ├── regression
+│   │   ├── linear-models
+│   │   │   ├── ordinary-least-squares
+│   │   │   ├── ridge-regression
+│   │   │   ├── lasso
+│   │   │   ├── elastic-net
+│   │   │   ├── polynomial-features
+│   │   │   └── robust-regression
+│   │   └── generalized-and-specialized-models
+│   │       ├── generalized-linear-models
+│   │       ├── poisson-regression
+│   │       ├── quantile-regression
+│   │       ├── generalized-additive-models
+│   │       ├── multi-output-regression
+│   │       └── heteroscedastic-regression
+│   ├── classification
+│   │   ├── linear-and-probabilistic-classifiers
+│   │   │   ├── logistic-regression
+│   │   │   ├── softmax-regression
+│   │   │   ├── naive-bayes
+│   │   │   ├── linear-discriminant-analysis
+│   │   │   ├── quadratic-discriminant-analysis
+│   │   │   └── calibrated-linear-models
+│   │   └── problem-variants
+│   │       ├── binary-classification
+│   │       ├── multiclass-classification
+│   │       ├── multilabel-classification
+│   │       ├── hierarchical-classification
+│   │       ├── ordinal-classification
+│   │       └── cost-sensitive-classification
+│   ├── distance-and-kernel-methods
+│   │   ├── nearest-neighbors
+│   │   ├── distance-metric-selection
+│   │   ├── support-vector-machines
+│   │   ├── kernel-trick
+│   │   ├── kernel-ridge-regression
+│   │   ├── gaussian-processes
+│   │   └── kernel-approximation
+│   ├── tree-based-models
+│   │   ├── decision-trees
+│   │   ├── splitting-criteria
+│   │   ├── pruning
+│   │   ├── missing-value-routing
+│   │   ├── categorical-splits
+│   │   ├── monotonic-constraints
+│   │   └── interpretability-and-instability
+│   ├── ensemble-learning
+│   │   ├── bagging-and-randomization
+│   │   │   ├── bootstrap-aggregation
+│   │   │   ├── random-forests
+│   │   │   ├── extra-trees
+│   │   │   ├── out-of-bag-estimation
+│   │   │   ├── feature-subsampling
+│   │   │   └── diversity-and-correlation
+│   │   ├── boosting
+│   │   │   ├── adaboost
+│   │   │   ├── gradient-boosting
+│   │   │   ├── histogram-gradient-boosting
+│   │   │   ├── xgboost
+│   │   │   ├── lightgbm
+│   │   │   └── catboost
+│   │   └── model-combination
+│   │       ├── voting
+│   │       ├── blending
+│   │       ├── stacking
+│   │       ├── out-of-fold-meta-features
+│   │       ├── ensemble-calibration
+│   │       └── leakage-prevention
+│   ├── imbalanced-learning
+│   │   ├── class-weighting
+│   │   ├── resampling-thresholds
+│   │   ├── random-over-and-undersampling
+│   │   ├── synthetic-minority-sampling
+│   │   ├── precision-recall-tradeoffs
+│   │   ├── rare-class-evaluation
+│   │   └── prevalence-shift
+│   ├── specialized-supervised-tasks
+│   │   ├── survival-analysis
+│   │   ├── censored-outcomes
+│   │   ├── structured-prediction
+│   │   ├── multi-task-learning
+│   │   ├── positive-unlabeled-learning
+│   │   └── learning-with-noisy-labels
+│   ├── semi-supervised-and-weak-supervision
+│   │   ├── self-training-and-pseudo-labels
+│   │   ├── consistency-regularization
+│   │   ├── label-propagation-and-spreading
+│   │   ├── co-training
+│   │   ├── weak-label-models
+│   │   └── noisy-label-validation
+│   └── practical-model-selection
+│       ├── linear-baselines
+│       ├── tree-baselines
+│       ├── data-size-and-dimensionality
+│       ├── compute-and-latency-constraints
+│       ├── interpretability-requirements
+│       └── robustness-comparison
+├── unsupervised-and-anomaly-learning
+│   ├── clustering-foundations
+│   │   ├── similarity-and-distance
+│   │   ├── clustering-assumptions
+│   │   ├── cluster-number-selection
+│   │   ├── scaling-and-preprocessing
+│   │   ├── cluster-stability
+│   │   └── interpretation-without-ground-truth
+│   ├── centroid-and-mixture-methods
+│   │   ├── k-means
+│   │   ├── mini-batch-k-means
+│   │   ├── k-medoids
+│   │   ├── gaussian-mixture-models
+│   │   ├── expectation-maximization
+│   │   ├── soft-clustering
+│   │   └── initialization-sensitivity
+│   ├── density-and-hierarchical-methods
+│   │   ├── dbscan
+│   │   ├── hdbscan
+│   │   ├── optics
+│   │   ├── agglomerative-clustering
+│   │   ├── linkage-criteria
+│   │   ├── spectral-clustering
+│   │   └── connectivity-constraints
+│   ├── dimensionality-reduction
+│   │   ├── principal-component-analysis
+│   │   ├── incremental-pca
+│   │   ├── independent-component-analysis
+│   │   ├── nonnegative-matrix-factorization
+│   │   ├── random-projection
+│   │   ├── manifold-learning
+│   │   └── reconstruction-and-interpretation
+│   ├── embedding-visualization
+│   │   ├── tsne
+│   │   ├── umap
+│   │   ├── neighborhood-preservation
+│   │   ├── distance-distortion
+│   │   ├── parameter-sensitivity
+│   │   └── visualization-versus-clustering
+│   ├── density-estimation
+│   │   ├── histograms
+│   │   ├── kernel-density-estimation
+│   │   ├── mixture-density-models
+│   │   ├── likelihood-based-scoring
+│   │   ├── high-dimensional-limitations
+│   │   └── bandwidth-selection
+│   ├── anomaly-and-novelty-detection
+│   │   ├── statistical-thresholds
+│   │   ├── robust-covariance
+│   │   ├── isolation-forest
+│   │   ├── local-outlier-factor
+│   │   ├── one-class-svm
+│   │   ├── reconstruction-based-detection
+│   │   └── collective-and-contextual-anomalies
+│   ├── pattern-discovery
+│   │   ├── association-rules
+│   │   ├── frequent-itemsets
+│   │   ├── sequential-patterns
+│   │   ├── topic-discovery
+│   │   ├── biclustering
+│   │   └── latent-factor-discovery
+│   └── evaluation-and-operations
+│       ├── internal-cluster-metrics
+│       ├── external-label-comparison
+│       ├── human-cluster-review
+│       ├── anomaly-threshold-calibration
+│       ├── alert-fatigue
+│       └── drift-and-retraining
+├── feature-engineering-and-selection
+│   ├── tabular-feature-design
+│   │   ├── numerical-transformations
+│   │   ├── categorical-encoding
+│   │   ├── count-and-frequency-encoding
+│   │   ├── target-encoding-with-cross-fitting
+│   │   ├── missingness-indicators
+│   │   ├── interaction-features
+│   │   └── domain-derived-features
+│   ├── numerical-preprocessing
+│   │   ├── standard-scaling
+│   │   ├── robust-scaling
+│   │   ├── min-max-scaling
+│   │   ├── power-transformations
+│   │   ├── quantile-transformations
+│   │   ├── discretization-and-binning
+│   │   └── clipping-and-winsorization
+│   ├── temporal-and-relational-features
+│   │   ├── lag-features
+│   │   ├── rolling-statistics
+│   │   ├── time-since-event
+│   │   ├── calendar-and-seasonality
+│   │   ├── entity-aggregations
+│   │   ├── relational-joins
+│   │   └── point-in-time-correctness
+│   ├── text-and-media-features
+│   │   ├── bag-of-words
+│   │   ├── tf-idf
+│   │   ├── character-ngrams
+│   │   ├── image-descriptors
+│   │   ├── audio-spectral-features
+│   │   ├── pretrained-embeddings
+│   │   └── modality-specific-normalization
+│   ├── feature-selection
+│   │   ├── variance-and-missingness-filters
+│   │   ├── univariate-tests
+│   │   ├── mutual-information
+│   │   ├── recursive-feature-elimination
+│   │   ├── embedded-selection
+│   │   ├── permutation-based-selection
+│   │   └── stability-selection
+│   ├── feature-interactions-and-compression
+│   │   ├── polynomial-interactions
+│   │   ├── crossing-and-hashing
+│   │   ├── low-rank-representation
+│   │   ├── learned-embeddings
+│   │   ├── dimensionality-reduction
+│   │   └── redundant-feature-removal
+│   ├── feature-pipelines
+│   │   ├── fit-transform-separation
+│   │   ├── column-wise-transformations
+│   │   ├── preprocessing-pipelines
+│   │   ├── cross-validation-integration
+│   │   ├── feature-names-and-schema
+│   │   └── custom-transformers
+│   └── feature-governance
+│       ├── training-serving-consistency
+│       ├── feature-lineage
+│       ├── feature-versioning
+│       ├── leakage-audits
+│       ├── stale-feature-detection
+│       └── sensitive-proxy-review
+├── model-evaluation-and-experimentation
+│   ├── evaluation-design
+│   │   ├── baseline-comparison
+│   │   ├── holdout-design
+│   │   ├── entity-and-group-splits
+│   │   ├── stratified-cross-validation
+│   │   ├── temporal-cross-validation
+│   │   ├── nested-cross-validation
+│   │   └── test-set-governance
+│   ├── classification-metrics
+│   │   ├── confusion-matrix
+│   │   ├── accuracy-and-balanced-accuracy
+│   │   ├── precision-recall-and-f1
+│   │   ├── roc-auc
+│   │   ├── pr-auc
+│   │   ├── log-loss
+│   │   ├── top-k-accuracy
+│   │   └── multilabel-averaging
+│   ├── regression-and-specialized-metrics
+│   │   ├── mae-and-mse
+│   │   ├── root-mean-square-error
+│   │   ├── r-squared
+│   │   ├── quantile-loss
+│   │   ├── relative-error-pitfalls
+│   │   ├── survival-metrics
+│   │   ├── clustering-metrics
+│   │   └── ranking-metrics
+│   ├── probability-and-decision-evaluation
+│   │   ├── brier-score
+│   │   ├── calibration-curves
+│   │   ├── expected-calibration-error
+│   │   ├── decision-threshold-tuning
+│   │   ├── cost-sensitive-utility
+│   │   ├── selective-prediction
+│   │   └── coverage-and-risk
+│   ├── experimental-methodology
+│   │   ├── hypotheses-and-success-criteria
+│   │   ├── controlled-comparisons
+│   │   ├── ablation-studies
+│   │   ├── seed-variation
+│   │   ├── confidence-intervals
+│   │   ├── paired-comparisons
+│   │   └── multiple-comparison-control
+│   ├── hyperparameter-optimization
+│   │   ├── search-space-design
+│   │   ├── grid-and-random-search
+│   │   ├── bayesian-optimization
+│   │   ├── successive-halving
+│   │   ├── hyperband-and-pruning
+│   │   ├── multi-fidelity-search
+│   │   └── optimization-budgeting
+│   ├── data-leakage-and-contamination
+│   │   ├── target-leakage
+│   │   ├── preprocessing-leakage
+│   │   ├── temporal-leakage
+│   │   ├── group-overlap
+│   │   ├── duplicate-contamination
+│   │   ├── benchmark-contamination
+│   │   └── post-selection-bias
+│   ├── error-analysis
+│   │   ├── confusion-patterns
+│   │   ├── subgroup-slices
+│   │   ├── hard-example-inspection
+│   │   ├── label-error-discovery
+│   │   ├── near-boundary-cases
+│   │   ├── data-versus-model-failures
+│   │   └── failure-taxonomy
+│   ├── online-experimentation
+│   │   ├── ab-tests
+│   │   ├── randomized-rollouts
+│   │   ├── interleaving-tests
+│   │   ├── guardrail-metrics
+│   │   ├── sequential-testing
+│   │   ├── novelty-and-carryover-effects
+│   │   └── experiment-integrity
+│   └── evaluation-artifacts
+│       ├── evaluation-datasets
+│       ├── reproducible-scorers
+│       ├── experiment-ledgers
+│       ├── model-comparison-reports
+│       ├── regression-test-suites
+│       └── release-acceptance-gates
+├── neural-networks-and-deep-learning
+│   ├── neural-computation
+│   │   ├── perceptrons
+│   │   ├── multilayer-perceptrons
+│   │   ├── affine-transformations
+│   │   ├── activation-functions
+│   │   ├── universal-approximation
+│   │   ├── representation-learning
+│   │   └── differentiable-computation
+│   ├── tensors-and-autodiff
+│   │   ├── tensor-shapes
+│   │   ├── computational-graphs
+│   │   ├── reverse-mode-autodiff
+│   │   ├── forward-mode-autodiff
+│   │   ├── gradient-accumulation
+│   │   ├── leaf-and-nonleaf-tensors
+│   │   ├── gradient-checking
+│   │   └── stop-gradient
+│   ├── layers-and-building-blocks
+│   │   ├── dense-layers
+│   │   ├── embeddings
+│   │   ├── normalization-layers
+│   │   ├── residual-connections
+│   │   ├── skip-connections
+│   │   ├── dropout
+│   │   ├── pooling
+│   │   └── parameter-sharing
+│   ├── convolutional-networks
+│   │   ├── convolution-and-correlation
+│   │   ├── receptive-fields
+│   │   ├── stride-and-padding
+│   │   ├── dilated-convolutions
+│   │   ├── grouped-and-depthwise-convolutions
+│   │   ├── residual-networks
+│   │   └── convolutional-inductive-bias
+│   ├── recurrent-and-sequence-networks
+│   │   ├── recurrent-neural-networks
+│   │   ├── backpropagation-through-time
+│   │   ├── vanishing-and-exploding-gradients
+│   │   ├── lstm
+│   │   ├── gru
+│   │   ├── bidirectional-recurrence
+│   │   └── sequence-to-sequence-models
+│   ├── attention-mechanisms
+│   │   ├── query-key-value
+│   │   ├── scaled-dot-product-attention
+│   │   ├── self-and-cross-attention
+│   │   ├── multihead-attention
+│   │   ├── masking-and-causality
+│   │   ├── attention-complexity
+│   │   └── positional-information
+│   ├── representation-objectives
+│   │   ├── discriminative-objectives
+│   │   ├── reconstruction-objectives
+│   │   ├── metric-learning
+│   │   ├── contrastive-learning
+│   │   ├── masked-prediction
+│   │   ├── self-distillation
+│   │   └── latent-representation-evaluation
+│   ├── self-supervised-learning
+│   │   ├── contrastive-objectives
+│   │   ├── positive-and-negative-pairs
+│   │   ├── negative-sampling
+│   │   ├── masked-autoencoding
+│   │   ├── teacher-student-self-distillation
+│   │   ├── collapse-prevention
+│   │   └── augmentation-invariances
+│   ├── specialized-architectures
+│   │   ├── autoencoders
+│   │   ├── siamese-networks
+│   │   ├── graph-neural-networks
+│   │   ├── mixture-of-experts
+│   │   ├── state-space-models
+│   │   ├── neural-operators
+│   │   └── energy-based-networks
+│   └── implementation-practice
+│       ├── model-subclassing
+│       ├── reusable-layers
+│       ├── forward-pass-contracts
+│       ├── parameter-initialization
+│       ├── loss-composition
+│       ├── training-and-evaluation-modes
+│       └── serialization-and-checkpoints
+├── training-optimization-and-regularization
+│   ├── training-loop-design
+│   │   ├── batches-and-epochs
+│   │   ├── forward-loss-backward-update
+│   │   ├── gradient-zeroing
+│   │   ├── validation-loop
+│   │   ├── checkpoint-selection
+│   │   ├── early-stopping
+│   │   └── learning-curve-inspection
+│   ├── gradient-optimizers
+│   │   ├── stochastic-gradient-descent
+│   │   ├── momentum
+│   │   ├── nesterov-momentum
+│   │   ├── adagrad
+│   │   ├── rmsprop
+│   │   ├── adam
+│   │   ├── adamw
+│   │   └── optimizer-state-memory
+│   ├── learning-rate-strategies
+│   │   ├── fixed-and-decaying-rates
+│   │   ├── warmup
+│   │   ├── cosine-decay
+│   │   ├── one-cycle-policy
+│   │   ├── plateau-schedulers
+│   │   ├── parameter-group-rates
+│   │   └── schedule-and-batch-size-interaction
+│   ├── regularization
+│   │   ├── weight-decay
+│   │   ├── dropout
+│   │   ├── label-smoothing
+│   │   ├── data-augmentation
+│   │   ├── mixup-and-cutmix
+│   │   ├── stochastic-depth
+│   │   └── early-stopping-considerations
+│   ├── initialization-and-normalization
+│   │   ├── xavier-and-he-initialization
+│   │   ├── residual-scaling
+│   │   ├── batch-normalization
+│   │   ├── layer-normalization
+│   │   ├── rms-normalization
+│   │   ├── normalization-and-small-batches
+│   │   └── train-inference-behavior
+│   ├── numerical-stability
+│   │   ├── stable-softmax
+│   │   ├── log-sum-exp
+│   │   ├── loss-scaling
+│   │   ├── gradient-clipping
+│   │   ├── overflow-and-nan-detection
+│   │   ├── low-precision-accumulation
+│   │   └── epsilon-and-rounding-effects
+│   ├── training-efficiency
+│   │   ├── mixed-precision
+│   │   ├── gradient-accumulation
+│   │   ├── activation-checkpointing
+│   │   ├── optimizer-state-sharding
+│   │   ├── fused-operations
+│   │   ├── sequence-packing
+│   │   └── data-loader-optimization
+│   ├── optimization-diagnostics
+│   │   ├── gradient-norms
+│   │   ├── activation-distributions
+│   │   ├── dead-and-saturated-units
+│   │   ├── loss-spikes
+│   │   ├── learning-rate-range-tests
+│   │   ├── overfit-one-batch
+│   │   └── tests-for-data-and-label-misalignment
+│   ├── adaptive-learning-strategies
+│   │   ├── curriculum-learning
+│   │   ├── hard-example-mining
+│   │   ├── self-paced-learning
+│   │   ├── dynamic-sampling
+│   │   ├── multi-task-loss-balancing
+│   │   └── adaptive-computation
+│   ├── online-and-incremental-training
+│   │   ├── streaming-updates
+│   │   ├── online-gradient-descent
+│   │   ├── adaptive-windowing
+│   │   ├── drift-triggered-updates
+│   │   ├── delayed-label-feedback
+│   │   ├── forgetting-and-replay
+│   │   └── prequential-evaluation
+│   ├── automated-model-design
+│   │   ├── automated-pipeline-search
+│   │   ├── neural-architecture-search
+│   │   ├── evolutionary-architecture-search
+│   │   ├── multi-objective-automl
+│   │   ├── meta-learning-for-selection
+│   │   └── search-cost-and-overfitting
+│   └── reproducibility-and-recovery
+│       ├── checkpoint-completeness
+│       ├── random-state-restoration
+│       ├── restart-and-resume
+│       ├── optimizer-and-scheduler-state
+│       ├── deterministic-kernel-limits
+│       └── training-failure-recovery
+├── computer-vision
+│   ├── visual-data-foundations
+│   │   ├── image-formats
+│   │   ├── color-spaces
+│   │   ├── pixel-and-coordinate-conventions
+│   │   ├── geometric-transformations
+│   │   ├── camera-models
+│   │   ├── image-normalization
+│   │   └── annotation-formats
+│   ├── classical-vision
+│   │   ├── image-filtering
+│   │   ├── edges-and-corners
+│   │   ├── morphology
+│   │   ├── keypoints-and-descriptors
+│   │   ├── feature-matching
+│   │   ├── optical-flow
+│   │   └── geometric-estimation
+│   ├── image-classification
+│   │   ├── convolutional-baselines
+│   │   ├── vision-transformers
+│   │   ├── transfer-learning
+│   │   ├── augmentation-policy
+│   │   ├── class-imbalance
+│   │   └── calibration-and-rejection
+│   ├── object-detection
+│   │   ├── bounding-box-representations
+│   │   ├── one-stage-detectors
+│   │   ├── two-stage-detectors
+│   │   ├── transformer-detectors
+│   │   ├── anchor-and-anchor-free-designs
+│   │   ├── nonmaximum-suppression
+│   │   ├── intersection-over-union
+│   │   └── average-precision
+│   ├── segmentation
+│   │   ├── semantic-segmentation
+│   │   ├── instance-segmentation
+│   │   ├── panoptic-segmentation
+│   │   ├── encoder-decoder-models
+│   │   ├── promptable-segmentation
+│   │   ├── boundary-quality
+│   │   └── dice-and-iou-metrics
+│   ├── visual-localization-and-tracking
+│   │   ├── keypoint-detection
+│   │   ├── pose-estimation
+│   │   ├── single-object-tracking
+│   │   ├── multi-object-tracking
+│   │   ├── data-association
+│   │   ├── occlusion-handling
+│   │   └── trajectory-evaluation
+│   ├── video-understanding
+│   │   ├── temporal-sampling
+│   │   ├── action-recognition
+│   │   ├── spatiotemporal-networks
+│   │   ├── video-transformers
+│   │   ├── event-localization
+│   │   ├── streaming-video-inference
+│   │   └── temporal-consistency
+│   ├── document-and-scene-understanding
+│   │   ├── optical-character-recognition
+│   │   ├── layout-analysis
+│   │   ├── table-structure-recognition
+│   │   ├── document-classification
+│   │   ├── scene-text-recognition
+│   │   └── visual-question-answering
+│   ├── three-dimensional-vision
+│   │   ├── stereo-and-depth-estimation
+│   │   ├── point-clouds
+│   │   ├── multi-view-geometry
+│   │   ├── structure-from-motion
+│   │   ├── neural-radiance-fields
+│   │   ├── gaussian-splatting
+│   │   └── three-dimensional-reconstruction
+│   └── vision-deployment
+│       ├── resolution-and-latency-tradeoffs
+│       ├── camera-domain-shift
+│       ├── edge-inference
+│       ├── lighting-and-weather-robustness
+│       ├── privacy-preserving-processing
+│       └── human-review-of-failures
+├── natural-language-processing
+│   ├── linguistic-foundations
+│   │   ├── morphology
+│   │   ├── syntax
+│   │   ├── semantics
+│   │   ├── pragmatics
+│   │   ├── ambiguity-and-context
+│   │   ├── multilingual-variation
+│   │   └── language-and-script-diversity
+│   ├── text-preprocessing
+│   │   ├── unicode-normalization
+│   │   ├── sentence-segmentation
+│   │   ├── word-tokenization
+│   │   ├── subword-tokenization
+│   │   ├── lemmatization-and-stemming
+│   │   ├── normalization-tradeoffs
+│   │   └── low-resource-language-processing
+│   ├── text-representations
+│   │   ├── sparse-vector-models
+│   │   ├── word-embeddings
+│   │   ├── contextual-embeddings
+│   │   ├── sentence-embeddings
+│   │   ├── document-embeddings
+│   │   ├── cross-lingual-representations
+│   │   └── representation-bias
+│   ├── classical-nlp-models
+│   │   ├── ngram-language-models
+│   │   ├── naive-bayes-text-classification
+│   │   ├── linear-text-classifiers
+│   │   ├── hidden-markov-taggers
+│   │   ├── conditional-random-fields
+│   │   └── topic-modeling
+│   ├── language-understanding
+│   │   ├── text-classification
+│   │   ├── sentiment-analysis
+│   │   ├── named-entity-recognition
+│   │   ├── part-of-speech-tagging
+│   │   ├── syntactic-parsing
+│   │   ├── relation-extraction
+│   │   └── natural-language-inference
+│   ├── information-extraction
+│   │   ├── entity-linking
+│   │   ├── event-extraction
+│   │   ├── keyphrase-extraction
+│   │   ├── schema-constrained-extraction
+│   │   ├── document-level-extraction
+│   │   └── extraction-validation
+│   ├── language-generation-tasks
+│   │   ├── summarization
+│   │   ├── machine-translation
+│   │   ├── paraphrasing
+│   │   ├── question-generation
+│   │   ├── conversational-response-generation
+│   │   ├── controlled-text-generation
+│   │   └── factuality-checking
+│   ├── question-answering
+│   │   ├── extractive-question-answering
+│   │   ├── open-domain-question-answering
+│   │   ├── reading-comprehension
+│   │   ├── multi-hop-question-answering
+│   │   ├── answerability-detection
+│   │   └── evidence-grounding
+│   ├── multilingual-and-vietnamese-nlp
+│   │   ├── word-segmentation-and-tones
+│   │   ├── unicode-and-diacritics
+│   │   ├── code-switching
+│   │   ├── language-identification
+│   │   ├── translation-quality
+│   │   ├── low-resource-adaptation
+│   │   └── regional-and-register-variation
+│   └── nlp-evaluation
+│       ├── token-and-span-metrics
+│       ├── bleu-and-chrf
+│       ├── rouge
+│       ├── semantic-similarity-metrics
+│       ├── human-language-review
+│       ├── factual-consistency
+│       └── metric-limitations
+├── speech-audio-and-music
+│   ├── audio-foundations
+│   │   ├── sampling-and-aliasing
+│   │   ├── quantization
+│   │   ├── waveform-and-spectrogram
+│   │   ├── short-time-fourier-transform
+│   │   ├── mel-spectrograms
+│   │   ├── cepstral-features
+│   │   └── channel-and-loudness-normalization
+│   ├── audio-preprocessing
+│   │   ├── resampling
+│   │   ├── framing-and-windowing
+│   │   ├── voice-activity-detection
+│   │   ├── denoising
+│   │   ├── source-segmentation
+│   │   ├── audio-augmentation
+│   │   └── timestamp-alignment
+│   ├── speech-recognition
+│   │   ├── acoustic-and-language-models
+│   │   ├── ctc
+│   │   ├── encoder-decoder-asr
+│   │   ├── transducer-models
+│   │   ├── streaming-recognition
+│   │   ├── vocabulary-adaptation
+│   │   └── word-and-character-error-rates
+│   ├── speech-synthesis
+│   │   ├── text-normalization
+│   │   ├── pronunciation-modeling
+│   │   ├── acoustic-models
+│   │   ├── neural-vocoders
+│   │   ├── expressive-speech
+│   │   ├── multilingual-synthesis
+│   │   └── consent-based-voice-personalization
+│   ├── speaker-and-conversation-analysis
+│   │   ├── speaker-diarization
+│   │   ├── speaker-turn-detection
+│   │   ├── overlapping-speech
+│   │   ├── speaker-embeddings
+│   │   ├── speaker-verification-limitations
+│   │   └── consent-and-biometric-boundaries
+│   ├── audio-understanding
+│   │   ├── sound-event-detection
+│   │   ├── acoustic-scene-classification
+│   │   ├── speech-intent-recognition
+│   │   ├── audio-captioning
+│   │   ├── music-tagging
+│   │   └── audio-retrieval
+│   ├── audio-generation-and-separation
+│   │   ├── music-generation
+│   │   ├── sound-effect-generation
+│   │   ├── source-separation
+│   │   ├── speech-enhancement
+│   │   ├── audio-codecs
+│   │   └── watermarking-and-provenance
+│   ├── realtime-voice-systems
+│   │   ├── latency-budgeting
+│   │   ├── incremental-transcription
+│   │   ├── endpointing
+│   │   ├── turn-taking
+│   │   ├── interruption-handling
+│   │   ├── echo-and-noise-control
+│   │   └── multimodal-session-state
+│   └── audio-evaluation-and-safety
+│       ├── intelligibility
+│       ├── naturalness
+│       ├── perceptual-quality
+│       ├── accent-and-language-slices
+│       ├── noisy-environment-tests
+│       ├── spoofing-risk-awareness
+│       └── privacy-and-retention
+├── time-series-and-sequential-data
+│   ├── temporal-data-foundations
+│   │   ├── trend-and-seasonality
+│   │   ├── autocorrelation
+│   │   ├── stationarity
+│   │   ├── sampling-frequency
+│   │   ├── irregular-observations
+│   │   ├── missing-and-delayed-measurements
+│   │   └── temporal-aggregation
+│   ├── forecasting-problem-design
+│   │   ├── forecast-horizon
+│   │   ├── context-window
+│   │   ├── univariate-and-multivariate-series
+│   │   ├── covariates-and-known-future-features
+│   │   ├── global-and-local-models
+│   │   ├── hierarchical-series
+│   │   └── intermittent-demand
+│   ├── statistical-forecasting
+│   │   ├── naive-and-seasonal-baselines
+│   │   ├── moving-averages
+│   │   ├── exponential-smoothing
+│   │   ├── arima-and-sarima
+│   │   ├── vector-autoregression
+│   │   ├── state-space-forecasting
+│   │   └── decomposition
+│   ├── machine-learning-forecasting
+│   │   ├── lagged-feature-models
+│   │   ├── gradient-boosting-forecasters
+│   │   ├── recurrent-forecasters
+│   │   ├── temporal-convolutional-networks
+│   │   ├── attention-based-forecasters
+│   │   └── time-series-foundation-models
+│   ├── probabilistic-forecasting
+│   │   ├── quantile-forecasts
+│   │   ├── predictive-distributions
+│   │   ├── prediction-intervals
+│   │   ├── calibration-and-sharpness
+│   │   ├── scenario-generation
+│   │   └── hierarchical-reconciliation
+│   ├── temporal-anomaly-and-event-detection
+│   │   ├── point-anomalies
+│   │   ├── contextual-anomalies
+│   │   ├── collective-anomalies
+│   │   ├── change-point-detection
+│   │   ├── event-classification
+│   │   └── early-warning-evaluation
+│   ├── sequence-representation
+│   │   ├── temporal-embeddings
+│   │   ├── sequence-clustering
+│   │   ├── dynamic-time-warping
+│   │   ├── shapelets
+│   │   ├── motif-discovery
+│   │   └── representation-transfer
+│   ├── temporal-evaluation
+│   │   ├── rolling-origin-validation
+│   │   ├── blocked-splits
+│   │   ├── leakage-safe-windowing
+│   │   ├── horizon-wise-metrics
+│   │   ├── scale-dependent-metrics
+│   │   ├── scale-free-metrics
+│   │   └── backtesting-and-retraining
+│   └── production-temporal-systems
+│       ├── late-arriving-data
+│       ├── backfills
+│       ├── forecast-versioning
+│       ├── drift-and-regime-changes
+│       ├── monitoring-by-horizon
+│       └── human-override-and-audit
+├── graph-learning-and-knowledge-graphs
+│   ├── graph-foundations
+│   │   ├── nodes-edges-and-attributes
+│   │   ├── directed-and-undirected-graphs
+│   │   ├── weighted-and-multigraphs
+│   │   ├── graph-representations
+│   │   ├── neighborhoods-and-connectivity
+│   │   └── graph-laplacians
+│   ├── classical-graph-analysis
+│   │   ├── centrality
+│   │   ├── community-detection
+│   │   ├── shortest-paths
+│   │   ├── random-walks
+│   │   ├── link-prediction-heuristics
+│   │   └── graph-kernels
+│   ├── graph-representations
+│   │   ├── node-embeddings
+│   │   ├── edge-embeddings
+│   │   ├── graph-embeddings
+│   │   ├── random-walk-embeddings
+│   │   ├── spectral-embeddings
+│   │   └── structural-features
+│   ├── graph-neural-networks
+│   │   ├── message-passing
+│   │   ├── graph-convolutions
+│   │   ├── graph-attention
+│   │   ├── neighborhood-sampling
+│   │   ├── pooling-and-readout
+│   │   ├── graph-transformers
+│   │   └── equivariant-graph-models
+│   ├── graph-learning-tasks
+│   │   ├── node-classification
+│   │   ├── link-prediction
+│   │   ├── graph-classification
+│   │   ├── graph-regression
+│   │   ├── graph-generation
+│   │   └── graph-anomaly-detection
+│   ├── heterogeneous-and-temporal-graphs
+│   │   ├── node-and-edge-types
+│   │   ├── relational-message-passing
+│   │   ├── temporal-edges
+│   │   ├── dynamic-graph-embeddings
+│   │   ├── event-based-graph-models
+│   │   └── time-aware-validation
+│   ├── knowledge-graph-engineering
+│   │   ├── ontology-design
+│   │   ├── entity-resolution
+│   │   ├── relation-extraction
+│   │   ├── triple-storage
+│   │   ├── rdf-and-property-graphs
+│   │   ├── graph-querying
+│   │   └── provenance-and-confidence
+│   ├── knowledge-graph-reasoning
+│   │   ├── knowledge-graph-embeddings
+│   │   ├── relation-prediction
+│   │   ├── rule-based-reasoning
+│   │   ├── logical-constraints
+│   │   ├── graph-completion
+│   │   └── consistency-and-fact-verification
+│   └── graph-evaluation-and-scale
+│       ├── transductive-and-inductive-splits
+│       ├── negative-sampling
+│       ├── leakage-through-edges
+│       ├── oversmoothing-and-oversquashing
+│       ├── graph-partitioning
+│       └── distributed-graph-training
+├── recommendation-and-ranking
+│   ├── recommendation-foundations
+│   │   ├── users-items-and-interactions
+│   │   ├── explicit-and-implicit-feedback
+│   │   ├── candidate-generation
+│   │   ├── scoring-and-ranking
+│   │   ├── business-objectives
+│   │   ├── recommendation-surfaces
+│   │   └── feedback-loops
+│   ├── classical-recommenders
+│   │   ├── popularity-baselines
+│   │   ├── content-based-filtering
+│   │   ├── user-and-item-neighborhoods
+│   │   ├── matrix-factorization
+│   │   ├── implicit-factor-models
+│   │   ├── factorization-machines
+│   │   └── hybrid-recommenders
+│   ├── neural-recommendation
+│   │   ├── neural-collaborative-filtering
+│   │   ├── two-tower-models
+│   │   ├── sequential-recommenders
+│   │   ├── session-based-models
+│   │   ├── graph-based-recommendation
+│   │   └── multi-task-ranking
+│   ├── learning-to-rank
+│   │   ├── pointwise-objectives
+│   │   ├── pairwise-objectives
+│   │   ├── listwise-objectives
+│   │   ├── boosted-tree-ranking
+│   │   ├── neural-rerankers
+│   │   ├── differentiable-ranking
+│   │   └── position-bias
+│   ├── retrieval-and-serving
+│   │   ├── approximate-nearest-neighbors
+│   │   ├── candidate-freshness
+│   │   ├── feature-lookup
+│   │   ├── multi-stage-ranking
+│   │   ├── realtime-personalization
+│   │   └── caching-and-fallbacks
+│   ├── exploration-and-cold-start
+│   │   ├── new-user-cold-start
+│   │   ├── new-item-cold-start
+│   │   ├── contextual-bandits
+│   │   ├── exploration-budgets
+│   │   ├── preference-elicitation
+│   │   └── content-and-knowledge-transfer
+│   ├── diversity-and-constraints
+│   │   ├── diversity
+│   │   ├── novelty
+│   │   ├── serendipity
+│   │   ├── coverage
+│   │   ├── popularity-bias
+│   │   ├── exposure-fairness
+│   │   └── business-rule-reconciliation
+│   ├── recommender-evaluation
+│   │   ├── precision-and-recall-at-k
+│   │   ├── ndcg
+│   │   ├── mean-reciprocal-rank
+│   │   ├── catalog-coverage
+│   │   ├── temporal-holdouts
+│   │   ├── counterfactual-evaluation
+│   │   ├── online-tests
+│   │   └── long-term-effects
+│   └── responsible-personalization
+│       ├── consent-and-controls
+│       ├── sensitive-inference-limits
+│       ├── harmful-feedback-loops
+│       ├── user-agency
+│       ├── transparent-recommendations
+│       └── privacy-preserving-personalization
+├── reinforcement-learning-and-decision-making
+│   ├── sequential-decision-foundations
+│   │   ├── states-actions-and-rewards
+│   │   ├── trajectories-and-returns
+│   │   ├── policies
+│   │   ├── value-functions
+│   │   ├── markov-decision-processes
+│   │   ├── partially-observable-decision-processes
+│   │   └── discounting-and-horizons
+│   ├── dynamic-programming
+│   │   ├── bellman-equations
+│   │   ├── policy-evaluation
+│   │   ├── policy-iteration
+│   │   ├── value-iteration
+│   │   ├── generalized-policy-iteration
+│   │   └── convergence-assumptions
+│   ├── tabular-learning
+│   │   ├── monte-carlo-control
+│   │   ├── temporal-difference-learning
+│   │   ├── sarsa
+│   │   ├── q-learning
+│   │   ├── eligibility-traces
+│   │   └── off-policy-and-on-policy-learning
+│   ├── exploration
+│   │   ├── epsilon-greedy
+│   │   ├── upper-confidence-bounds
+│   │   ├── thompson-sampling
+│   │   ├── entropy-based-exploration
+│   │   ├── intrinsic-motivation
+│   │   └── exploration-safety
+│   ├── deep-value-learning
+│   │   ├── deep-q-networks
+│   │   ├── replay-buffers
+│   │   ├── target-networks
+│   │   ├── double-dqn
+│   │   ├── dueling-networks
+│   │   ├── prioritized-replay
+│   │   └── distributional-rl
+│   ├── policy-gradient-and-actor-critic
+│   │   ├── reinforce
+│   │   ├── advantage-estimation
+│   │   ├── actor-critic
+│   │   ├── trust-region-methods
+│   │   ├── proximal-policy-optimization
+│   │   ├── soft-actor-critic
+│   │   └── deterministic-policy-gradients
+│   ├── model-based-and-offline-rl
+│   │   ├── learned-dynamics
+│   │   ├── planning-with-world-models
+│   │   ├── model-predictive-control
+│   │   ├── offline-datasets
+│   │   ├── behavior-regularization
+│   │   ├── conservative-value-estimation
+│   │   └── off-policy-evaluation
+│   ├── imitation-and-preference-learning
+│   │   ├── behavior-cloning
+│   │   ├── dataset-aggregation
+│   │   ├── inverse-reinforcement-learning
+│   │   ├── preference-based-rewards
+│   │   ├── reward-modeling
+│   │   └── demonstration-quality
+│   ├── advanced-rl
+│   │   ├── hierarchical-rl
+│   │   ├── goal-conditioned-policies
+│   │   ├── meta-reinforcement-learning
+│   │   ├── multi-agent-rl
+│   │   ├── cooperative-and-competitive-settings
+│   │   └── safe-and-constrained-rl
+│   └── rl-experimentation
+│       ├── environment-interfaces
+│       ├── reward-design
+│       ├── reward-hacking-diagnostics
+│       ├── termination-and-truncation
+│       ├── multiple-seed-evaluation
+│       ├── sample-efficiency
+│       └── simulation-to-reality-limits
+├── robotics-and-embodied-ai
+│   ├── embodied-system-foundations
+│   │   ├── perception-action-loops
+│   │   ├── robot-morphology
+│   │   ├── coordinate-frames
+│   │   ├── rigid-body-transforms
+│   │   ├── kinematics
+│   │   ├── dynamics
+│   │   └── sensing-and-actuation
+│   ├── state-estimation
+│   │   ├── sensor-calibration
+│   │   ├── sensor-fusion
+│   │   ├── localization
+│   │   ├── mapping
+│   │   ├── simultaneous-localization-and-mapping
+│   │   └── uncertainty-propagation
+│   ├── motion-and-task-planning
+│   │   ├── configuration-space
+│   │   ├── collision-checking
+│   │   ├── sampling-based-planning
+│   │   ├── trajectory-optimization
+│   │   ├── task-and-motion-planning
+│   │   └── dynamic-obstacle-handling
+│   ├── control
+│   │   ├── feedback-control
+│   │   ├── pid-control
+│   │   ├── optimal-control
+│   │   ├── model-predictive-control
+│   │   ├── adaptive-control
+│   │   └── stability-and-constraints
+│   ├── robotic-perception
+│   │   ├── depth-and-point-cloud-processing
+│   │   ├── object-and-scene-understanding
+│   │   ├── tracking-and-localization
+│   │   ├── affordance-detection
+│   │   ├── tactile-perception
+│   │   └── active-perception
+│   ├── learning-for-robotics
+│   │   ├── imitation-learning
+│   │   ├── robotic-reinforcement-learning
+│   │   ├── domain-randomization
+│   │   ├── sim-to-real-transfer
+│   │   ├── residual-learning
+│   │   └── policy-distillation
+│   ├── embodied-foundation-models
+│   │   ├── vision-language-action-models
+│   │   ├── language-conditioned-policies
+│   │   ├── learned-world-models
+│   │   ├── action-representations
+│   │   ├── embodiment-transfer
+│   │   └── action-grounding
+│   ├── simulation-and-data
+│   │   ├── simulation-environments
+│   │   ├── demonstration-collection
+│   │   ├── teleoperation
+│   │   ├── synthetic-sensor-data
+│   │   ├── episode-replay
+│   │   └── simulation-validation
+│   └── safety-and-deployment
+│       ├── physical-safety-boundaries
+│       ├── emergency-stop
+│       ├── human-override
+│       ├── operational-design-domain
+│       ├── hazard-analysis
+│       ├── staged-real-world-testing
+│       └── incident-logging
+├── generative-modeling
+│   ├── generative-foundations
+│   │   ├── data-distributions
+│   │   ├── latent-variables
+│   │   ├── explicit-and-implicit-density
+│   │   ├── conditional-and-unconditional-generation
+│   │   ├── likelihood-and-sample-quality
+│   │   └── generation-and-reconstruction
+│   ├── autoregressive-models
+│   │   ├── chain-rule-factorization
+│   │   ├── causal-ordering
+│   │   ├── teacher-forcing
+│   │   ├── exposure-bias
+│   │   ├── autoregressive-decoding
+│   │   └── text-image-and-audio-tokenization
+│   ├── autoencoders-and-variational-models
+│   │   ├── latent-bottlenecks
+│   │   ├── denoising-autoencoders
+│   │   ├── variational-autoencoders
+│   │   ├── evidence-lower-bound
+│   │   ├── reparameterization-trick
+│   │   ├── posterior-collapse
+│   │   └── vector-quantized-autoencoders
+│   ├── adversarial-generative-models
+│   │   ├── generator-and-discriminator
+│   │   ├── adversarial-objectives
+│   │   ├── training-instability
+│   │   ├── mode-collapse
+│   │   ├── wasserstein-objectives
+│   │   ├── conditional-gans
+│   │   └── image-translation
+│   ├── diffusion-and-score-models
+│   │   ├── forward-noising
+│   │   ├── reverse-denoising
+│   │   ├── noise-schedules
+│   │   ├── denoising-score-matching
+│   │   ├── diffusion-objectives
+│   │   ├── latent-diffusion
+│   │   ├── classifier-free-guidance
+│   │   └── sampler-design
+│   ├── flow-based-and-flow-matching-models
+│   │   ├── invertible-transformations
+│   │   ├── change-of-variables
+│   │   ├── normalizing-flows
+│   │   ├── continuous-normalizing-flows
+│   │   ├── flow-matching
+│   │   ├── rectified-flows
+│   │   └── ode-based-sampling
+│   ├── other-generative-approaches
+│   │   ├── energy-based-models
+│   │   ├── consistency-models
+│   │   ├── masked-generative-models
+│   │   ├── discrete-diffusion
+│   │   ├── hybrid-generative-architectures
+│   │   └── compositional-generation
+│   ├── conditional-and-controlled-generation
+│   │   ├── conditioning-representations
+│   │   ├── guidance-strength
+│   │   ├── reference-conditioning
+│   │   ├── inpainting-and-outpainting
+│   │   ├── structural-controls
+│   │   └── personalization-and-adapters
+│   ├── generative-evaluation
+│   │   ├── distributional-metrics
+│   │   ├── fidelity-and-diversity
+│   │   ├── conditional-alignment
+│   │   ├── human-preference-evaluation
+│   │   ├── memorization-checks
+│   │   ├── training-data-overlap
+│   │   └── evaluation-dataset-bias
+│   └── responsible-generation
+│       ├── dataset-rights
+│       ├── consent-and-likeness
+│       ├── misuse-risk-assessment
+│       ├── provenance-and-watermarking
+│       ├── synthetic-media-disclosure
+│       └── moderation-and-review
+├── transformers-and-foundation-models
+│   ├── transformer-architecture
+│   │   ├── token-and-position-embeddings
+│   │   ├── attention-blocks
+│   │   ├── feedforward-blocks
+│   │   ├── residual-stream
+│   │   ├── normalization-strategies
+│   │   ├── encoder-decoder-structures
+│   │   └── autoregressive-masking
+│   ├── attention-variants
+│   │   ├── multihead-attention
+│   │   ├── multiquery-attention
+│   │   ├── grouped-query-attention
+│   │   ├── sliding-window-attention
+│   │   ├── sparse-attention
+│   │   ├── linear-attention
+│   │   └── efficient-attention-kernels
+│   ├── positional-representations
+│   │   ├── absolute-positions
+│   │   ├── relative-positions
+│   │   ├── rotary-position-embeddings
+│   │   ├── positional-biases
+│   │   ├── context-extension
+│   │   └── positional-generalization
+│   ├── architecture-families
+│   │   ├── encoder-only
+│   │   ├── decoder-only
+│   │   ├── encoder-decoder
+│   │   ├── vision-transformers
+│   │   ├── diffusion-transformers
+│   │   └── multimodal-transformers
+│   ├── sequence-architecture-alternatives
+│   │   ├── recurrent-sequence-models
+│   │   ├── structured-state-space-models
+│   │   ├── selective-state-space-models
+│   │   ├── convolutional-sequence-models
+│   │   ├── hybrid-attention-and-recurrence
+│   │   └── architecture-tradeoff-evaluation
+│   ├── mixture-of-experts
+│   │   ├── sparse-routing
+│   │   ├── expert-specialization
+│   │   ├── top-k-dispatch
+│   │   ├── load-balancing
+│   │   ├── expert-capacity
+│   │   ├── shared-experts
+│   │   └── expert-parallelism
+│   ├── pretraining-design
+│   │   ├── training-objectives
+│   │   ├── dataset-mixtures
+│   │   ├── token-budget
+│   │   ├── compute-budget
+│   │   ├── scaling-laws
+│   │   ├── data-quality-versus-quantity
+│   │   └── contamination-controls
+│   ├── representation-and-transfer
+│   │   ├── contextual-representations
+│   │   ├── probing
+│   │   ├── transferability
+│   │   ├── in-context-learning
+│   │   ├── task-generalization
+│   │   ├── catastrophic-forgetting
+│   │   └── representation-collapse
+│   ├── foundation-model-selection
+│   │   ├── capability-fit
+│   │   ├── license-and-use-terms
+│   │   ├── open-weights-and-open-source-distinctions
+│   │   ├── context-and-modality-support
+│   │   ├── compute-requirements
+│   │   ├── adaptation-options
+│   │   └── release-and-support-lifecycle
+│   └── model-artifacts
+│       ├── architecture-config
+│       ├── tokenizers-and-processors
+│       ├── checkpoint-shards
+│       ├── weight-formats
+│       ├── model-cards
+│       ├── reproducible-revisions
+│       └── artifact-integrity
+├── large-language-models
+│   ├── language-model-foundations
+│   │   ├── next-token-prediction
+│   │   ├── token-probabilities
+│   │   ├── context-windows
+│   │   ├── pretraining-and-post-training
+│   │   ├── base-and-instruction-models
+│   │   ├── language-modeling-versus-truthful-knowledge
+│   │   └── capability-boundaries
+│   ├── tokenization-and-inputs
+│   │   ├── byte-level-and-subword-tokenization
+│   │   ├── special-tokens
+│   │   ├── chat-templates
+│   │   ├── message-serialization
+│   │   ├── multilingual-token-efficiency
+│   │   ├── padding-and-truncation
+│   │   └── token-count-estimation
+│   ├── inference-and-decoding
+│   │   ├── prefill-and-decoding
+│   │   ├── greedy-decoding
+│   │   ├── sampling-temperature
+│   │   ├── top-k-and-top-p
+│   │   ├── beam-search
+│   │   ├── stop-conditions
+│   │   ├── repetition-controls
+│   │   └── deterministic-output-limits
+│   ├── conversational-behavior
+│   │   ├── role-and-instruction-structure
+│   │   ├── conversation-state
+│   │   ├── multi-turn-consistency
+│   │   ├── user-intent-resolution
+│   │   ├── clarification-and-abstention
+│   │   ├── style-and-format-control
+│   │   └── refusal-handling
+│   ├── reasoning-and-verification
+│   │   ├── problem-decomposition
+│   │   ├── intermediate-checks
+│   │   ├── verifier-guided-search
+│   │   ├── self-consistency
+│   │   ├── inference-time-compute
+│   │   ├── process-and-outcome-evaluation
+│   │   └── reasoning-trace-faithfulness-limits
+│   ├── task-capabilities
+│   │   ├── classification-and-extraction
+│   │   ├── summarization-and-transformation
+│   │   ├── translation
+│   │   ├── question-answering
+│   │   ├── coding-assistance
+│   │   ├── mathematical-problem-solving
+│   │   └── planning-and-tool-selection
+│   ├── reliability-limitations
+│   │   ├── hallucination-and-confabulation
+│   │   ├── knowledge-cutoff-and-freshness
+│   │   ├── context-position-effects
+│   │   ├── arithmetic-and-symbolic-errors
+│   │   ├── prompt-sensitivity
+│   │   ├── sycophancy
+│   │   └── uncertainty-miscalibration
+│   ├── long-context-use
+│   │   ├── document-positioning
+│   │   ├── context-utilization
+│   │   ├── retrieval-versus-long-context
+│   │   ├── structured-memory
+│   │   ├── compression-losses
+│   │   ├── long-context-evaluation
+│   │   └── context-budget-management
+│   ├── llm-evaluation
+│   │   ├── task-specific-datasets
+│   │   ├── factuality-and-grounding
+│   │   ├── instruction-following
+│   │   ├── multilingual-evaluation
+│   │   ├── code-execution-tests
+│   │   ├── reasoning-evaluation
+│   │   ├── contamination-and-memorization
+│   │   └── cost-latency-quality-frontiers
+│   └── model-comparison
+│       ├── controlled-prompt-settings
+│       ├── representative-workloads
+│       ├── repeated-runs
+│       ├── model-version-pinning
+│       ├── provider-change-monitoring
+│       └── operational-and-license-constraints
+├── prompting-and-context-engineering
+│   ├── prompt-design-foundations
+│   │   ├── task-definition
+│   │   ├── audience-and-purpose
+│   │   ├── relevant-context
+│   │   ├── output-contract
+│   │   ├── examples-and-counterexamples
+│   │   ├── ambiguity-removal
+│   │   └── concise-and-complete-instructions
+│   ├── instruction-and-data-boundaries
+│   │   ├── trusted-instructions
+│   │   ├── untrusted-source-content
+│   │   ├── delimiting-and-serialization
+│   │   ├── instruction-precedence
+│   │   ├── conflicting-requirements
+│   │   └── injection-resistant-application-boundaries
+│   ├── task-patterns
+│   │   ├── classification-prompts
+│   │   ├── extraction-prompts
+│   │   ├── transformation-prompts
+│   │   ├── summarization-prompts
+│   │   ├── comparison-prompts
+│   │   ├── grounded-answer-prompts
+│   │   └── structured-writing-prompts
+│   ├── examples-and-demonstrations
+│   │   ├── zero-shot-design
+│   │   ├── few-shot-design
+│   │   ├── example-selection
+│   │   ├── label-balance
+│   │   ├── example-order-effects
+│   │   ├── demonstration-leakage
+│   │   └── multilingual-examples
+│   ├── decomposition-and-control
+│   │   ├── staged-workflows
+│   │   ├── problem-decomposition
+│   │   ├── plan-and-execute-patterns
+│   │   ├── verification-and-critique
+│   │   ├── branching-and-selection
+│   │   └── human-review-checkpoints
+│   ├── structured-output
+│   │   ├── json-schema
+│   │   ├── constrained-decoding
+│   │   ├── enum-and-type-constraints
+│   │   ├── parser-and-validator-design
+│   │   ├── refusals-and-incomplete-output
+│   │   ├── semantic-validation
+│   │   └── repair-and-retry-limits
+│   ├── context-assembly
+│   │   ├── relevant-context-selection
+│   │   ├── context-ordering
+│   │   ├── source-identifiers
+│   │   ├── metadata-and-timestamps
+│   │   ├── conversation-summarization
+│   │   ├── context-deduplication
+│   │   └── token-budget-allocation
+│   ├── context-lifecycle
+│   │   ├── short-term-state
+│   │   ├── persistent-memory-design
+│   │   ├── relevance-and-expiry
+│   │   ├── consent-and-editability
+│   │   ├── context-compaction
+│   │   ├── sensitive-data-exclusion
+│   │   └── memory-injection-prevention
+│   ├── prompt-evaluation-and-versioning
+│   │   ├── representative-test-cases
+│   │   ├── adversarial-and-edge-cases
+│   │   ├── prompt-version-control
+│   │   ├── parameter-sweeps
+│   │   ├── automatic-prompt-optimization
+│   │   ├── regression-testing
+│   │   └── deployment-and-rollback
+│   └── limitations-and-anti-patterns
+│       ├── prompts-versus-security-controls
+│       ├── unsupported-certainty
+│       ├── excessive-instruction-conflicts
+│       ├── unnecessary-reasoning-demands
+│       ├── benchmark-overfitting
+│       └── hidden-assumption-audits
+├── retrieval-and-rag
+│   ├── information-retrieval-foundations
+│   │   ├── query-and-document-representations
+│   │   ├── relevance-and-judgments
+│   │   ├── inverted-indexes
+│   │   ├── term-weighting
+│   │   ├── bm25
+│   │   ├── query-document-matching
+│   │   └── retrieval-versus-generation
+│   ├── document-ingestion
+│   │   ├── source-connectors
+│   │   ├── parsing-and-extraction
+│   │   ├── layout-aware-extraction
+│   │   ├── table-and-image-handling
+│   │   ├── metadata-capture
+│   │   ├── deduplication
+│   │   ├── incremental-updates
+│   │   └── deletion-propagation
+│   ├── chunking-and-document-structure
+│   │   ├── fixed-and-overlapping-windows
+│   │   ├── sentence-and-paragraph-boundaries
+│   │   ├── semantic-segmentation
+│   │   ├── hierarchical-chunks
+│   │   ├── parent-child-retrieval
+│   │   ├── table-preservation
+│   │   └── chunk-size-experiments
+│   ├── embeddings
+│   │   ├── embedding-model-selection
+│   │   ├── query-and-document-encoders
+│   │   ├── normalization
+│   │   ├── distance-functions
+│   │   ├── domain-adaptation
+│   │   ├── multilingual-embeddings
+│   │   ├── embedding-versioning
+│   │   └── drift-and-reindexing
+│   ├── vector-indexes
+│   │   ├── exact-search
+│   │   ├── approximate-nearest-neighbors
+│   │   ├── hnsw
+│   │   ├── inverted-file-indexes
+│   │   ├── product-quantization
+│   │   ├── recall-latency-tradeoffs
+│   │   ├── metadata-filtering
+│   │   └── index-maintenance
+│   ├── retrieval-strategies
+│   │   ├── dense-retrieval
+│   │   ├── sparse-retrieval
+│   │   ├── hybrid-retrieval
+│   │   ├── query-rewriting
+│   │   ├── multi-query-retrieval
+│   │   ├── query-decomposition
+│   │   └── temporal-and-metadata-filtering
+│   ├── reranking-and-context-selection
+│   │   ├── cross-encoder-reranking
+│   │   ├── late-interaction-retrieval
+│   │   ├── rank-fusion
+│   │   ├── diversity-aware-selection
+│   │   ├── relevance-thresholding
+│   │   ├── context-compression
+│   │   └── evidence-deduplication
+│   ├── rag-generation
+│   │   ├── grounding-in-retrieved-evidence
+│   │   ├── citation-and-source-mapping
+│   │   ├── answerability-detection
+│   │   ├── conflicting-sources
+│   │   ├── freshness-and-version-awareness
+│   │   ├── answer-format-contracts
+│   │   └── abstention-and-escalation
+│   ├── advanced-rag
+│   │   ├── multi-hop-retrieval
+│   │   ├── graph-augmented-retrieval
+│   │   ├── multimodal-retrieval
+│   │   ├── structured-data-and-sql-retrieval
+│   │   ├── agent-directed-retrieval
+│   │   ├── adaptive-retrieval
+│   │   └── document-level-synthesis
+│   ├── rag-evaluation
+│   │   ├── retrieval-recall-and-precision
+│   │   ├── ranking-quality
+│   │   ├── context-relevance
+│   │   ├── groundedness
+│   │   ├── answer-correctness
+│   │   ├── citation-accuracy
+│   │   ├── unanswerable-questions
+│   │   └── end-to-end-latency
+│   └── secure-and-operational-rag
+│       ├── permission-aware-retrieval
+│       ├── tenant-isolation
+│       ├── document-injection-defense
+│       ├── sensitive-content-filtering
+│       ├── ingestion-observability
+│       ├── index-and-source-consistency
+│       └── permission-revocation
+├── agents-and-tool-use
+│   ├── agent-foundations
+│   │   ├── workflows-and-agents
+│   │   ├── goal-state-and-actions
+│   │   ├── observation-action-loop
+│   │   ├── environment-and-tool-boundaries
+│   │   ├── autonomy-levels
+│   │   ├── single-agent-and-multi-agent-tradeoffs
+│   │   └── when-not-to-use-agents
+│   ├── workflow-patterns
+│   │   ├── prompt-chaining
+│   │   ├── routing
+│   │   ├── parallel-workflows
+│   │   ├── orchestrator-worker
+│   │   ├── evaluator-optimizer
+│   │   ├── deterministic-state-machines
+│   │   └── bounded-agent-loops
+│   ├── planning-and-execution
+│   │   ├── task-decomposition
+│   │   ├── plan-revision
+│   │   ├── action-selection
+│   │   ├── state-tracking
+│   │   ├── progress-verification
+│   │   ├── completion-criteria
+│   │   └── stopping-and-budget-policies
+│   ├── tool-contracts
+│   │   ├── tool-descriptions
+│   │   ├── input-schemas
+│   │   ├── output-schemas
+│   │   ├── preconditions-and-postconditions
+│   │   ├── error-taxonomy
+│   │   ├── versioned-interfaces
+│   │   └── tool-selection-evaluation
+│   ├── tool-execution
+│   │   ├── argument-validation
+│   │   ├── permission-checks
+│   │   ├── sandboxed-execution
+│   │   ├── timeouts-and-cancellation
+│   │   ├── retry-and-backoff
+│   │   ├── idempotency
+│   │   ├── side-effect-confirmation
+│   │   └── output-validation
+│   ├── memory-and-state
+│   │   ├── working-memory
+│   │   ├── episodic-memory
+│   │   ├── semantic-memory
+│   │   ├── user-controlled-memory
+│   │   ├── durable-checkpoints
+│   │   ├── memory-provenance
+│   │   ├── memory-expiration
+│   │   └── cross-session-isolation
+│   ├── model-context-protocol
+│   │   ├── hosts-clients-and-servers
+│   │   ├── tools-resources-and-prompts
+│   │   ├── capability-discovery
+│   │   ├── protocol-version-compatibility
+│   │   ├── stdio-and-streamable-http
+│   │   ├── authorization-and-consent
+│   │   └── server-trust-and-inspection
+│   ├── multi-agent-systems
+│   │   ├── role-specialization
+│   │   ├── delegation-and-handoffs
+│   │   ├── communication-contracts
+│   │   ├── shared-and-private-state
+│   │   ├── coordination-and-conflict-resolution
+│   │   ├── task-allocation
+│   │   ├── agent-to-agent-interoperability
+│   │   └── coordination-overhead
+│   ├── human-agent-interaction
+│   │   ├── approval-gates
+│   │   ├── editable-plans
+│   │   ├── progress-and-evidence-display
+│   │   ├── interruption-and-correction
+│   │   ├── escalation-and-handoff
+│   │   ├── undo-and-compensation
+│   │   └── user-consent-boundaries
+│   ├── agent-testing
+│   │   ├── task-success-and-completion
+│   │   ├── tool-call-correctness
+│   │   ├── trajectory-and-state-evaluation
+│   │   ├── simulated-environments
+│   │   ├── adversarial-tool-results
+│   │   ├── reproducible-replays
+│   │   └── cost-and-step-budgets
+│   └── agent-safety
+│       ├── least-privilege
+│       ├── untrusted-content-isolation
+│       ├── high-impact-action-review
+│       ├── credential-boundaries
+│       ├── outbound-data-controls
+│       ├── irreversible-action-protection
+│       └── runaway-loop-prevention
+├── multimodal-ai
+│   ├── multimodal-foundations
+│   │   ├── modalities-and-representations
+│   │   ├── alignment-and-fusion
+│   │   ├── shared-and-separate-latent-spaces
+│   │   ├── cross-modal-transfer
+│   │   ├── modality-complementarity
+│   │   └── missing-modality-handling
+│   ├── fusion-architectures
+│   │   ├── early-fusion
+│   │   ├── late-fusion
+│   │   ├── intermediate-fusion
+│   │   ├── cross-attention
+│   │   ├── modality-adapters
+│   │   ├── multimodal-tokenization
+│   │   └── temporal-synchronization
+│   ├── multimodal-pretraining
+│   │   ├── image-text-contrastive-learning
+│   │   ├── masked-multimodal-modeling
+│   │   ├── paired-and-unpaired-data
+│   │   ├── captioning-objectives
+│   │   ├── interleaved-data-training
+│   │   └── alignment-quality
+│   ├── vision-language-models
+│   │   ├── image-understanding
+│   │   ├── visual-question-answering
+│   │   ├── document-understanding
+│   │   ├── chart-and-table-reasoning
+│   │   ├── spatial-grounding
+│   │   ├── multi-image-reasoning
+│   │   └── resolution-and-crop-strategies
+│   ├── audio-language-and-video-models
+│   │   ├── speech-language-modeling
+│   │   ├── audio-text-alignment
+│   │   ├── video-language-understanding
+│   │   ├── temporal-grounding
+│   │   ├── audiovisual-synchronization
+│   │   └── streaming-multimodal-inputs
+│   ├── cross-modal-retrieval
+│   │   ├── text-to-image-retrieval
+│   │   ├── image-to-text-retrieval
+│   │   ├── audio-retrieval
+│   │   ├── video-retrieval
+│   │   ├── multimodal-reranking
+│   │   └── cross-modal-relevance-evaluation
+│   ├── multimodal-generation
+│   │   ├── text-to-image
+│   │   ├── image-editing
+│   │   ├── text-to-video
+│   │   ├── image-to-video
+│   │   ├── audio-and-speech-generation
+│   │   ├── multimodal-output-consistency
+│   │   └── controllability-and-provenance
+│   ├── multimodal-agents
+│   │   ├── screen-understanding
+│   │   ├── visual-action-grounding
+│   │   ├── browser-and-gui-interaction
+│   │   ├── voice-interaction
+│   │   ├── perception-action-feedback
+│   │   └── human-confirmation-of-actions
+│   ├── multimodal-evaluation
+│   │   ├── modality-specific-metrics
+│   │   ├── cross-modal-consistency
+│   │   ├── spatial-and-temporal-accuracy
+│   │   ├── fine-grained-perception
+│   │   ├── hallucinated-visual-details
+│   │   └── accessibility-and-language-slices
+│   └── multimodal-safety
+│       ├── image-and-audio-prompt-injection
+│       ├── sensitive-media-handling
+│       ├── identity-and-consent-boundaries
+│       ├── synthetic-media-abuse-prevention
+│       ├── multimodal-data-leakage
+│       └── evidence-grounded-responses
+├── model-adaptation-and-post-training
+│   ├── adaptation-strategy
+│   │   ├── prompting-versus-rag-versus-fine-tuning
+│   │   ├── task-and-domain-gap
+│   │   ├── data-availability
+│   │   ├── compute-and-memory-budget
+│   │   ├── license-and-use-boundaries
+│   │   └── baseline-and-success-criteria
+│   ├── transfer-learning
+│   │   ├── frozen-feature-extractors
+│   │   ├── head-training
+│   │   ├── partial-unfreezing
+│   │   ├── full-fine-tuning
+│   │   ├── discriminative-learning-rates
+│   │   ├── domain-adaptive-pretraining
+│   │   └── catastrophic-forgetting-control
+│   ├── supervised-fine-tuning
+│   │   ├── instruction-dataset-design
+│   │   ├── chat-template-alignment
+│   │   ├── response-only-loss
+│   │   ├── sequence-packing
+│   │   ├── loss-masking
+│   │   ├── data-mixture-balancing
+│   │   └── held-out-task-evaluation
+│   ├── parameter-efficient-fine-tuning
+│   │   ├── low-rank-adaptation
+│   │   ├── quantized-low-rank-adaptation
+│   │   ├── adapters
+│   │   ├── prefix-tuning
+│   │   ├── prompt-tuning
+│   │   ├── target-module-selection
+│   │   └── adapter-merging-and-composition
+│   ├── preference-data-and-reward-models
+│   │   ├── pairwise-preferences
+│   │   ├── annotation-guidelines
+│   │   ├── preference-noise
+│   │   ├── reward-model-training
+│   │   ├── reward-calibration
+│   │   ├── outcome-and-process-rewards
+│   │   └── reward-model-overoptimization
+│   ├── preference-and-reinforcement-methods
+│   │   ├── reinforcement-learning-from-human-feedback
+│   │   ├── ai-feedback-and-oversight
+│   │   ├── direct-preference-optimization
+│   │   ├── proximal-policy-optimization
+│   │   ├── group-relative-policy-optimization
+│   │   ├── verifiable-rewards
+│   │   └── policy-regularization
+│   ├── knowledge-distillation
+│   │   ├── teacher-student-design
+│   │   ├── logit-distillation
+│   │   ├── response-distillation
+│   │   ├── feature-distillation
+│   │   ├── sequence-level-distillation
+│   │   ├── teacher-error-propagation
+│   │   └── student-evaluation
+│   ├── synthetic-training-data
+│   │   ├── task-and-template-coverage
+│   │   ├── generation-and-filtering
+│   │   ├── quality-verification
+│   │   ├── diversity-and-deduplication
+│   │   ├── contamination-controls
+│   │   ├── provenance-tracking
+│   │   └── model-collapse-risk
+│   ├── continual-and-federated-adaptation
+│   │   ├── continual-learning
+│   │   ├── rehearsal-and-replay
+│   │   ├── parameter-isolation
+│   │   ├── federated-averaging
+│   │   ├── personalization
+│   │   ├── privacy-and-communication-tradeoffs
+│   │   └── forgetting-evaluation
+│   └── post-training-evaluation
+│       ├── base-model-regression
+│       ├── domain-task-quality
+│       ├── instruction-adherence
+│       ├── safety-regressions
+│       ├── calibration-and-abstention
+│       ├── memorization-and-privacy
+│       └── release-gating
+├── ai-application-engineering
+│   ├── product-and-system-design
+│   │   ├── user-problem-and-workflow
+│   │   ├── ai-and-non-ai-boundaries
+│   │   ├── user-research
+│   │   ├── acceptance-criteria
+│   │   ├── failure-and-recovery-design
+│   │   ├── cost-quality-latency-budgets
+│   │   └── build-buy-and-self-host-decisions
+│   ├── application-architecture
+│   │   ├── model-adapter-interfaces
+│   │   ├── orchestration-layer
+│   │   ├── retrieval-and-data-layer
+│   │   ├── tool-and-action-layer
+│   │   ├── policy-and-validation-layer
+│   │   ├── observability-layer
+│   │   └── frontend-and-api-contracts
+│   ├── model-api-integration
+│   │   ├── authentication-and-secrets
+│   │   ├── request-and-response-schemas
+│   │   ├── streaming-responses
+│   │   ├── asynchronous-batch-jobs
+│   │   ├── rate-limits-and-quotas
+│   │   ├── retry-and-timeout-policies
+│   │   └── provider-portability
+│   ├── data-and-output-contracts
+│   │   ├── input-validation
+│   │   ├── structured-output-validation
+│   │   ├── business-rule-checks
+│   │   ├── citation-and-provenance-contracts
+│   │   ├── file-and-media-handling
+│   │   └── schema-evolution
+│   ├── conversational-applications
+│   │   ├── session-and-user-state
+│   │   ├── turn-management
+│   │   ├── follow-up-resolution
+│   │   ├── user-controlled-history
+│   │   ├── memory-and-retention
+│   │   ├── feedback-capture
+│   │   └── human-handoff
+│   ├── document-and-knowledge-applications
+│   │   ├── upload-and-ingestion
+│   │   ├── workflows-for-large-documents
+│   │   ├── document-search
+│   │   ├── extraction-and-review
+│   │   ├── summarization-with-evidence
+│   │   └── source-permissions
+│   ├── coding-and-data-assistants
+│   │   ├── repository-context
+│   │   ├── safe-code-execution
+│   │   ├── test-driven-verification
+│   │   ├── read-only-data-analysis
+│   │   ├── sql-permission-boundaries
+│   │   └── artifact-review-and-approval
+│   ├── human-centered-interface
+│   │   ├── capability-disclosure
+│   │   ├── uncertainty-presentation
+│   │   ├── editable-and-reviewable-output
+│   │   ├── source-navigation
+│   │   ├── consent-before-actions
+│   │   ├── accessibility
+│   │   └── recovery-from-partial-results
+│   ├── reliability-patterns
+│   │   ├── bounded-retries
+│   │   ├── circuit-breakers
+│   │   ├── fallback-models
+│   │   ├── deterministic-fallbacks
+│   │   ├── caching-with-isolation
+│   │   ├── request-deduplication
+│   │   ├── graceful-degradation
+│   │   └── cancellation-and-cleanup
+│   ├── service-integration
+│   │   ├── python-service-apis
+│   │   ├── java-and-spring-integration
+│   │   ├── javascript-and-typescript-clients
+│   │   ├── queues-and-background-workers
+│   │   ├── database-transactions
+│   │   ├── webhooks-and-events
+│   │   └── containerized-delivery
+│   └── application-quality-assurance
+│       ├── unit-and-contract-tests
+│       ├── integration-tests
+│       ├── representative-user-scenarios
+│       ├── failure-injection
+│       ├── end-to-end-evaluations
+│       ├── accessibility-and-security-checks
+│       └── launch-readiness
+├── inference-serving-and-efficiency
+│   ├── serving-foundations
+│   │   ├── batch-and-online-inference
+│   │   ├── synchronous-and-asynchronous-serving
+│   │   ├── stateless-and-stateful-inference
+│   │   ├── model-loading
+│   │   ├── warmup-and-cold-start
+│   │   └── request-concurrency
+│   ├── serving-architectures
+│   │   ├── single-model-endpoints
+│   │   ├── multi-model-serving
+│   │   ├── model-gateways
+│   │   ├── multi-tenant-serving
+│   │   ├── edge-and-on-device-inference
+│   │   ├── hybrid-local-and-cloud-inference
+│   │   └── autoscaling-and-capacity
+│   ├── llm-inference-internals
+│   │   ├── prefill-and-decode-phases
+│   │   ├── kv-cache
+│   │   ├── attention-memory-budgets
+│   │   ├── continuous-batching
+│   │   ├── paged-memory-management
+│   │   ├── prefix-reuse
+│   │   └── speculative-decoding
+│   ├── model-compression
+│   │   ├── post-training-quantization
+│   │   ├── quantization-aware-training
+│   │   ├── weight-only-quantization
+│   │   ├── activation-quantization
+│   │   ├── structured-and-unstructured-pruning
+│   │   ├── low-rank-compression
+│   │   └── knowledge-distillation
+│   ├── compilation-and-acceleration
+│   │   ├── graph-capture
+│   │   ├── operator-fusion
+│   │   ├── kernel-selection
+│   │   ├── ahead-of-time-compilation
+│   │   ├── dynamic-shape-handling
+│   │   ├── model-export
+│   │   └── execution-provider-selection
+│   ├── scheduling-and-routing
+│   │   ├── request-admission-control
+│   │   ├── priority-and-fairness
+│   │   ├── length-aware-batching
+│   │   ├── prefill-decode-disaggregation
+│   │   ├── capability-based-routing
+│   │   ├── cost-aware-routing
+│   │   └── overload-backpressure
+│   ├── caching-and-storage
+│   │   ├── model-artifact-caching
+│   │   ├── embedding-caching
+│   │   ├── response-caching
+│   │   ├── semantic-cache-validation
+│   │   ├── cache-invalidation
+│   │   └── tenant-safe-cache-keys
+│   ├── performance-measurement
+│   │   ├── throughput
+│   │   ├── latency-percentiles
+│   │   ├── time-to-first-token
+│   │   ├── inter-token-latency
+│   │   ├── tokens-per-second
+│   │   ├── memory-footprint
+│   │   ├── utilization
+│   │   └── quality-under-optimization
+│   ├── deployment-validation
+│   │   ├── numerical-parity
+│   │   ├── task-quality-regression
+│   │   ├── concurrency-and-load-tests
+│   │   ├── soak-tests
+│   │   ├── out-of-memory-recovery
+│   │   ├── timeout-and-cancellation-tests
+│   │   └── failure-recovery
+│   └── capacity-and-cost-management
+│       ├── token-and-request-accounting
+│       ├── hardware-utilization
+│       ├── queueing-effects
+│       ├── scaling-policies
+│       ├── compute-budget-controls
+│       ├── cost-per-successful-task
+│       └── workload-forecasting
+├── hardware-and-distributed-computing
+│   ├── compute-architecture
+│   │   ├── cpu-and-gpu-execution
+│   │   ├── tensor-accelerators
+│   │   ├── gpu-memory-hierarchy
+│   │   ├── memory-bandwidth-and-compute
+│   │   ├── instruction-and-tensor-dtypes
+│   │   ├── accelerator-interconnects
+│   │   └── host-device-transfer
+│   ├── accelerator-programming
+│   │   ├── parallel-kernels
+│   │   ├── thread-and-block-organization
+│   │   ├── memory-coalescing
+│   │   ├── kernel-launch-overhead
+│   │   ├── synchronization
+│   │   ├── numerical-precision
+│   │   └── profiling-and-bottlenecks
+│   ├── distributed-systems-foundations
+│   │   ├── processes-and-ranks
+│   │   ├── collective-communication
+│   │   ├── all-reduce-and-all-gather
+│   │   ├── point-to-point-communication
+│   │   ├── synchronization-and-stragglers
+│   │   ├── fault-tolerance
+│   │   └── communication-topologies
+│   ├── training-parallelism
+│   │   ├── data-parallelism
+│   │   ├── fully-sharded-data-parallelism
+│   │   ├── tensor-parallelism
+│   │   ├── pipeline-parallelism
+│   │   ├── sequence-and-context-parallelism
+│   │   ├── expert-parallelism
+│   │   └── hybrid-parallelism
+│   ├── memory-and-state-sharding
+│   │   ├── parameter-sharding
+│   │   ├── gradient-sharding
+│   │   ├── optimizer-sharding
+│   │   ├── activation-checkpointing
+│   │   ├── cpu-and-storage-offloading
+│   │   ├── checkpoint-partitioning
+│   │   └── memory-budget-planning
+│   ├── distributed-data
+│   │   ├── data-sharding
+│   │   ├── distributed-samplers
+│   │   ├── shuffle-and-reproducibility
+│   │   ├── streaming-data-sources
+│   │   ├── caching-and-prefetching
+│   │   ├── storage-throughput
+│   │   └── data-locality
+│   ├── large-scale-training-operations
+│   │   ├── cluster-provisioning
+│   │   ├── job-scheduling
+│   │   ├── checkpoint-and-restart
+│   │   ├── elastic-capacity
+│   │   ├── preemption-handling
+│   │   ├── distributed-debugging
+│   │   └── communication-failure-diagnosis
+│   ├── inference-distribution
+│   │   ├── model-sharding
+│   │   ├── multi-node-inference
+│   │   ├── replica-management
+│   │   ├── expert-routing
+│   │   ├── load-balancing
+│   │   ├── cross-device-kv-management
+│   │   └── network-and-memory-tradeoffs
+│   ├── edge-and-specialized-hardware
+│   │   ├── mobile-and-embedded-accelerators
+│   │   ├── microcontrollers-and-tinyml
+│   │   ├── browser-and-client-inference
+│   │   ├── low-power-inference
+│   │   ├── thermal-and-battery-budgets
+│   │   └── hardware-software-compatibility
+│   └── infrastructure-measurement
+│       ├── utilization-and-occupancy
+│       ├── communication-overhead
+│       ├── energy-and-carbon-accounting
+│       ├── cost-and-throughput-benchmarks
+│       ├── workload-fit
+│       └── capacity-planning
+├── mlops-and-dataops
+│   ├── lifecycle-architecture
+│   │   ├── research-to-production-boundaries
+│   │   ├── reproducible-training-pipelines
+│   │   ├── continuous-integration
+│   │   ├── continuous-delivery
+│   │   ├── continuous-training
+│   │   └── ownership-and-service-contracts
+│   ├── data-and-feature-operations
+│   │   ├── dataset-versioning
+│   │   ├── data-contract-tests
+│   │   ├── feature-store-patterns
+│   │   ├── offline-and-online-features
+│   │   ├── point-in-time-joins
+│   │   ├── data-lineage
+│   │   └── data-quality-monitoring
+│   ├── experiment-tracking
+│   │   ├── parameters-and-configurations
+│   │   ├── metrics-and-artifacts
+│   │   ├── run-comparison
+│   │   ├── experiment-grouping
+│   │   ├── environment-capture
+│   │   └── reproducible-run-replay
+│   ├── model-registry
+│   │   ├── model-versioning
+│   │   ├── lineage-and-provenance
+│   │   ├── approval-workflows
+│   │   ├── artifact-signing
+│   │   ├── deployment-aliases
+│   │   ├── lifecycle-status
+│   │   └── archival-and-retirement
+│   ├── pipeline-orchestration
+│   │   ├── workflow-dags
+│   │   ├── reusable-components
+│   │   ├── dependency-tracking
+│   │   ├── caching-and-reexecution
+│   │   ├── scheduled-and-event-driven-runs
+│   │   └── retries-and-failure-isolation
+│   ├── ml-testing
+│   │   ├── data-tests
+│   │   ├── feature-tests
+│   │   ├── model-tests
+│   │   ├── training-pipeline-tests
+│   │   ├── serving-contract-tests
+│   │   ├── infrastructure-tests
+│   │   └── integration-and-regression-tests
+│   ├── deployment-strategies
+│   │   ├── batch-scoring
+│   │   ├── online-endpoints
+│   │   ├── shadow-deployment
+│   │   ├── canary-rollout
+│   │   ├── blue-green-deployment
+│   │   ├── champion-challenger
+│   │   └── rollback-and-recovery
+│   ├── monitoring
+│   │   ├── data-drift
+│   │   ├── concept-drift
+│   │   ├── prediction-drift
+│   │   ├── model-performance
+│   │   ├── delayed-ground-truth
+│   │   ├── feature-freshness
+│   │   ├── service-health
+│   │   └── business-impact
+│   ├── retraining-and-feedback
+│   │   ├── trigger-design
+│   │   ├── label-feedback-pipelines
+│   │   ├── human-review-queues
+│   │   ├── data-refresh-policy
+│   │   ├── automated-versus-approved-retraining
+│   │   ├── retraining-validation
+│   │   └── rollback-to-known-good-model
+│   ├── operations-and-incidents
+│   │   ├── service-level-objectives
+│   │   ├── on-call-runbooks
+│   │   ├── anomaly-triage
+│   │   ├── model-incident-response
+│   │   ├── dependency-failure-recovery
+│   │   ├── post-incident-review
+│   │   └── change-audit
+│   └── ml-platform-governance
+│       ├── access-and-tenancy
+│       ├── secrets-management
+│       ├── reproducible-environments
+│       ├── shared-compute-policies
+│       ├── budget-and-quota-management
+│       └── model-and-data-retention
+├── llmops-and-agentops
+│   ├── generative-system-versioning
+│   │   ├── model-and-provider-version
+│   │   ├── prompt-version
+│   │   ├── tool-schema-version
+│   │   ├── retrieval-index-version
+│   │   ├── policy-version
+│   │   └── composite-system-releases
+│   ├── evaluation-operations
+│   │   ├── golden-datasets
+│   │   ├── production-derived-cases
+│   │   ├── synthetic-case-validation
+│   │   ├── evaluation-runners
+│   │   ├── repeated-stochastic-trials
+│   │   ├── release-regression-gates
+│   │   └── continuous-evaluation
+│   ├── human-and-model-judges
+│   │   ├── evaluation-rubrics
+│   │   ├── human-calibration
+│   │   ├── inter-rater-agreement
+│   │   ├── model-judge-selection
+│   │   ├── judge-bias-and-position-effects
+│   │   ├── blinded-comparisons
+│   │   └── disagreement-review
+│   ├── tracing-and-observability
+│   │   ├── request-traces
+│   │   ├── prompt-and-response-logging
+│   │   ├── retrieval-spans
+│   │   ├── tool-execution-spans
+│   │   ├── agent-state-transitions
+│   │   ├── correlation-identifiers
+│   │   └── privacy-aware-telemetry
+│   ├── production-quality-monitoring
+│   │   ├── answer-quality
+│   │   ├── sampling-and-review
+│   │   ├── citation-validity
+│   │   ├── task-completion
+│   │   ├── refusal-and-abstention
+│   │   ├── user-corrections
+│   │   └── drift-in-user-intent
+│   ├── cost-and-latency-operations
+│   │   ├── token-accounting
+│   │   ├── cached-and-uncached-costs
+│   │   ├── per-task-budgets
+│   │   ├── model-routing-effects
+│   │   ├── runaway-loop-alerts
+│   │   ├── latency-breakdown
+│   │   └── capacity-alerts
+│   ├── provider-and-model-change-management
+│   │   ├── model-version-pinning
+│   │   ├── deprecation-response
+│   │   ├── behavioral-change-detection
+│   │   ├── cross-provider-contract-tests
+│   │   ├── fallback-readiness
+│   │   └── migration-evaluation
+│   ├── agent-runtime-operations
+│   │   ├── durable-state
+│   │   ├── checkpoint-and-resume
+│   │   ├── replay-and-debugging
+│   │   ├── stuck-agent-detection
+│   │   ├── orphan-task-cleanup
+│   │   ├── concurrent-session-isolation
+│   │   └── operator-intervention
+│   ├── evaluation-security-and-integrity
+│   │   ├── judge-prompt-injection
+│   │   ├── benchmark-access-control
+│   │   ├── data-contamination-audits
+│   │   ├── sensitive-log-redaction
+│   │   ├── regression-dataset-provenance
+│   │   └── evaluator-versioning
+│   └── feedback-and-improvement
+│       ├── user-feedback-triage
+│       ├── failure-clustering
+│       ├── root-cause-analysis
+│       ├── prompt-versus-retrieval-versus-model-fixes
+│       ├── experiment-rollouts
+│       └── incident-derived-test-cases
+├── interpretability-uncertainty-and-robustness
+│   ├── interpretability-foundations
+│   │   ├── interpretability-and-explainability
+│   │   ├── local-and-global-explanations
+│   │   ├── intrinsic-and-post-hoc-methods
+│   │   ├── audience-and-use-case
+│   │   ├── faithfulness-and-plausibility
+│   │   └── explanation-limitations
+│   ├── feature-based-explanations
+│   │   ├── feature-coefficients
+│   │   ├── permutation-importance
+│   │   ├── partial-dependence
+│   │   ├── individual-conditional-expectation
+│   │   ├── accumulated-local-effects
+│   │   ├── shapley-based-attribution
+│   │   └── correlated-feature-caveats
+│   ├── example-and-counterfactual-methods
+│   │   ├── nearest-examples
+│   │   ├── prototypes
+│   │   ├── influence-estimation
+│   │   ├── counterfactual-explanations
+│   │   ├── recourse-feasibility
+│   │   └── causal-versus-predictive-explanations
+│   ├── neural-explanations
+│   │   ├── saliency-maps
+│   │   ├── integrated-gradients
+│   │   ├── activation-visualization
+│   │   ├── concept-based-explanations
+│   │   ├── attention-analysis
+│   │   ├── representation-probing
+│   │   └── attribution-sanity-checks
+│   ├── mechanistic-interpretability
+│   │   ├── internal-representations
+│   │   ├── feature-and-circuit-hypotheses
+│   │   ├── sparse-autoencoders
+│   │   ├── activation-interventions
+│   │   ├── causal-ablation
+│   │   ├── distributed-representation-limits
+│   │   └── validation-and-replication
+│   ├── predictive-uncertainty
+│   │   ├── aleatoric-and-epistemic-uncertainty
+│   │   ├── ensembles
+│   │   ├── bayesian-approximations
+│   │   ├── monte-carlo-dropout
+│   │   ├── predictive-distributions
+│   │   └── uncertainty-under-shift
+│   ├── calibration-and-conformal-prediction
+│   │   ├── reliability-diagrams
+│   │   ├── temperature-scaling
+│   │   ├── isotonic-calibration
+│   │   ├── split-conformal-prediction
+│   │   ├── prediction-sets
+│   │   ├── exchangeability-assumptions
+│   │   └── coverage-under-distribution-shift
+│   ├── robustness-and-generalization
+│   │   ├── noise-and-corruption-tests
+│   │   ├── domain-shift
+│   │   ├── stress-testing
+│   │   ├── subgroup-robustness
+│   │   ├── adversarial-robustness
+│   │   ├── spurious-correlations
+│   │   └── invariance-assumptions
+│   ├── selective-and-safe-prediction
+│   │   ├── out-of-distribution-detection
+│   │   ├── confidence-thresholds
+│   │   ├── abstention
+│   │   ├── human-review-routing
+│   │   ├── fallback-policies
+│   │   └── coverage-risk-tradeoffs
+│   └── explanation-evaluation
+│       ├── faithfulness-tests
+│       ├── stability-tests
+│       ├── comprehensibility-tests
+│       ├── counterfactual-validity
+│       ├── human-decision-impact
+│       └── explanations-without-overclaiming
+├── responsible-ai-and-governance
+│   ├── responsible-ai-foundations
+│   │   ├── human-centered-design
+│   │   ├── intended-and-unintended-use
+│   │   ├── stakeholder-impact
+│   │   ├── benefits-and-harms
+│   │   ├── lifecycle-accountability
+│   │   └── sociotechnical-context
+│   ├── risk-assessment
+│   │   ├── system-context-and-scope
+│   │   ├── risk-identification
+│   │   ├── likelihood-and-severity
+│   │   ├── risk-prioritization
+│   │   ├── mitigation-plans
+│   │   ├── residual-risk
+│   │   └── acceptance-and-escalation
+│   ├── fairness-and-inclusion
+│   │   ├── representational-and-allocative-harms
+│   │   ├── subgroup-performance
+│   │   ├── demographic-parity
+│   │   ├── equalized-odds
+│   │   ├── calibration-tradeoffs
+│   │   ├── intersectional-evaluation
+│   │   └── accessibility-and-language-inclusion
+│   ├── transparency-and-documentation
+│   │   ├── model-cards
+│   │   ├── dataset-documentation
+│   │   ├── system-cards
+│   │   ├── intended-use-and-limitations
+│   │   ├── provenance-disclosure
+│   │   ├── change-history
+│   │   └── user-facing-ai-disclosure
+│   ├── human-oversight
+│   │   ├── meaningful-review
+│   │   ├── decision-authority
+│   │   ├── escalation-and-appeals
+│   │   ├── automation-bias
+│   │   ├── override-and-stop-controls
+│   │   ├── reviewer-training
+│   │   └── workload-and-review-capacity
+│   ├── governance-frameworks
+│   │   ├── nist-ai-rmf
+│   │   ├── govern-map-measure-manage
+│   │   ├── organizational-ai-policy
+│   │   ├── risk-management-records
+│   │   ├── assurance-and-audit
+│   │   └── evidence-based-control-mapping
+│   ├── legal-and-policy-literacy
+│   │   ├── applicable-jurisdiction-review
+│   │   ├── data-protection-obligations
+│   │   ├── intellectual-property-and-licensing
+│   │   ├── sector-specific-requirements
+│   │   ├── contractual-obligations
+│   │   ├── regulatory-change-tracking
+│   │   └── qualified-legal-review
+│   ├── content-and-societal-risks
+│   │   ├── misinformation-and-manipulation
+│   │   ├── harmful-content
+│   │   ├── synthetic-media-consent
+│   │   ├── labor-and-access-impacts
+│   │   ├── surveillance-and-civil-rights
+│   │   └── overreliance-and-dependency
+│   ├── sustainability-and-access
+│   │   ├── compute-and-energy-use
+│   │   ├── dataset-and-model-reuse
+│   │   ├── resource-efficient-development
+│   │   ├── accessibility-by-design
+│   │   ├── low-resource-language-support
+│   │   └── equitable-access
+│   └── governance-operations
+│       ├── model-and-system-inventory
+│       ├── approval-and-release-review
+│       ├── vendor-due-diligence
+│       ├── audit-trails
+│       ├── incident-reporting
+│       ├── periodic-risk-reassessment
+│       └── decommissioning
+├── ai-security-and-privacy
+│   ├── threat-modeling
+│   │   ├── assets-and-trust-boundaries
+│   │   ├── adversary-goals
+│   │   ├── attack-surface-mapping
+│   │   ├── lifecycle-threats
+│   │   ├── data-model-and-application-risks
+│   │   ├── abuse-case-analysis
+│   │   └── defensive-test-scope
+│   ├── data-and-model-integrity
+│   │   ├── dataset-poisoning-detection
+│   │   ├── label-integrity
+│   │   ├── model-backdoor-risk
+│   │   ├── checkpoint-verification
+│   │   ├── artifact-signatures
+│   │   ├── trusted-model-loading
+│   │   └── supply-chain-review
+│   ├── adversarial-ml-defense
+│   │   ├── evasion-threat-awareness
+│   │   ├── adversarial-example-testing
+│   │   ├── robustness-evaluation
+│   │   ├── model-extraction-risk
+│   │   ├── membership-inference-risk
+│   │   ├── model-inversion-risk
+│   │   └── defense-limitations
+│   ├── llm-and-agent-threats
+│   │   ├── direct-and-indirect-prompt-injection
+│   │   ├── hidden-context-exposure
+│   │   ├── sensitive-information-disclosure
+│   │   ├── insecure-output-consumption
+│   │   ├── excessive-agency
+│   │   ├── retrieval-and-embedding-attacks
+│   │   └── unbounded-resource-consumption
+│   ├── application-defenses
+│   │   ├── least-privilege
+│   │   ├── authorization-outside-the-model
+│   │   ├── input-and-output-validation
+│   │   ├── context-and-tenant-isolation
+│   │   ├── tool-sandboxing
+│   │   ├── network-egress-controls
+│   │   └── action-approval-gates
+│   ├── privacy-engineering
+│   │   ├── data-minimization
+│   │   ├── consent-and-purpose-limits
+│   │   ├── personal-data-detection
+│   │   ├── redaction-and-pseudonymization
+│   │   ├── retention-and-deletion
+│   │   ├── training-data-privacy
+│   │   └── privacy-impact-assessment
+│   ├── privacy-preserving-learning
+│   │   ├── differential-privacy
+│   │   ├── privacy-budgets
+│   │   ├── private-training
+│   │   ├── secure-aggregation
+│   │   ├── federated-learning-threats
+│   │   ├── encrypted-computation-tradeoffs
+│   │   └── privacy-utility-evaluation
+│   ├── infrastructure-security
+│   │   ├── secret-management
+│   │   ├── encrypted-storage
+│   │   ├── secure-model-endpoints
+│   │   ├── dependency-scanning
+│   │   ├── container-hardening
+│   │   ├── audit-logging
+│   │   └── incident-isolation
+│   ├── defensive-red-teaming
+│   │   ├── authorized-test-plans
+│   │   ├── representative-threat-scenarios
+│   │   ├── sandboxed-evaluations
+│   │   ├── multi-turn-and-multimodal-tests
+│   │   ├── tool-output-injection-tests
+│   │   ├── findings-and-remediation
+│   │   └── regression-test-integration
+│   └── security-operations
+│       ├── anomaly-and-abuse-monitoring
+│       ├── rate-and-cost-limits
+│       ├── data-exfiltration-detection
+│       ├── vulnerability-disclosure
+│       ├── compromised-artifact-response
+│       ├── evidence-preservation
+│       └── control-reassessment
+├── frameworks-platforms-and-tools
+│   ├── scientific-python
+│   │   ├── numpy
+│   │   ├── scipy
+│   │   ├── pandas
+│   │   ├── polars
+│   │   ├── matplotlib
+│   │   ├── sympy
+│   │   └── jupyter
+│   ├── classical-machine-learning
+│   │   ├── scikit-learn
+│   │   ├── xgboost
+│   │   ├── lightgbm
+│   │   ├── catboost
+│   │   ├── statsmodels
+│   │   └── imbalanced-learn
+│   ├── deep-learning-frameworks
+│   │   ├── pytorch
+│   │   ├── tensorflow
+│   │   ├── keras
+│   │   ├── jax
+│   │   ├── framework-interoperability
+│   │   └── framework-selection-and-versioning
+│   ├── model-and-data-ecosystems
+│   │   ├── hugging-face-hub
+│   │   ├── transformers
+│   │   ├── datasets
+│   │   ├── tokenizers
+│   │   ├── sentence-transformers
+│   │   ├── safetensors
+│   │   └── torchvision
+│   ├── adaptation-and-generation
+│   │   ├── peft
+│   │   ├── trl
+│   │   ├── diffusers
+│   │   ├── accelerate
+│   │   ├── deepspeed
+│   │   └── adapter-and-training-tool-evaluation
+│   ├── probabilistic-and-causal-tools
+│   │   ├── pymc
+│   │   ├── pyro
+│   │   ├── numpyro
+│   │   ├── dowhy
+│   │   ├── econml
+│   │   └── causal-tool-assumptions
+│   ├── modality-and-graph-tools
+│   │   ├── opencv
+│   │   ├── spacy
+│   │   ├── librosa
+│   │   ├── torchaudio
+│   │   ├── pytorch-geometric
+│   │   ├── dgl
+│   │   └── networkx
+│   ├── reinforcement-and-robotics-tools
+│   │   ├── gymnasium
+│   │   ├── stable-baselines3
+│   │   ├── torchrl
+│   │   ├── ray-rllib
+│   │   ├── mujoco
+│   │   └── ros-simulation-integration
+│   ├── retrieval-and-vector-systems
+│   │   ├── faiss
+│   │   ├── pgvector
+│   │   ├── qdrant
+│   │   ├── milvus
+│   │   ├── elasticsearch
+│   │   ├── opensearch
+│   │   └── index-selection-and-benchmarking
+│   ├── application-orchestration
+│   │   ├── direct-model-sdk-integration
+│   │   ├── langchain
+│   │   ├── langgraph
+│   │   ├── llamaindex
+│   │   ├── haystack
+│   │   ├── dspy
+│   │   ├── spring-ai
+│   │   └── langchain4j
+│   ├── inference-runtimes
+│   │   ├── onnx-runtime
+│   │   ├── tensorrt
+│   │   ├── vllm
+│   │   ├── sglang
+│   │   ├── llama-cpp
+│   │   ├── ollama
+│   │   ├── triton-inference-server
+│   │   └── runtime-compatibility-testing
+│   ├── experiment-and-pipeline-tools
+│   │   ├── mlflow
+│   │   ├── weights-and-biases
+│   │   ├── tensorboard
+│   │   ├── dvc
+│   │   ├── optuna
+│   │   ├── ray
+│   │   ├── apache-airflow
+│   │   └── kubeflow
+│   ├── evaluation-and-observability-tools
+│   │   ├── lm-evaluation-harness
+│   │   ├── ragas
+│   │   ├── deepeval
+│   │   ├── opentelemetry
+│   │   ├── langfuse
+│   │   ├── phoenix
+│   │   └── tool-configuration-and-limitations
+│   ├── infrastructure-and-platforms
+│   │   ├── docker
+│   │   ├── kubernetes
+│   │   ├── local-workstations
+│   │   ├── managed-notebooks
+│   │   ├── managed-training-platforms
+│   │   ├── managed-model-endpoints
+│   │   └── private-and-hybrid-deployments
+│   └── tool-selection
+│       ├── problem-fit
+│       ├── integration-complexity
+│       ├── license-and-data-terms
+│       ├── interoperability
+│       ├── reproducibility
+│       ├── operating-cost
+│       ├── ecosystem-health
+│       └── lock-in-and-exit-strategy
+├── research-methods-and-emerging-directions
+│   ├── research-foundations
+│   │   ├── research-questions
+│   │   ├── literature-search
+│   │   ├── primary-source-reading
+│   │   ├── assumptions-and-claims
+│   │   ├── related-work-mapping
+│   │   ├── reproducibility-and-replicability
+│   │   └── research-ethics
+│   ├── paper-reading
+│   │   ├── problem-and-contribution
+│   │   ├── mathematical-formulation
+│   │   ├── experimental-design
+│   │   ├── dataset-and-baseline-choice
+│   │   ├── ablation-and-statistics
+│   │   ├── limitations-and-negative-results
+│   │   └── implementation-gap-analysis
+│   ├── experimental-research
+│   │   ├── hypothesis-driven-design
+│   │   ├── minimal-baselines
+│   │   ├── controlled-ablations
+│   │   ├── measurement-validity
+│   │   ├── compute-budgeting
+│   │   ├── preregistration-where-appropriate
+│   │   └── negative-result-reporting
+│   ├── reproduction-and-benchmarking
+│   │   ├── environment-reconstruction
+│   │   ├── dataset-version-matching
+│   │   ├── implementation-fidelity
+│   │   ├── seed-and-variance-analysis
+│   │   ├── fair-compute-comparisons
+│   │   ├── benchmark-contamination
+│   │   └── replication-reports
+│   ├── advanced-learning-directions
+│   │   ├── meta-learning
+│   │   ├── continual-and-lifelong-learning
+│   │   ├── compositional-generalization
+│   │   ├── causal-representation-learning
+│   │   ├── self-supervised-world-models
+│   │   └── learning-with-limited-supervision
+│   ├── scientific-and-structured-models
+│   │   ├── neural-operators
+│   │   ├── physics-informed-learning
+│   │   ├── geometric-deep-learning
+│   │   ├── equivariant-networks
+│   │   ├── differentiable-simulation
+│   │   └── hybrid-scientific-modeling
+│   ├── frontier-system-research
+│   │   ├── inference-time-scaling
+│   │   ├── verifier-guided-learning
+│   │   ├── agent-learning-and-adaptation
+│   │   ├── memory-augmented-systems
+│   │   ├── long-horizon-credit-assignment
+│   │   └── scalable-oversight
+│   ├── alternative-computing-directions
+│   │   ├── neuromorphic-computing
+│   │   ├── spiking-neural-networks
+│   │   ├── evolutionary-computation
+│   │   ├── quantum-machine-learning-foundations
+│   │   ├── hardware-aware-algorithms
+│   │   └── maturity-and-evidence-assessment
+│   ├── capability-and-safety-research
+│   │   ├── generalization-and-transfer-evidence
+│   │   ├── evaluation-under-adaptation
+│   │   ├── deceptive-behavior-research
+│   │   ├── model-organisms-and-sandboxing
+│   │   ├── interpretability-validation
+│   │   └── safety-case-construction
+│   └── research-communication
+│       ├── reproducible-repositories
+│       ├── artifact-and-dataset-release
+│       ├── experiment-reporting
+│       ├── technical-writing
+│       ├── peer-review
+│       ├── source-attribution
+│       └── limitations-and-open-questions
+├── domain-applications
+│   ├── search-and-knowledge-work
+│   │   ├── enterprise-search
+│   │   ├── document-triage
+│   │   ├── evidence-grounded-assistance
+│   │   ├── structured-information-extraction
+│   │   ├── knowledge-maintenance
+│   │   └── access-aware-collaboration
+│   ├── software-engineering
+│   │   ├── code-search
+│   │   ├── code-completion
+│   │   ├── test-generation
+│   │   ├── code-review-assistance
+│   │   ├── migration-assistance
+│   │   ├── secure-execution-and-validation
+│   │   └── developer-workflow-evaluation
+│   ├── education-and-accessibility
+│   │   ├── adaptive-learning
+│   │   ├── formative-feedback
+│   │   ├── tutoring-with-verification
+│   │   ├── learning-content-generation
+│   │   ├── captioning-and-transcription
+│   │   ├── assistive-interfaces
+│   │   └── learner-privacy-and-oversight
+│   ├── commerce-and-customer-service
+│   │   ├── product-discovery
+│   │   ├── recommendation
+│   │   ├── demand-forecasting
+│   │   ├── support-triage
+│   │   ├── conversational-assistance
+│   │   ├── human-escalation
+│   │   └── customer-data-boundaries
+│   ├── manufacturing-and-logistics
+│   │   ├── visual-quality-inspection
+│   │   ├── predictive-maintenance
+│   │   ├── scheduling
+│   │   ├── inventory-optimization
+│   │   ├── warehouse-simulation
+│   │   └── operational-safety-validation
+│   ├── healthcare-and-life-sciences
+│   │   ├── clinical-data-quality
+│   │   ├── medical-imaging-research
+│   │   ├── literature-and-evidence-retrieval
+│   │   ├── biological-representation-learning
+│   │   ├── clinician-in-the-loop-evaluation
+│   │   ├── external-and-prospective-validation
+│   │   └── patient-safety-and-privacy
+│   ├── financial-and-business-analytics
+│   │   ├── anomaly-and-fraud-screening
+│   │   ├── document-processing
+│   │   ├── forecast-support
+│   │   ├── decision-support-explanations
+│   │   ├── model-risk-review
+│   │   └── human-decision-authority
+│   ├── agriculture-and-environment
+│   │   ├── crop-and-land-monitoring
+│   │   ├── remote-sensing
+│   │   ├── weather-and-climate-modeling
+│   │   ├── resource-optimization
+│   │   ├── biodiversity-monitoring
+│   │   └── uncertainty-and-field-validation
+│   ├── scientific-discovery
+│   │   ├── surrogate-models
+│   │   ├── simulation-acceleration
+│   │   ├── materials-informatics
+│   │   ├── experimental-design
+│   │   ├── scientific-literature-assistance
+│   │   ├── hypothesis-validation
+│   │   └── reproducible-evidence
+│   ├── creative-and-media-workflows
+│   │   ├── writing-assistance
+│   │   ├── visual-ideation
+│   │   ├── audio-and-video-production
+│   │   ├── asset-search
+│   │   ├── rights-and-consent-review
+│   │   ├── provenance-and-disclosure
+│   │   └── human-editorial-control
+│   ├── public-interest-applications
+│   │   ├── accessible-public-information
+│   │   ├── disaster-response-support
+│   │   ├── infrastructure-inspection
+│   │   ├── service-demand-planning
+│   │   ├── fairness-and-civil-rights-review
+│   │   └── accountable-human-oversight
+│   └── domain-adoption-method
+│       ├── domain-expert-partnership
+│       ├── problem-and-data-audit
+│       ├── baseline-and-pilot
+│       ├── external-validation
+│       ├── workflow-integration
+│       └── impact-and-harm-monitoring
+└── practice-projects
+    ├── ai-concepts-and-baselines-lab
+    │   ├── task-taxonomy
+    │   ├── simple-rule-baselines
+    │   ├── data-and-model-boundaries
+    │   ├── failure-case-observation
+    │   ├── human-comparison
+    │   ├── evidence-notebook
+    │   └── learning-retrospective
+    ├── mathematics-from-scratch
+    │   ├── vector-and-matrix-operations
+    │   ├── linear-regression
+    │   ├── gradients-and-finite-differences
+    │   ├── probability-simulation
+    │   ├── optimization-visualization
+    │   ├── numerical-stability-tests
+    │   └── experiment-report
+    ├── state-space-search-engine
+    │   ├── state-and-action-model
+    │   ├── bfs-and-uniform-cost
+    │   ├── a-star-and-heuristics
+    │   ├── complexity-measurement
+    │   ├── admissibility-tests
+    │   ├── search-visualization
+    │   └── result-verification
+    ├── constraint-and-planning-lab
+    │   ├── constraint-model
+    │   ├── backtracking-and-propagation
+    │   ├── planning-actions
+    │   ├── resource-constraints
+    │   ├── solver-integration
+    │   ├── solution-validation
+    │   └── baseline-comparison
+    ├── probabilistic-diagnosis-simulator
+    │   ├── synthetic-data-model
+    │   ├── bayesian-network
+    │   ├── exact-and-sampling-inference
+    │   ├── posterior-predictive-checks
+    │   ├── uncertainty-visualization
+    │   ├── assumption-sensitivity
+    │   └── simulation-only-limitations
+    ├── tabular-prediction-service
+    │   ├── problem-and-target-definition
+    │   ├── leakage-safe-splits
+    │   ├── preprocessing-pipeline
+    │   ├── linear-and-tree-baselines
+    │   ├── hyperparameter-search
+    │   ├── calibration-and-thresholds
+    │   ├── inference-api
+    │   └── monitoring-plan
+    ├── clustering-and-segmentation-study
+    │   ├── representative-dataset
+    │   ├── preprocessing-and-similarity
+    │   ├── clustering-baselines
+    │   ├── dimensionality-reduction
+    │   ├── stability-analysis
+    │   ├── human-cluster-review
+    │   ├── ethical-use-boundaries
+    │   └── findings-report
+    ├── anomaly-detection-pipeline
+    │   ├── normal-behavior-baseline
+    │   ├── anomaly-label-review
+    │   ├── detector-comparison
+    │   ├── threshold-and-alert-policy
+    │   ├── temporal-validation
+    │   ├── feedback-capture
+    │   ├── false-alert-analysis
+    │   └── monitoring-dashboard
+    ├── time-series-forecasting-system
+    │   ├── time-aware-data-contract
+    │   ├── naive-and-seasonal-baselines
+    │   ├── feature-and-model-pipelines
+    │   ├── rolling-origin-evaluation
+    │   ├── prediction-intervals
+    │   ├── hierarchy-and-covariates
+    │   ├── forecast-service
+    │   └── drift-monitoring
+    ├── recommendation-engine
+    │   ├── interaction-dataset
+    │   ├── temporal-splits
+    │   ├── popularity-and-factorization-baselines
+    │   ├── candidate-retrieval
+    │   ├── reranking
+    │   ├── diversity-controls
+    │   ├── offline-and-online-evaluation
+    │   └── privacy-and-user-controls
+    ├── neural-network-from-scratch
+    │   ├── tensor-operations
+    │   ├── computational-graph
+    │   ├── backpropagation
+    │   ├── gradient-checks
+    │   ├── optimizer-implementation
+    │   ├── small-classification-task
+    │   ├── framework-parity-tests
+    │   └── learning-diagnostics
+    ├── computer-vision-inspection
+    │   ├── image-dataset-and-labeling
+    │   ├── augmentation-baseline
+    │   ├── transfer-learning
+    │   ├── detection-or-segmentation
+    │   ├── uncertainty-and-review
+    │   ├── deployment-benchmark
+    │   ├── robustness-tests
+    │   └── privacy-review
+    ├── multilingual-text-analysis
+    │   ├── multilingual-dataset
+    │   ├── sparse-text-baseline
+    │   ├── contextual-embeddings
+    │   ├── task-fine-tuning
+    │   ├── vietnamese-error-analysis
+    │   ├── subgroup-evaluation
+    │   ├── inference-service
+    │   └── model-card
+    ├── speech-transcription-workbench
+    │   ├── consented-audio-input
+    │   ├── audio-preprocessing
+    │   ├── recognition-baseline
+    │   ├── timestamp-alignment
+    │   ├── multilingual-and-noise-tests
+    │   ├── correction-interface
+    │   ├── latency-evaluation
+    │   └── retention-controls
+    ├── graph-learning-pipeline
+    │   ├── entity-and-edge-model
+    │   ├── graph-construction
+    │   ├── leakage-safe-splits
+    │   ├── graph-feature-baseline
+    │   ├── graph-neural-network
+    │   ├── neighborhood-sampling
+    │   ├── evaluation-and-explanations
+    │   └── graph-data-governance
+    ├── reinforcement-learning-playground
+    │   ├── custom-simulated-environment
+    │   ├── reward-and-observation-design
+    │   ├── tabular-baseline
+    │   ├── deep-rl-baseline
+    │   ├── exploration-policy
+    │   ├── multi-seed-evaluation
+    │   ├── reward-hacking-tests
+    │   └── trajectory-visualization
+    ├── simulated-robot-control
+    │   ├── simulation-and-safety-boundary
+    │   ├── sensing-and-state-estimation
+    │   ├── classical-controller
+    │   ├── imitation-or-rl-policy
+    │   ├── domain-randomization
+    │   ├── failure-and-recovery-tests
+    │   ├── human-override
+    │   └── simulation-limitations
+    ├── generative-model-comparison
+    │   ├── licensed-small-dataset
+    │   ├── autoencoder-baseline
+    │   ├── adversarial-or-diffusion-model
+    │   ├── training-diagnostics
+    │   ├── controlled-sampling
+    │   ├── diversity-and-fidelity-evaluation
+    │   ├── memorization-checks
+    │   └── provenance-record
+    ├── small-transformer-training
+    │   ├── tokenizer-and-dataset
+    │   ├── model-architecture
+    │   ├── attention-and-mask-tests
+    │   ├── training-loop
+    │   ├── checkpoint-and-resume
+    │   ├── language-model-evaluation
+    │   ├── compute-and-data-report
+    │   └── limitations-documentation
+    ├── document-search-and-rag
+    │   ├── permitted-document-collection
+    │   ├── parsing-and-chunking
+    │   ├── sparse-and-dense-retrieval
+    │   ├── hybrid-reranking
+    │   ├── grounded-answer-generation
+    │   ├── source-citations
+    │   ├── answerability-and-abstention
+    │   ├── retrieval-and-answer-evaluation
+    │   └── permission-aware-access
+    ├── structured-extraction-assistant
+    │   ├── document-and-field-schema
+    │   ├── extraction-prompts
+    │   ├── output-validation
+    │   ├── evidence-span-links
+    │   ├── ambiguity-and-missing-values
+    │   ├── human-review-queue
+    │   ├── field-level-evaluation
+    │   └── secure-export
+    ├── parameter-efficient-adaptation
+    │   ├── task-baseline
+    │   ├── licensed-training-data
+    │   ├── low-rank-adapter-training
+    │   ├── held-out-evaluation
+    │   ├── general-capability-regressions
+    │   ├── safety-and-memorization-tests
+    │   ├── inference-cost-comparison
+    │   └── adapter-release-card
+    ├── preference-learning-lab
+    │   ├── consented-preference-dataset
+    │   ├── annotation-rubric
+    │   ├── reward-model-baseline
+    │   ├── preference-optimization
+    │   ├── controlled-model-comparison
+    │   ├── reward-overoptimization-tests
+    │   ├── safety-regressions
+    │   └── experiment-report
+    ├── bounded-tool-using-agent
+    │   ├── task-and-tool-contracts
+    │   ├── deterministic-workflow-baseline
+    │   ├── sandboxed-tools
+    │   ├── permissions-and-approvals
+    │   ├── durable-state
+    │   ├── bounded-planning-loop
+    │   ├── adversarial-tool-results
+    │   ├── trajectory-evaluation
+    │   └── cancellation-and-recovery
+    ├── mcp-integration-sandbox
+    │   ├── read-only-server
+    │   ├── client-and-host-integration
+    │   ├── typed-tool-contracts
+    │   ├── resource-access-policy
+    │   ├── authorization-boundaries
+    │   ├── error-and-timeout-handling
+    │   ├── protocol-compatibility-tests
+    │   └── security-review
+    ├── multimodal-document-assistant
+    │   ├── document-images-and-text
+    │   ├── layout-and-table-extraction
+    │   ├── visual-retrieval
+    │   ├── cross-modal-question-answering
+    │   ├── evidence-links
+    │   ├── visual-hallucination-tests
+    │   ├── permission-aware-storage
+    │   └── human-verification
+    ├── local-and-edge-inference
+    │   ├── model-and-device-selection
+    │   ├── export-and-quantization
+    │   ├── baseline-quality-comparison
+    │   ├── memory-and-latency-profiling
+    │   ├── offline-data-handling
+    │   ├── graceful-fallback
+    │   ├── battery-or-resource-budget
+    │   └── deployment-report
+    ├── mlops-delivery-platform
+    │   ├── versioned-datasets
+    │   ├── reproducible-training
+    │   ├── experiment-tracking
+    │   ├── model-registry
+    │   ├── pipeline-tests
+    │   ├── canary-serving
+    │   ├── drift-and-performance-monitoring
+    │   ├── rollback-drill
+    │   └── ownership-and-runbooks
+    ├── ai-evaluation-and-defense-lab
+    │   ├── authorized-synthetic-scenarios
+    │   ├── model-and-system-baselines
+    │   ├── task-quality-evaluations
+    │   ├── fairness-and-robustness-slices
+    │   ├── prompt-injection-defense-tests
+    │   ├── privacy-and-output-handling-tests
+    │   ├── risk-register
+    │   └── remediation-and-regression-tests
+    └── end-to-end-ai-capstone
+        ├── stakeholder-and-domain-requirements
+        ├── baseline-and-feasibility
+        ├── data-and-model-lineage
+        ├── selected-learning-pipeline
+        ├── application-and-tool-contracts
+        ├── human-review-and-oversight
+        ├── automated-evaluation
+        ├── responsible-ai-and-security-review
+        ├── scalable-deployment
+        ├── cost-and-performance-validation
+        ├── monitoring-and-incident-drills
+        └── results-and-retrospective

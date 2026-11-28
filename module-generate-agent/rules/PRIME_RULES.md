@@ -7,6 +7,11 @@ Google Sheets, Gradle, rowXX, GroupX, `master.json`/J3 cho STEP 5/6/7 là
 quy trình legacy, không áp dụng thay thế tài liệu NEW. Các quy tắc chung
 về quyền sở hữu, tối đa Worker, QA/readback và bảo vệ dữ liệu vẫn áp dụng.
 
+**Riêng STEP 4 NEW:** dùng `STEP_4_NEW.md` và Python
+`script/module-generate/step4/refresh_menu_status.py`; các đoạn
+`prepareStep4Knowledge`, `rowXX`, `refreshStep4KnowledgeStatus` và
+`verifyStep4Knowledge` bên dưới chỉ dành cho STEP 4 legacy.
+
 Áp dụng cho Prime khi điều phối bất kỳ STEP nào của `learning-platform-data/module-generate-agent/`. Đây là một phần của bộ quy định chung trong `learning-platform-data/module-generate-agent/rules/`, không phải file STEP. Prime phải đọc toàn bộ các file hiện có trong thư mục `rules/` cùng `learning-platform-data/module-generate-agent/GENERAL_AGENT_RULES.md` và file STEP hiện hành **trước mỗi STEP**; nếu context không còn đầy đủ hoặc không chắc chắn, phải đọc lại theo General Rules.
 
 ## 0. Worker modes — chỉ áp dụng trong session được đính kèm mode
@@ -35,6 +40,17 @@ Chỉ có **hai mode**. Prime áp dụng giới hạn tổng worker `ACTIVE` + `
 4. Lặp lại tuần tự cho đến khi đạt số worker được yêu cầu/được phép theo mode **và còn nhiệm vụ độc lập cần giao**. Luôn ưu tiên worker `SLEEPING`; không tạo worker dư chỉ để đủ số nếu không còn việc. Giữ nguyên giới hạn ownership và giới hạn riêng của STEP.
 
 ## 1. Prime phải điều phối đến khi hoàn thành TOÀN BỘ STEP
+
+**BẮT BUỘC rolling dispatch cho các nhiệm vụ độc lập:** Worker nào hoàn thành
+và được Prime nghiệm thu/readback, release ownership, về SLEEPING/Idle thì
+được giao ngay nhiệm vụ PENDING chưa có owner tiếp theo nếu còn việc phù hợp.
+**Không chờ toàn bộ Worker đang ACTIVE xong cùng đợt** mới tái giao; các Worker
+còn lại tiếp tục công việc hiện tại. Prime duy trì queue và ownership theo
+từng nhiệm vụ, không giao trùng, không vượt pool NORMAL/SPECIAL. Đối với
+**STEP 4 NEW**, refresh/readback trạng thái sau **từng** Worker báo kết quả
+trước khi giao bài tiếp theo, theo `STEP_4_NEW.md §2`. Quy tắc này không bỏ
+qua các phase/barrier phụ thuộc bắt buộc của STEP khác và không cho phép
+checkpoint khi vẫn còn Worker ACTIVE, PENDING hoặc BLOCKER.
 
 1. **Giao việc cho worker KHÔNG đồng nghĩa STEP đã hoàn thành.** Prime tuyệt đối không kết thúc phiên/chốt câu trả lời chỉ vì đã giao xong đợt việc đầu tiên (ví dụ giao cho 3 worker). Prime giữ trách nhiệm điều phối cho đến khi **toàn bộ phạm vi STEP được xử lý và xác minh**.
 2. Trước khi giao, Prime lập danh sách đầy đủ các đơn vị công việc phải xử lý (module, chương, bài hoặc hạng mục tùy STEP), xác định đơn vị đã hoàn thành, còn thiếu, đang chạy, `BLOCKER`/`FAILED` và worker chịu trách nhiệm. Không chỉ lập kế hoạch cho số đơn vị vừa đủ lấp đầy pool ban đầu.

@@ -1,0 +1,819 @@
+﻿unity-module
+├── foundations
+│   ├── unity-and-game-engine-overview
+│   │   ├── what-unity-is-and-how-it-works
+│   │   ├── unity-editor-runtime-and-player
+│   │   ├── unity-use-cases-and-platforms
+│   │   ├── unity-licensing-and-editions
+│   │   ├── unity-release-channels-and-versioning
+│   │   ├── unity-project-lifecycle
+│   │   └── unity-developer-learning-path
+│   ├── development-environment
+│   │   ├── unity-hub-and-editor-installation
+│   │   ├── editor-version-and-module-management
+│   │   ├── visual-studio-and-rider-setup
+│   │   ├── dotnet-sdk-and-csharp-tooling
+│   │   ├── android-and-ios-build-tools
+│   │   ├── graphics-and-device-drivers
+│   │   ├── command-line-and-editor-scripting
+│   │   └── reproducible-project-setup
+│   ├── editor-interface-and-workflow
+│   │   ├── scene-and-game-views
+│   │   ├── hierarchy-and-project-windows
+│   │   ├── inspector-and-properties
+│   │   ├── scene-gizmos-and-handles
+│   │   ├── layout-and-workspace-customization
+│   │   ├── shortcuts-and-productivity
+│   │   ├── console-and-editor-diagnostics
+│   │   └── play-mode-and-editor-modes
+│   ├── project-structure-and-configuration
+│   │   ├── assets-and-packages-folders
+│   │   ├── scenes-and-build-settings
+│   │   ├── project-settings
+│   │   ├── quality-and-graphics-settings
+│   │   ├── tags-layers-and-sorting-layers
+│   │   ├── scripting-runtime-and-api-compatibility
+│   │   ├── platform-build-settings
+│   │   └── assembly-definitions
+│   └── unity-documentation-and-ecosystem
+│       ├── manual-and-scripting-api
+│       ├── package-manager-and-registry
+│       ├── asset-store-and-package-licensing
+│       ├── sample-projects-and-learning-resources
+│       ├── release-notes-and-upgrade-guides
+│       ├── community-and-support
+│       └── issue-tracker-and-known-limitations
+├── csharp-and-unity-scripting
+│   ├── csharp-language-for-unity
+│   │   ├── syntax-types-and-control-flow
+│   │   ├── classes-structs-and-records
+│   │   ├── interfaces-and-inheritance
+│   │   ├── generics-and-collections
+│   │   ├── delegates-events-and-lambdas
+│   │   ├── properties-and-attributes
+│   │   ├── extension-methods-and-utility-classes
+│   │   ├── exceptions-and-error-handling
+│   │   └── csharp-version-and-unity-compatibility
+│   ├── unity-object-model
+│   │   ├── unityengine-object
+│   │   ├── gameobject-and-component
+│   │   ├── monobehaviour
+│   │   ├── scriptable-object
+│   │   ├── component-references-and-serialization
+│   │   ├── instantiate-and-destroy
+│   │   ├── object-lifetime-and-null-semantics
+│   │   └── execution-order
+│   ├── monobehaviour-lifecycle
+│   │   ├── awake-and-on-enable
+│   │   ├── start-and-first-frame
+│   │   ├── update-and-late-update
+│   │   ├── fixed-update
+│   │   ├── on-disable-and-on-destroy
+│   │   ├── application-and-scene-events
+│   │   ├── script-execution-order
+│   │   └── lifecycle-and-domain-reload
+│   ├── coroutines-and-asynchronous-work
+│   │   ├── coroutine-basics-and-yield-instructions
+│   │   ├── coroutine-lifecycle-and-cancellation
+│   │   ├── async-await-in-unity
+│   │   ├── task-and-threading-constraints
+│   │   ├── unity-synchronization-context
+│   │   ├── cancellation-and-timeouts
+│   │   ├── asynchronous-scene-and-asset-loading
+│   │   └── error-propagation-and-exception-handling
+│   ├── events-and-messaging
+│   │   ├── csharp-events-and-actions
+│   │   ├── unityevent-and-inspector-binding
+│   │   ├── delegates-and-event-chains
+│   │   ├── observer-and-publisher-subscriber
+│   │   ├── event-bus-and-message-routing
+│   │   ├── event-subscription-lifetimes
+│   │   └── decoupled-gameplay-communication
+│   └── scripting-quality-and-tooling
+│       ├── naming-and-code-organization
+│       ├── serialized-fields-and-inspector-exposure
+│       ├── custom-attributes-and-property-drawers
+│       ├── assembly-definitions-and-compilation
+│       ├── code-analysis-and-formatting
+│       ├── debugging-and-breakpoints
+│       ├── logging-and-assertions
+│       └── script-documentation
+├── core-unity-engine-concepts
+│   ├── gameobjects-and-components
+│   │   ├── component-composition
+│   │   ├── built-in-components
+│   │   ├── custom-components
+│   │   ├── component-dependencies
+│   │   ├── component-discovery-and-caching
+│   │   ├── enable-and-disable-behavior
+│   │   └── component-reuse-and-boundaries
+│   ├── transforms-and-coordinate-spaces
+│   │   ├── position-rotation-and-scale
+│   │   ├── local-and-world-space
+│   │   ├── parent-child-transform-hierarchy
+│   │   ├── quaternion-and-euler-angles
+│   │   ├── transform-directions-and-vectors
+│   │   ├── matrices-and-transform-composition
+│   │   ├── coordinate-conversion
+│   │   └── transform-performance
+│   ├── scenes-and-scene-management
+│   │   ├── scene-creation-and-organization
+│   │   ├── single-and-additive-loading
+│   │   ├── asynchronous-scene-loading
+│   │   ├── active-scene-and-scene-lifecycle
+│   │   ├── scene-transitions-and-loading-screens
+│   │   ├── cross-scene-references
+│   │   ├── persistent-gameobjects
+│   │   └── scene-unloading-and-memory
+│   ├── prefabs-and-reusable-content
+│   │   ├── prefab-assets-and-instances
+│   │   ├── prefab-variants
+│   │   ├── nested-prefabs
+│   │   ├── overrides-and-apply-revert
+│   │   ├── prefab-mode-and-editing
+│   │   ├── runtime-prefab-instantiation
+│   │   ├── prefab-workflows-and-collaboration
+│   │   └── prefab-validation
+│   ├── serialization-and-data
+│   │   ├── unity-serialization-rules
+│   │   ├── serialized-fields-and-properties
+│   │   ├── serialize-reference
+│   │   ├── scriptable-object-data-assets
+│   │   ├── json-and-binary-serialization
+│   │   ├── save-data-and-versioning
+│   │   ├── editor-serialization
+│   │   └── serialization-limitations
+│   └── asset-and-resource-management
+│       ├── asset-import-pipeline
+│       ├── import-settings-and-meta-files
+│       ├── asset-references-and-guids
+│       ├── resources-loading
+│       ├── asset-bundles
+│       ├── addressables
+│       ├── asset-dependencies-and-duplication
+│       └── unloading-and-memory-ownership
+├── gameplay-programming
+│   ├── game-loop-and-time
+│   │   ├── frame-rate-and-delta-time
+│   │   ├── scaled-and-unscaled-time
+│   │   ├── fixed-timestep-and-physics-loop
+│   │   ├── time-scale-and-pause
+│   │   ├── deterministic-update-order
+│   │   └── frame-independent-movement
+│   ├── input-system
+│   │   ├── legacy-input-overview
+│   │   ├── input-system-package
+│   │   ├── actions-and-action-maps
+│   │   ├── control-schemes-and-bindings
+│   │   ├── input-action-assets
+│   │   ├── rebinding-and-accessibility
+│   │   ├── touch-and-pointer-input
+│   │   ├── gamepad-and-controller-support
+│   │   └── input-testing-and-debugging
+│   ├── character-and-camera-systems
+│   │   ├── player-movement-controller
+│   │   ├── character-controller-component
+│   │   ├── rigidbody-based-controller
+│   │   ├── first-person-controller
+│   │   ├── third-person-controller
+│   │   ├── camera-follow-and-look
+│   │   ├── cinemachine
+│   │   ├── camera-collision-and-occlusion
+│   │   └── camera-state-and-blending
+│   ├── gameplay-systems
+│   │   ├── game-state-and-scene-flow
+│   │   ├── health-damage-and-death
+│   │   ├── combat-and-targeting
+│   │   ├── inventory-and-equipment
+│   │   ├── interaction-and-pickups
+│   │   ├── quest-and-objective-systems
+│   │   ├── dialogue-and-conversation
+│   │   ├── abilities-and-cooldowns
+│   │   ├── progression-and-experience
+│   │   ├── checkpoints-and-save-points
+│   │   └── save-and-load-workflows
+│   ├── gameplay-architecture-and-patterns
+│   │   ├── component-based-gameplay
+│   │   ├── finite-state-machines
+│   │   ├── state-and-strategy-patterns
+│   │   ├── command-pattern-and-input-commands
+│   │   ├── object-pooling
+│   │   ├── dependency-injection
+│   │   ├── service-locator-tradeoffs
+│   │   ├── data-driven-gameplay
+│   │   └── gameplay-system-testing
+│   └── artificial-intelligence-and-navigation
+│       ├── navmesh-and-navigation-surfaces
+│       ├── navmesh-agents-and-obstacles
+│       ├── off-mesh-links
+│       ├── pathfinding-and-dynamic-navigation
+│       ├── finite-state-machine-ai
+│       ├── behavior-tree-integration
+│       ├── perception-and-sensory-systems
+│       ├── steering-and-squad-behavior
+│       └── ai-debugging-and-visualization
+├── physics-and-collision
+│   ├── 3d-physics
+│   │   ├── rigidbody-and-mass
+│   │   ├── colliders-and-collider-shapes
+│   │   ├── triggers-and-collision-events
+│   │   ├── physics-materials
+│   │   ├── layers-and-collision-matrix
+│   │   ├── raycasts-spherecasts-and-capsulecasts
+│   │   ├── joints-and-constraints
+│   │   ├── continuous-collision-detection
+│   │   └── physics-scene-and-simulation
+│   ├── 2d-physics
+│   │   ├── rigidbody2d-and-body-types
+│   │   ├── collider2d-shapes
+│   │   ├── triggers-and-contact-filters
+│   │   ├── physics-material-2d
+│   │   ├── joints-and-effector-systems
+│   │   ├── raycasts-and-shape-casts
+│   │   └── 2d-physics-simulation-settings
+│   ├── physics-query-and-response
+│   │   ├── collision-versus-trigger-design
+│   │   ├── contact-points-and-normals
+│   │   ├── overlap-and-cast-queries
+│   │   ├── collision-filtering
+│   │   ├── interpolation-and-extrapolation
+│   │   ├── physics-material-response
+│   │   └── common-physics-instability
+│   └── physics-performance-and-debugging
+│       ├── fixed-timestep-tuning
+│       ├── solver-iteration-settings
+│       ├── collider-complexity
+│       ├── broadphase-and-narrowphase
+│       ├── physics-profiler-markers
+│       ├── physics-debug-visualization
+│       └── performance-and-determinism-limitations
+├── graphics-and-rendering
+│   ├── rendering-pipeline-fundamentals
+│   │   ├── built-in-render-pipeline-overview
+│   │   ├── universal-render-pipeline
+│   │   ├── high-definition-render-pipeline
+│   │   ├── render-pipeline-assets-and-settings
+│   │   ├── camera-and-renderer-configuration
+│   │   ├── forward-and-deferred-rendering
+│   │   ├── render-features-and-render-passes
+│   │   └── pipeline-selection-and-migration
+│   ├── materials-and-shaders
+│   │   ├── materials-and-shader-properties
+│   │   ├── shader-graph
+│   │   ├── hlsl-and-shaderlab-overview
+│   │   ├── vertex-and-fragment-shaders
+│   │   ├── surface-and-lit-shading
+│   │   ├── physically-based-rendering
+│   │   ├── procedural-shaders
+│   │   ├── compute-shaders
+│   │   ├── shader-variants-and-stripping
+│   │   └── shader-debugging
+│   ├── lighting-and-shadows
+│   │   ├── realtime-and-baked-lighting
+│   │   ├── mixed-lighting
+│   │   ├── lightmaps-and-uvs
+│   │   ├── light-probes
+│   │   ├── reflection-probes
+│   │   ├── shadow-maps-and-cascades
+│   │   ├── global-illumination-workflows
+│   │   └── lighting-optimization
+│   ├── cameras-and-post-processing
+│   │   ├── camera-projection-and-clipping
+│   │   ├── camera-stacking
+│   │   ├── post-processing-volume
+│   │   ├── color-grading-and-tonemapping
+│   │   ├── anti-aliasing
+│   │   ├── depth-of-field-and-motion-blur
+│   │   ├── screen-space-effects
+│   │   └── render-texture-and-capture
+│   ├── 2d-rendering
+│   │   ├── sprite-renderer
+│   │   ├── sprite-atlas-and-packing
+│   │   ├── tilemap-rendering
+│   │   ├── sorting-groups-and-layers
+│   │   ├── 2d-lighting-and-shadow-caster
+│   │   ├── pixel-perfect-camera
+│   │   └── 2d-renderer-features
+│   ├── visual-effects
+│   │   ├── visual-effect-graph
+│   │   ├── particle-system
+│   │   ├── trails-and-lines
+│   │   ├── decals-and-projectors
+│   │   ├── volumetric-and-screen-effects
+│   │   ├── gpu-and-cpu-particle-workloads
+│   │   └── effects-profiling
+│   └── rendering-performance
+│       ├── draw-calls-and-batching
+│       ├── static-and-dynamic-batching
+│       ├── gpu-instancing
+│       ├── srp-batcher
+│       ├── occlusion-and-frustum-culling
+│       ├── level-of-detail-and-impostors
+│       ├── render-scale-and-resolution
+│       └── frame-debugger-and-renderdoc
+├── animation-and-character-production
+│   ├── animation-system-fundamentals
+│   │   ├── animation-clips-and-import-settings
+│   │   ├── animator-controller
+│   │   ├── states-and-transitions
+│   │   ├── blend-trees
+│   │   ├── layers-and-avatar-masks
+│   │   ├── animation-events
+│   │   ├── root-motion
+│   │   └── animation-retargeting
+│   ├── rigging-and-constraints
+│   │   ├── humanoid-and-generic-rigs
+│   │   ├── avatar-configuration
+│   │   ├── inverse-kinematics
+│   │   ├── animation-rigging-package
+│   │   ├── two-bone-and-chain-ik
+│   │   ├── rig-constraints
+│   │   └── runtime-rigging-performance
+│   ├── timeline-and-cinematics
+│   │   ├── timeline-editor
+│   │   ├── playable-director
+│   │   ├── animation-and-audio-tracks
+│   │   ├── signal-tracks-and-events
+│   │   ├── camera-cinematics
+│   │   ├── cutscene-control-and-skip
+│   │   └── runtime-timeline-integration
+│   └── character-and-animation-integration
+│       ├── character-controller-and-animation
+│       ├── animation-state-synchronization
+│       ├── procedural-motion
+│       ├── facial-and-blend-shape-animation
+│       ├── ragdoll-and-physics-animation
+│       ├── animation-optimization
+│       └── animation-debugging
+├── audio-and-user-interface
+│   ├── audio-system
+│   │   ├── audio-listener-and-audio-source
+│   │   ├── audio-clips-and-import-settings
+│   │   ├── audio-mixer-and-groups
+│   │   ├── snapshots-and-mix-transitions
+│   │   ├── spatial-audio-and-rolloff
+│   │   ├── audio-effects-and-filters
+│   │   ├── audio-mixer-snapshots
+│   │   └── audio-performance-and-memory
+│   ├── ui-toolkit
+│   │   ├── ui-toolkit-architecture
+│   │   ├── uxml-and-uss
+│   │   ├── visual-element-and-controls
+│   │   ├── data-binding-and-events
+│   │   ├── runtime-ui
+│   │   ├── editor-ui-and-custom-inspectors
+│   │   └── ui-toolkit-styling-and-performance
+│   ├── ugui-and-canvas-system
+│   │   ├── canvas-and-render-modes
+│   │   ├── rect-transform-and-anchors
+│   │   ├── layout-groups-and-layout-elements
+│   │   ├── event-system-and-raycasters
+│   │   ├── textmeshpro
+│   │   ├── canvas-scaling-and-resolution
+│   │   ├── masking-and-clipping
+│   │   └── canvas-rebuild-optimization
+│   └── ui-and-audio-integration
+│       ├── menu-and-hud-architecture
+│       ├── input-navigation-and-focus
+│       ├── accessibility-and-localization
+│       ├── ui-animation-and-transitions
+│       ├── audio-feedback-and-mixing
+│       └── runtime-ui-testing
+├── data-oriented-and-high-performance-unity
+│   ├── jobs-and-burst
+│   │   ├── job-system-fundamentals
+│   │   ├── job-dependencies-and-scheduling
+│   │   ├── native-containers
+│   │   ├── memory-ownership-and-disposal
+│   │   ├── burst-compiler
+│   │   ├── safety-checks-and-restrictions
+│   │   └── job-system-profiling
+│   ├── entity-component-system
+│   │   ├── ecs-and-data-oriented-design
+│   │   ├── entities-and-components
+│   │   ├── worlds-and-entity-managers
+│   │   ├── systems-and-system-groups
+│   │   ├── baking-and-authoring-components
+│   │   ├── entity-queries-and-aspects
+│   │   ├── structural-changes
+│   │   └── ecs-debugging-and-profiling
+│   ├── memory-and-garbage-collection
+│   │   ├── managed-and-native-memory
+│   │   ├── garbage-collection-and-allocations
+│   │   ├── nativearray-and-nativelist
+│   │   ├── object-pooling-and-reuse
+│   │   ├── asset-and-object-lifetimes
+│   │   ├── memory-profiler-workflows
+│   │   └── leak-detection-and-disposal
+│   └── multithreading-and-performance
+│       ├── main-thread-and-worker-threads
+│       ├── thread-safety-and-unity-api-restrictions
+│       ├── parallel-for-and-job-batching
+│       ├── async-loading-and-work-scheduling
+│       ├── cache-locality-and-data-layout
+│       ├── cpu-and-gpu-workload-balancing
+│       └── performance-budgeting
+├── editor-extension-and-tool-development
+│   ├── editor-scripting
+│   │   ├── editor-assembly-and-editor-folder
+│   │   ├── custom-editor-windows
+│   │   ├── custom-inspectors
+│   │   ├── property-drawers
+│   │   ├── menu-items-and-context-menus
+│   │   ├── editor-lifecycle-and-play-mode
+│   │   ├── serializedobject-and-serializedproperty
+│   │   └── editor-tool-testing
+│   ├── scene-and-content-tools
+│   │   ├── gizmos-and-handles
+│   │   ├── scene-view-tools
+│   │   ├── custom-gizmos-and-overlays
+│   │   ├── level-validation-tools
+│   │   ├── batch-object-and-asset-processing
+│   │   ├── procedural-scene-authoring
+│   │   └── editor-workflow-automation
+│   ├── asset-import-and-build-pipeline
+│   │   ├── assetpostprocessor
+│   │   ├── scripted-importers
+│   │   ├── asset-database-api
+│   │   ├── buildpipeline-api
+│   │   ├── preprocess-and-postprocess-build
+│   │   ├── content-validation
+│   │   └── custom-build-tools
+│   └── package-and-tool-distribution
+│       ├── unity-package-manager-packages
+│       ├── package-manifest-and-dependencies
+│       ├── assembly-definition-and-visibility
+│       ├── samples-and-documentation
+│       ├── semantic-versioning
+│       ├── internal-and-public-package-registry
+│       └── package-maintenance-and-compatibility
+├── asset-pipeline-and-content-management
+│   ├── asset-import-and-configuration
+│   │   ├── model-import-settings
+│   │   ├── texture-import-and-compression
+│   │   ├── audio-import-and-compression
+│   │   ├── sprite-and-atlas-import
+│   │   ├── animation-import-settings
+│   │   ├── platform-overrides
+│   │   └── asset-validation
+│   ├── addressables-and-content-delivery
+│   │   ├── addressables-groups-and-labels
+│   │   ├── addressable-assets-and-references
+│   │   ├── asynchronous-loading-and-release
+│   │   ├── remote-catalogs-and-content-updates
+│   │   ├── assetbundle-dependencies
+│   │   ├── content-build-and-deployment
+│   │   └── addressables-profiling-and-debugging
+│   ├── localization-and-content-variants
+│   │   ├── localization-package
+│   │   ├── string-and-asset-tables
+│   │   ├── locale-selection-and-fallback
+│   │   ├── localized-fonts-and-layout
+│   │   ├── smart-strings-and-pluralization
+│   │   ├── platform-content-variants
+│   │   └── localization-testing
+│   └── asset-governance
+│       ├── folder-and-naming-conventions
+│       ├── asset-ownership-and-dependencies
+│       ├── source-art-and-generated-assets
+│       ├── licensing-and-attribution
+│       ├── large-file-and-version-control
+│       └── asset-cleanup-and-archiving
+├── multiplayer-and-online-services
+│   ├── networking-fundamentals
+│   │   ├── client-server-and-peer-to-peer
+│   │   ├── latency-and-bandwidth
+│   │   ├── transport-and-serialization
+│   │   ├── authority-and-trust-boundaries
+│   │   ├── network-time-and-tick-rate
+│   │   └── network-debugging
+│   ├── unity-netcode-and-networking
+│   │   ├── netcode-for-gameobjects
+│   │   ├── netcode-for-entities
+│   │   ├── network-manager-and-transport
+│   │   ├── network-objects-and-behaviours
+│   │   ├── ownership-and-authority
+│   │   ├── rpc-and-network-messaging
+│   │   ├── network-variable-and-state-replication
+│   │   ├── scene-management-and-spawning
+│   │   └── network-simulation-and-testing
+│   ├── multiplayer-gameplay
+│   │   ├── lobby-and-session-management
+│   │   ├── matchmaking-and-relay
+│   │   ├── player-spawn-and-reconnect
+│   │   ├── client-prediction-and-interpolation
+│   │   ├── lag-compensation
+│   │   ├── server-authoritative-gameplay
+│   │   ├── synchronization-of-physics
+│   │   └── disconnect-and-host-migration
+│   ├── unity-online-services
+│   │   ├── unity-services-overview
+│   │   ├── authentication
+│   │   ├── lobby-and-relay-services
+│   │   ├── cloud-save
+│   │   ├── leaderboards-and-achievements
+│   │   ├── analytics-and-player-data
+│   │   └── service-configuration-and-environments
+│   └── online-security-and-operations
+│       ├── server-side-validation
+│       ├── cheating-and-client-tampering
+│       ├── secure-session-and-identity
+│       ├── rate-limiting-and-abuse-controls
+│       ├── dedicated-server-builds
+│       └── online-service-observability
+├── platform-development-and-deployment
+│   ├── desktop-platforms
+│   │   ├── windows-player-builds
+│   │   ├── macos-player-builds
+│   │   ├── linux-player-builds
+│   │   ├── input-and-window-management
+│   │   ├── graphics-api-and-quality-configuration
+│   │   └── desktop-distribution
+│   ├── mobile-platforms
+│   │   ├── android-player-settings
+│   │   ├── ios-player-settings
+│   │   ├── android-manifest-and-gradle
+│   │   ├── ios-xcode-project-and-signing
+│   │   ├── touch-and-device-input
+│   │   ├── mobile-permissions-and-lifecycle
+│   │   ├── app-store-and-play-store-submission
+│   │   └── mobile-performance-and-thermal-limits
+│   ├── web-platform
+│   │   ├── webgl-and-web-platform-overview
+│   │   ├── web-build-configuration
+│   │   ├── browser-memory-and-threading
+│   │   ├── web-input-and-audio
+│   │   ├── compression-and-download-size
+│   │   └── browser-compatibility
+│   ├── console-and-specialized-platforms
+│   │   ├── console-platform-requirements
+│   │   ├── platform-sdk-and-access
+│   │   ├── certification-and-compliance
+│   │   ├── controller-and-platform-services
+│   │   ├── xr-and-immersive-platforms
+│   │   └── platform-specific-performance
+│   └── build-and-release-management
+│       ├── build-settings-and-scenes
+│       ├── scripting-define-symbols
+│       ├── development-and-release-builds
+│       ├── player-settings-and-quality-tiers
+│       ├── signing-and-versioning
+│       ├── build-artifacts-and-symbols
+│       ├── release-validation-and-rollbacks
+│       └── build-report-and-size-analysis
+├── testing-debugging-and-quality
+│   ├── unity-test-framework
+│   │   ├── edit-mode-tests
+│   │   ├── play-mode-tests
+│   │   ├── test-fixtures-and-setup
+│   │   ├── unitytest-and-coroutines
+│   │   ├── test-runners-and-command-line
+│   │   ├── test-coverage-and-quality-gates
+│   │   └── test-maintenance
+│   ├── gameplay-and-system-testing
+│   │   ├── component-and-system-unit-tests
+│   │   ├── scene-and-prefab-validation
+│   │   ├── input-and-interaction-tests
+│   │   ├── physics-and-collision-tests
+│   │   ├── save-and-load-tests
+│   │   ├── multiplayer-and-network-tests
+│   │   └── end-to-end-gameplay-tests
+│   ├── debugging-and-diagnostics
+│   │   ├── unity-console-and-stack-traces
+│   │   ├── breakpoints-and-attach-to-player
+│   │   ├── frame-debugger
+│   │   ├── physics-debug-visualization
+│   │   ├── memory-profiler
+│   │   ├── rendering-and-shader-debugging
+│   │   ├── crash-and-player-logs
+│   │   └── minimal-reproduction-and-bug-triage
+│   ├── profiling-and-optimization
+│   │   ├── unity-profiler-workflows
+│   │   ├── cpu-and-gpu-profiling
+│   │   ├── memory-and-gc-allocation-profiling
+│   │   ├── rendering-and-draw-call-analysis
+│   │   ├── physics-and-animation-profiling
+│   │   ├── asset-loading-and-scene-profiling
+│   │   ├── platform-specific-profiling
+│   │   └── performance-budgets-and-regression
+│   └── compatibility-and-reliability
+│       ├── unity-version-compatibility
+│       ├── device-and-hardware-matrix
+│       ├── graphics-api-compatibility
+│       ├── long-session-and-soak-testing
+│       ├── lifecycle-and-suspend-resume-testing
+│       └── release-candidate-validation
+├── architecture-and-production-workflows
+│   ├── unity-project-architecture
+│   │   ├── assembly-and-module-boundaries
+│   │   ├── runtime-and-editor-separation
+│   │   ├── dependency-injection-and-composition
+│   │   ├── scene-and-feature-architecture
+│   │   ├── data-driven-design
+│   │   ├── plugin-and-package-boundaries
+│   │   └── architecture-documentation
+│   ├── version-control-and-collaboration
+│   │   ├── git-and-unity-project-settings
+│   │   ├── meta-files-and-guid-stability
+│   │   ├── text-and-binary-serialization
+│   │   ├── smart-merge-and-conflict-resolution
+│   │   ├── large-file-storage
+│   │   ├── branching-and-release-workflows
+│   │   └── team-asset-and-scene-ownership
+│   ├── continuous-integration-and-build-automation
+│   │   ├── headless-editor-and-batch-mode
+│   │   ├── automated-import-and-validation
+│   │   ├── command-line-builds
+│   │   ├── test-execution-in-ci
+│   │   ├── build-matrix-and-artifact-publishing
+│   │   ├── license-and-secret-management
+│   │   └── build-caching-and-optimization
+│   ├── package-and-dependency-management
+│   │   ├── package-manifest-and-lock-file
+│   │   ├── embedded-and-local-packages
+│   │   ├── scoped-registries
+│   │   ├── package-version-compatibility
+│   │   ├── dependency-auditing
+│   │   └── package-upgrade-and-migration
+│   └── production-and-team-practice
+│       ├── feature-planning-and-estimation
+│       ├── technical-design-and-code-review
+│       ├── asset-and-content-review
+│       ├── bug-tracking-and-triage
+│       ├── milestone-and-release-planning
+│       ├── documentation-and-handover
+│       └── post-release-maintenance
+├── advanced-and-specialized-unity
+│   ├── universal-rendering-and-custom-render-pipelines
+│   │   ├── scriptable-render-pipeline-architecture
+│   │   ├── custom-renderer-features
+│   │   ├── render-graph-concepts
+│   │   ├── custom-render-passes
+│   │   ├── render-pipeline-debugging
+│   │   └── pipeline-extension-and-maintenance
+│   ├── advanced-content-and-world-systems
+│   │   ├── terrain-tools-and-terrain-layers
+│   │   ├── world-streaming-and-additive-scenes
+│   │   ├── large-world-coordinate-strategies
+│   │   ├── procedural-generation
+│   │   ├── runtime-mesh-generation
+│   │   ├── splines-and-path-systems
+│   │   └── content-validation-at-scale
+│   ├── xr-and-spatial-development
+│   │   ├── xr-interaction-toolkit
+│   │   ├── xr-origin-and-tracking
+│   │   ├── interaction-and-grab-systems
+│   │   ├── locomotion-and-comfort
+│   │   ├── ar-foundation
+│   │   ├── spatial-mapping-and-anchors
+│   │   └── xr-performance-and-deployment
+│   ├── machine-learning-and-intelligent-features
+│   │   ├── inference-engine-overview
+│   │   ├── on-device-model-inference
+│   │   ├── model-import-and-optimization
+│   │   ├── npc-and-gameplay-ai-integration
+│   │   ├── computer-vision-and-sensor-input
+│   │   └── privacy-and-performance-considerations
+│   └── engine-internals-and-native-extensions
+│       ├── unity-player-loop-and-native-boundaries
+│       ├── native-plugins-and-plugin-import-settings
+│       ├── platform-native-code-integration
+│       ├── il2cpp-and-managed-stripping
+│       ├── scripting-backend-and-runtime-behavior
+│       ├── custom-engine-module-investigation
+│       └── native-crash-and-symbol-analysis
+├── professional-practice-and-career
+│   ├── unity-development-workflow
+│   │   ├── problem-decomposition-and-prototyping
+│   │   ├── inspect-and-reproduce-bugs
+│   │   ├── profiling-before-optimization
+│   │   ├── incremental-and-reviewable-changes
+│   │   ├── technical-decision-records
+│   │   └── maintainable-project-delivery
+│   ├── unity-specializations
+│   │   ├── gameplay-programmer
+│   │   ├── unity-client-engineer
+│   │   ├── graphics-and-rendering-programmer
+│   │   ├── tools-and-editor-programmer
+│   │   ├── technical-artist
+│   │   ├── multiplayer-and-network-programmer
+│   │   ├── xr-developer
+│   │   └── build-and-release-engineer
+│   ├── code-and-content-quality
+│   │   ├── code-readability-and-maintainability
+│   │   ├── scene-and-prefab-review
+│   │   ├── asset-import-and-license-review
+│   │   ├── performance-and-memory-review
+│   │   ├── platform-and-accessibility-review
+│   │   └── security-and-dependency-review
+│   ├── portfolio-and-interviews
+│   │   ├── polished-2d-unity-game
+│   │   ├── 3d-gameplay-system-demo
+│   │   ├── custom-editor-tool
+│   │   ├── shader-and-rendering-demo
+│   │   ├── multiplayer-prototype
+│   │   ├── performance-optimization-case-study
+│   │   └── unity-technical-interview-practice
+│   └── continuous-learning
+│       ├── unity-manual-and-api-reference
+│       ├── unity-release-notes-and-upgrade-guides
+│       ├── package-documentation-and-samples
+│       ├── graphics-and-platform-research
+│       ├── unity-community-and-open-source
+│       └── project-postmortems-and-lessons
+└── practice-projects
+    ├── 2d-platformer
+    │   ├── scene-and-prefab-setup
+    │   ├── player-input-and-controller
+    │   ├── collision-and-ground-detection
+    │   ├── camera-and-cinemachine
+    │   ├── tilemap-and-level-design
+    │   ├── animation-and-audio
+    │   ├── ui-and-game-state
+    │   └── build-and-playtest
+    ├── 3d-third-person-adventure
+    │   ├── character-and-camera-controller
+    │   ├── interaction-and-combat
+    │   ├── animator-and-state-machine
+    │   ├── inventory-and-quest-system
+    │   ├── lighting-and-environment
+    │   ├── save-and-load
+    │   └── profiling-and-polish
+    ├── physics-puzzle-game
+    │   ├── rigidbody-and-collider-design
+    │   ├── physics-driven-interactions
+    │   ├── puzzle-state-management
+    │   ├── level-and-checkpoint-system
+    │   ├── feedback-and-effects
+    │   └── physics-test-suite
+    ├── mobile-casual-game
+    │   ├── touch-input-and-responsive-ui
+    │   ├── mobile-friendly-rendering
+    │   ├── save-and-cloud-sync
+    │   ├── ads-and-in-app-purchase-integration
+    │   ├── analytics-and-remote-config
+    │   ├── android-and-ios-builds
+    │   └── store-release-and-device-testing
+    ├── addressables-content-driven-game
+    │   ├── asset-group-and-label-design
+    │   ├── asynchronous-asset-loading
+    │   ├── remote-content-catalog
+    │   ├── downloadable-content-update
+    │   ├── asset-release-and-memory-management
+    │   └── content-build-validation
+    ├── multiplayer-cooperative-game
+    │   ├── network-session-and-lobby
+    │   ├── player-spawning-and-ownership
+    │   ├── networked-gameplay-state
+    │   ├── synchronized-interactions
+    │   ├── latency-and-disconnection-handling
+    │   ├── dedicated-server-build
+    │   └── multiplayer-load-and-security-tests
+    ├── custom-unity-editor-tool
+    │   ├── editor-window-and-inspector
+    │   ├── serialized-property-editing
+    │   ├── scene-view-handles
+    │   ├── batch-asset-processing
+    │   ├── validation-and-undo-support
+    │   └── package-and-documentation
+    ├── rendering-and-shader-showcase
+    │   ├── urp-project-and-renderer-setup
+    │   ├── shader-graph-and-custom-shaders
+    │   ├── lighting-and-post-processing
+    │   ├── visual-effects-and-particles
+    │   ├── frame-debugger-analysis
+    │   └── gpu-performance-report
+    ├── ecs-and-high-performance-simulation
+    │   ├── entity-and-component-data-model
+    │   ├── systems-and-jobs
+    │   ├── burst-optimized-simulation
+    │   ├── native-memory-and-disposal
+    │   ├── entity-baking-and-authoring
+    │   └── performance-comparison
+    ├── xr-interaction-experience
+    │   ├── xr-project-and-device-setup
+    │   ├── tracked-input-and-interaction
+    │   ├── locomotion-and-comfort
+    │   ├── spatial-ui-and-feedback
+    │   ├── ar-foundation-or-vr-integration
+    │   └── device-performance-validation
+    └── end-to-end-unity-game-production
+        ├── concept-and-project-setup
+        │   ├── target-platform-and-game-design
+        │   ├── unity-version-and-render-pipeline-selection
+        │   ├── repository-and-asset-conventions
+        │   └── milestones-and-acceptance-criteria
+        ├── implementation-and-content
+        │   ├── gameplay-and-application-architecture
+        │   ├── scenes-prefabs-and-addressables
+        │   ├── art-animation-audio-and-ui
+        │   ├── platform-and-online-integration
+        │   └── profiling-and-optimization
+        └── validation-and-release
+            ├── edit-mode-and-play-mode-tests
+            ├── device-and-platform-compatibility
+            ├── performance-and-memory-validation
+            ├── build-and-release-automation
+            ├── store-submission-and-rollout
+            ├── crash-and-player-telemetry
+            └── post-release-maintenance

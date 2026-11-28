@@ -10,7 +10,7 @@ STEP 2 mới tạo **ba file tiếng Việt** trong đúng module được giao,
 <MODULE_LOCATION>/content/base/vi/base.md
 ```
 
-**STEP 2 import cả ba loại dữ liệu vào DB:** Roadmap → `MODULE_ROADMAP`, Reference → `MODULE_REFERENCE`, Base → `MODULE_OVERVIEW`. Dùng **importer Overview mới** tại `script/module/step2/import-module-overviews.py`, không gọi bản importer toàn hệ thống ở `script/database/all-module/import-module-overviews.py`. Không tự sao chép `base.md` sang `content/readme/docs/vi/BASE.md`; `base.md` mới (chữ thường) chính là phần giới thiệu thay ô B17 trong STEP 2 cũ. STEP 2 cũ và file worker cũ giữ nguyên, không áp dụng các tọa độ Sheet cho bước NEW này.
+**STEP 2 import cả ba loại dữ liệu vào DB:** Roadmap → `MODULE_ROADMAP`, Reference → `MODULE_REFERENCE`, Base → `MODULE_OVERVIEW`. Dùng **importer Overview mới** tại `script/module-generate/step2/import-module-overviews.py`, không gọi bản importer toàn hệ thống ở `script/database/all-module/import-module-overviews.py`. Không tự sao chép `base.md` sang `content/readme/docs/vi/BASE.md`; `base.md` mới (chữ thường) chính là phần giới thiệu thay ô B17 trong STEP 2 cũ. STEP 2 cũ và file worker cũ giữ nguyên, không áp dụng các tọa độ Sheet cho bước NEW này.
 
 ## 1. Prime: xác minh module, tạo skeleton
 
@@ -20,8 +20,8 @@ STEP 2 mới tạo **ba file tiếng Việt** trong đúng module được giao,
 4. Tại root java-learning, chạy:
 
 ```powershell
-python script/module/step2/generate-basic-info-skeleton.py --module "<MODULE_LOCATION>" --lang vi --dry-run
-python script/module/step2/generate-basic-info-skeleton.py --module "<MODULE_LOCATION>" --lang vi
+python script/module-generate/step2/generate-basic-info-skeleton.py --module "<MODULE_LOCATION>" --lang vi --dry-run
+python script/module-generate/step2/generate-basic-info-skeleton.py --module "<MODULE_LOCATION>" --lang vi
 ```
 
 Script tạo khi thiếu: `roadmap.yml` với `roadmap: []`, `references.yml` với `references: []`, và `base.md` trống. **Không sửa file đã tồn tại.** Nếu bất kỳ file nào đã có nội dung tác giả, phải dừng và hòa giải thủ công trước khi giao Worker; không xóa và tạo lại.
@@ -55,7 +55,7 @@ Với ghi chú nhiều dòng, truyền dưới dạng khối được phân đ�
 
 ## 4. Prime: import Roadmap, Reference và Base vào Oracle (VI)
 
-Ba bản chuyên dụng đặt tại `script/module/step2/`, copy từ `script/database/all-module/import-module-roadmaps.py`, `script/database/all-module/import-module-references.py` và `script/database/all-module/import-module-overviews.py`:
+Ba bản chuyên dụng đặt tại `script/module-generate/step2/`, copy từ `script/database/all-module/import-module-roadmaps.py`, `script/database/all-module/import-module-references.py` và `script/database/all-module/import-module-overviews.py`:
 
 - `import-module-roadmaps.py`, `import-module-references.py` và `import-module-overviews.py` đọc định danh `SERVICE_NAME` từ `module-info.json`.
 - `import-module-overviews.py` chỉ đọc **`<MODULE_LOCATION>/content/base/vi/base.md`**, giữ nguyên nội dung Markdown để MERGE vào `MODULE_OVERVIEW.MARKDOWN_CONTENT` theo `SERVICE_NAME`/ngôn ngữ `vi`. **Không** đọc `master.json` hoặc `content/readme/docs/vi/BASE.md` cũ. File importer toàn module tại `script/database/all-module/import-module-overviews.py` giữ nguyên logic cũ.
@@ -65,18 +65,18 @@ Ba bản chuyên dụng đặt tại `script/module/step2/`, copy từ `script/d
 Từ root java-learning, ví dụ `SPRING_CONCURRENCY` **chỉ minh họa**; thay bằng SERVICE_NAME thực của module:
 
 ```powershell
-python script/module/step2/import-module-roadmaps.py --module SPRING_CONCURRENCY --lang vi --offline
-python script/module/step2/import-module-references.py --module SPRING_CONCURRENCY --lang vi --offline
-python script/module/step2/import-module-overviews.py --module SPRING_CONCURRENCY --lang vi --offline
+python script/module-generate/step2/import-module-roadmaps.py --module SPRING_CONCURRENCY --lang vi --offline
+python script/module-generate/step2/import-module-references.py --module SPRING_CONCURRENCY --lang vi --offline
+python script/module-generate/step2/import-module-overviews.py --module SPRING_CONCURRENCY --lang vi --offline
 
-python script/module/step2/import-module-roadmaps.py --module SPRING_CONCURRENCY --lang vi --dry-run
-python script/module/step2/import-module-references.py --module SPRING_CONCURRENCY --lang vi --dry-run
-python script/module/step2/import-module-overviews.py --module SPRING_CONCURRENCY --lang vi --dry-run
+python script/module-generate/step2/import-module-roadmaps.py --module SPRING_CONCURRENCY --lang vi --dry-run
+python script/module-generate/step2/import-module-references.py --module SPRING_CONCURRENCY --lang vi --dry-run
+python script/module-generate/step2/import-module-overviews.py --module SPRING_CONCURRENCY --lang vi --dry-run
 
 # Chỉ sau khi cả ba dry-run và QA PASS:
-python script/module/step2/import-module-roadmaps.py --module SPRING_CONCURRENCY --lang vi --apply
-python script/module/step2/import-module-references.py --module SPRING_CONCURRENCY --lang vi --apply
-python script/module/step2/import-module-overviews.py --module SPRING_CONCURRENCY --lang vi --apply
+python script/module-generate/step2/import-module-roadmaps.py --module SPRING_CONCURRENCY --lang vi --apply
+python script/module-generate/step2/import-module-references.py --module SPRING_CONCURRENCY --lang vi --apply
+python script/module-generate/step2/import-module-overviews.py --module SPRING_CONCURRENCY --lang vi --apply
 ```
 
 Chọn nhiều module: `--module NAME_A --module NAME_B` trên cùng một lệnh. Đọc báo cáo riêng `build/reports/step2-vi-roadmaps.json`, `build/reports/step2-vi-references.json` và `build/reports/step2-vi-overviews.json`; nếu có SKIP_MISSING_MODULE, SKIP_NOT_MODULE, SKIP_MISSING_OR_INACTIVE_LANGUAGE, lỗi parse/URL, Base rỗng/thiếu hoặc kết quả ngoài module đã giao → BLOCKER. Không apply khi chưa QA PASS, không retry DB mù khi không chắc giao dịch đã xảy ra.

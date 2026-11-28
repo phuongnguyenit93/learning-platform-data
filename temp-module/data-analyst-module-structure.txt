@@ -1,0 +1,3285 @@
+module
+├── foundation
+│   ├── data-analyst-overview
+│   │   ├── data-to-decisions
+│   │   ├── descriptive-analytics
+│   │   ├── diagnostic-analytics
+│   │   ├── predictive-analytics
+│   │   ├── prescriptive-analytics
+│   │   ├── analyst-deliverables
+│   │   ├── role-boundaries
+│   │   └── learning-path
+│   ├── analytics-ecosystem
+│   │   ├── data-analyst
+│   │   ├── business-analyst
+│   │   ├── business-intelligence-analyst
+│   │   ├── analytics-engineer
+│   │   ├── data-engineer
+│   │   ├── data-scientist
+│   │   ├── product-analyst
+│   │   └── domain-specialist
+│   ├── analytical-workflow
+│   │   ├── ask
+│   │   ├── prepare
+│   │   ├── process
+│   │   ├── analyze
+│   │   ├── validate
+│   │   ├── communicate
+│   │   ├── recommend
+│   │   └── monitor
+│   ├── mental-model
+│   │   ├── observation-variable-and-value
+│   │   ├── population-and-sample
+│   │   ├── unit-of-analysis
+│   │   ├── data-grain-and-aggregation
+│   │   ├── evidence-assumption-and-inference
+│   │   ├── correlation-and-causation
+│   │   ├── uncertainty-and-decision-making
+│   │   └── analysis-and-action
+│   ├── computer-and-data-basics
+│   │   ├── files-and-directories
+│   │   ├── command-line-basics
+│   │   ├── local-and-cloud-storage
+│   │   ├── text-encoding-and-unicode
+│   │   ├── file-extensions-and-formats
+│   │   ├── source-control-basics
+│   │   ├── database-client-basics
+│   │   └── reproducible-workspace
+│   ├── learning-tracks
+│   │   ├── spreadsheet-and-sql-core
+│   │   ├── python-analysis-track
+│   │   ├── optional-r-analysis-track
+│   │   ├── power-bi-track
+│   │   ├── tableau-track
+│   │   ├── business-domain-track
+│   │   ├── advanced-statistical-track
+│   │   └── analytics-engineering-extension
+│   ├── documentation-and-exploration
+│   │   ├── official-documentation
+│   │   ├── data-dictionaries
+│   │   ├── sample-datasets
+│   │   ├── minimal-reproductions
+│   │   ├── small-hand-calculated-examples
+│   │   ├── version-and-dialect-checking
+│   │   ├── assumptions-log
+│   │   └── evidence-notebook
+│   └── professional-mindset
+│       ├── curiosity-and-skepticism
+│       ├── business-context-first
+│       ├── baseline-before-complexity
+│       ├── accuracy-before-polish
+│       ├── ethical-data-handling
+│       ├── uncertainty-transparency
+│       ├── peer-review
+│       └── continuous-improvement
+├── business-problem-framing-and-metrics
+│   ├── stakeholder-discovery
+│   │   ├── decision-owner
+│   │   ├── intended-audience
+│   │   ├── business-process
+│   │   ├── stakeholder-interviews
+│   │   ├── conflicting-requirements
+│   │   ├── existing-reports
+│   │   ├── operational-constraints
+│   │   └── success-criteria
+│   ├── problem-definition
+│   │   ├── problem-and-symptom
+│   │   ├── decision-to-support
+│   │   ├── scope-and-exclusions
+│   │   ├── measurable-question
+│   │   ├── hypothesis-tree
+│   │   ├── baseline-and-comparison
+│   │   ├── analysis-feasibility
+│   │   └── acceptance-criteria
+│   ├── analytical-question-types
+│   │   ├── what-happened
+│   │   ├── where-and-when
+│   │   ├── who-is-affected
+│   │   ├── what-changed
+│   │   ├── why-it-might-have-changed
+│   │   ├── what-happens-next
+│   │   ├── which-action-to-test
+│   │   └── what-evidence-is-missing
+│   ├── metric-design
+│   │   ├── business-objective
+│   │   ├── metric-definition
+│   │   ├── numerator-and-denominator
+│   │   ├── unit-and-scale
+│   │   ├── observation-window
+│   │   ├── inclusion-and-exclusion
+│   │   ├── aggregation-rule
+│   │   └── metric-owner
+│   ├── metric-hierarchies
+│   │   ├── north-star-metric
+│   │   ├── input-and-output-metrics
+│   │   ├── leading-and-lagging-indicators
+│   │   ├── guardrail-metrics
+│   │   ├── counter-metrics
+│   │   ├── metric-trees
+│   │   ├── driver-trees
+│   │   └── local-and-global-objectives
+│   ├── measurement-contracts
+│   │   ├── event-and-entity-definitions
+│   │   ├── time-zone-and-calendar
+│   │   ├── population-eligibility
+│   │   ├── deduplication-rules
+│   │   ├── currency-and-unit-conversion
+│   │   ├── late-data-policy
+│   │   ├── versioned-definitions
+│   │   └── source-of-truth
+│   ├── metric-pitfalls
+│   │   ├── vanity-metrics
+│   │   ├── denominator-shifts
+│   │   ├── ratio-of-sums-versus-mean-of-ratios
+│   │   ├── non-additive-measures
+│   │   ├── double-counting
+│   │   ├── survivorship-bias
+│   │   ├── goodharts-law
+│   │   └── gaming-and-perverse-incentives
+│   ├── planning-and-prioritization
+│   │   ├── impact-effort-confidence
+│   │   ├── stakeholder-deadline
+│   │   ├── data-access-dependencies
+│   │   ├── quick-win-and-deep-dive
+│   │   ├── analysis-plan
+│   │   ├── milestone-checkpoints
+│   │   ├── decision-thresholds
+│   │   └── stop-and-escalation-rules
+│   ├── root-cause-framing
+│   │   ├── issue-trees
+│   │   ├── process-mapping
+│   │   ├── five-whys
+│   │   ├── competing-explanations
+│   │   ├── confounder-inventory
+│   │   ├── descriptive-decomposition
+│   │   ├── causal-evidence-requirements
+│   │   └── actionability-review
+│   └── value-and-follow-through
+│       ├── decision-log
+│       ├── expected-business-value
+│       ├── cost-of-error
+│       ├── implementation-owner
+│       ├── experiment-or-rollout-plan
+│       ├── outcome-tracking
+│       ├── unintended-consequences
+│       └── retrospective
+├── mathematics-probability-and-statistics
+│   ├── numeracy
+│   │   ├── fractions-ratios-and-rates
+│   │   ├── percentages
+│   │   ├── percentage-points
+│   │   ├── relative-and-absolute-change
+│   │   ├── weighted-averages
+│   │   ├── rounding-and-significant-figures
+│   │   ├── units-and-dimensional-analysis
+│   │   └── orders-of-magnitude
+│   ├── business-mathematics
+│   │   ├── growth-rates
+│   │   ├── compound-growth
+│   │   ├── index-numbers
+│   │   ├── normalization
+│   │   ├── base-period-selection
+│   │   ├── contribution-decomposition
+│   │   ├── price-volume-mix
+│   │   └── logarithms-and-elasticity
+│   ├── algebra-and-functions
+│   │   ├── variables-and-equations
+│   │   ├── linear-functions
+│   │   ├── nonlinear-functions
+│   │   ├── transformations
+│   │   ├── slopes-and-rates
+│   │   ├── piecewise-functions
+│   │   ├── summation-notation
+│   │   └── functions-and-inverses
+│   ├── linear-algebra-overview
+│   │   ├── vectors
+│   │   ├── matrices
+│   │   ├── dot-products
+│   │   ├── matrix-operations
+│   │   ├── linear-systems
+│   │   ├── projections
+│   │   ├── covariance-matrices
+│   │   └── dimensionality-reduction-intuition
+│   ├── data-and-measurement-scales
+│   │   ├── categorical-and-numerical
+│   │   ├── nominal-and-ordinal
+│   │   ├── interval-and-ratio
+│   │   ├── discrete-and-continuous
+│   │   ├── binary-and-multilabel
+│   │   ├── counts-and-rates
+│   │   ├── identifiers-versus-measures
+│   │   └── units-and-precision
+│   ├── probability-foundations
+│   │   ├── sample-spaces
+│   │   ├── events-and-set-operations
+│   │   ├── conditional-probability
+│   │   ├── independence
+│   │   ├── bayes-theorem
+│   │   ├── law-of-total-probability
+│   │   ├── base-rates
+│   │   └── probability-and-odds
+│   ├── random-variables-and-distributions
+│   │   ├── expectation
+│   │   ├── variance-and-standard-deviation
+│   │   ├── bernoulli-and-binomial
+│   │   ├── poisson-and-counts
+│   │   ├── normal-and-standard-normal
+│   │   ├── exponential-and-waiting-times
+│   │   ├── skewed-and-heavy-tailed-distributions
+│   │   └── empirical-distributions
+│   ├── sampling-distributions
+│   │   ├── sample-statistics
+│   │   ├── standard-error
+│   │   ├── law-of-large-numbers
+│   │   ├── central-limit-theorem
+│   │   ├── finite-sample-behavior
+│   │   ├── independence-assumptions
+│   │   ├── simulation-and-monte-carlo
+│   │   └── estimator-bias-and-variance
+│   ├── descriptive-statistics
+│   │   ├── mean-median-and-mode
+│   │   ├── quantiles-and-percentiles
+│   │   ├── range-and-interquartile-range
+│   │   ├── variance-and-dispersion
+│   │   ├── skewness-and-tail-behavior
+│   │   ├── covariance
+│   │   ├── pearson-and-spearman-correlation
+│   │   └── robust-summary-statistics
+│   └── statistical-reasoning
+│       ├── random-variation
+│       ├── systematic-error
+│       ├── association-and-causation
+│       ├── conditional-and-marginal-comparisons
+│       ├── aggregation-bias
+│       ├── simpsons-paradox
+│       ├── ecological-fallacy
+│       └── uncertainty-and-precision
+├── data-sourcing-and-collection
+│   ├── data-source-landscape
+│   │   ├── transactional-databases
+│   │   ├── analytical-warehouses
+│   │   ├── spreadsheets-and-files
+│   │   ├── business-applications
+│   │   ├── event-and-log-data
+│   │   ├── surveys-and-interviews
+│   │   ├── public-and-open-data
+│   │   └── external-provider-data
+│   ├── source-discovery
+│   │   ├── source-owner
+│   │   ├── system-of-record
+│   │   ├── data-catalog
+│   │   ├── schema-inventory
+│   │   ├── data-dictionary
+│   │   ├── sample-inspection
+│   │   ├── update-frequency
+│   │   └── access-approval
+│   ├── file-ingestion
+│   │   ├── csv-and-delimited-text
+│   │   ├── excel-workbooks
+│   │   ├── json-and-json-lines
+│   │   ├── parquet-and-columnar-formats
+│   │   ├── text-and-fixed-width-files
+│   │   ├── compressed-files
+│   │   ├── encoding-and-delimiter-detection
+│   │   └── schema-and-type-declaration
+│   ├── database-access
+│   │   ├── connection-configuration
+│   │   ├── read-only-accounts
+│   │   ├── credential-storage
+│   │   ├── sql-clients
+│   │   ├── query-scoping
+│   │   ├── extraction-snapshots
+│   │   ├── transactional-consistency
+│   │   └── result-export
+│   ├── api-data-collection
+│   │   ├── http-and-json
+│   │   ├── authentication-and-scopes
+│   │   ├── pagination
+│   │   ├── rate-limits
+│   │   ├── retries-and-backoff
+│   │   ├── incremental-fetching
+│   │   ├── response-validation
+│   │   └── request-and-extraction-logs
+│   ├── business-system-extraction
+│   │   ├── crm-data
+│   │   ├── sales-and-order-data
+│   │   ├── finance-and-ledger-data
+│   │   ├── inventory-and-fulfillment-data
+│   │   ├── support-ticket-data
+│   │   ├── marketing-platform-data
+│   │   ├── product-analytics-exports
+│   │   └── human-resources-data
+│   ├── instrumentation-and-tracking
+│   │   ├── tracking-plan
+│   │   ├── event-naming
+│   │   ├── event-properties
+│   │   ├── user-and-account-identities
+│   │   ├── timestamp-contracts
+│   │   ├── client-and-server-events
+│   │   ├── duplicate-events
+│   │   └── consent-and-collection-boundaries
+│   ├── sampling-and-surveys
+│   │   ├── sampling-frame
+│   │   ├── random-sampling
+│   │   ├── stratified-sampling
+│   │   ├── cluster-sampling
+│   │   ├── convenience-sampling
+│   │   ├── response-bias
+│   │   ├── questionnaire-design
+│   │   └── pilot-collection
+│   ├── responsible-web-and-document-extraction
+│   │   ├── available-downloads-first
+│   │   ├── public-api-preference
+│   │   ├── site-terms-and-permissions
+│   │   ├── rate-limited-collection
+│   │   ├── html-table-extraction
+│   │   ├── document-table-validation
+│   │   ├── extraction-quality-checks
+│   │   └── source-provenance
+│   └── collection-reliability
+│       ├── idempotent-extracts
+│       ├── checkpoint-and-resume
+│       ├── late-and-corrected-records
+│       ├── source-schema-changes
+│       ├── record-count-reconciliation
+│       ├── freshness-checks
+│       ├── immutable-raw-copies
+│       └── collection-failure-alerts
+├── data-quality-and-validation
+│   ├── quality-dimensions
+│   │   ├── accuracy
+│   │   ├── completeness
+│   │   ├── validity
+│   │   ├── consistency
+│   │   ├── uniqueness
+│   │   ├── timeliness
+│   │   ├── representativeness
+│   │   └── fitness-for-purpose
+│   ├── profiling
+│   │   ├── row-and-column-inventory
+│   │   ├── schema-and-types
+│   │   ├── null-and-blank-rates
+│   │   ├── cardinality-and-distinct-values
+│   │   ├── distribution-and-range-checks
+│   │   ├── duplicate-patterns
+│   │   ├── date-coverage
+│   │   └── source-segment-coverage
+│   ├── schema-contracts
+│   │   ├── required-columns
+│   │   ├── allowed-types
+│   │   ├── nullability-rules
+│   │   ├── key-constraints
+│   │   ├── enumerated-values
+│   │   ├── range-and-format-rules
+│   │   ├── schema-evolution
+│   │   └── backward-compatibility
+│   ├── relational-integrity
+│   │   ├── primary-key-uniqueness
+│   │   ├── foreign-key-coverage
+│   │   ├── orphan-records
+│   │   ├── join-cardinality
+│   │   ├── one-to-many-expansion
+│   │   ├── many-to-many-fanout
+│   │   ├── referential-validity
+│   │   └── temporal-key-validity
+│   ├── reconciliation
+│   │   ├── source-to-extract-counts
+│   │   ├── extract-to-model-counts
+│   │   ├── financial-control-totals
+│   │   ├── group-level-subtotals
+│   │   ├── cross-system-comparisons
+│   │   ├── distinct-entity-counts
+│   │   ├── currency-and-unit-checks
+│   │   └── rounding-tolerances
+│   ├── time-and-event-quality
+│   │   ├── timestamp-ordering
+│   │   ├── timezone-consistency
+│   │   ├── missing-periods
+│   │   ├── overlapping-intervals
+│   │   ├── duplicate-events
+│   │   ├── late-arrivals
+│   │   ├── clock-skew
+│   │   └── future-dated-records
+│   ├── business-rule-validation
+│   │   ├── impossible-combinations
+│   │   ├── lifecycle-state-transitions
+│   │   ├── negative-value-policy
+│   │   ├── order-and-refund-consistency
+│   │   ├── balance-equations
+│   │   ├── eligibility-rules
+│   │   ├── cross-field-dependencies
+│   │   └── exception-review
+│   ├── quality-testing
+│   │   ├── row-level-assertions
+│   │   ├── aggregate-tests
+│   │   ├── distribution-tests
+│   │   ├── freshness-tests
+│   │   ├── relationship-tests
+│   │   ├── representative-fixtures
+│   │   ├── edge-case-fixtures
+│   │   └── regression-checks
+│   └── quality-operations
+│       ├── severity-and-impact
+│       ├── issue-ownership
+│       ├── quarantine-and-review
+│       ├── remediation-log
+│       ├── upstream-root-causes
+│       ├── quality-scorecards
+│       ├── incident-response
+│       └── prevention-and-monitoring
+├── data-cleaning-and-preparation
+│   ├── tidy-data-design
+│   │   ├── rows-as-observations
+│   │   ├── columns-as-variables
+│   │   ├── tables-as-entities
+│   │   ├── grain-definition
+│   │   ├── long-and-wide-layouts
+│   │   ├── repeated-measures
+│   │   ├── metadata-separation
+│   │   └── stable-record-identifiers
+│   ├── missing-data
+│   │   ├── null-blank-and-sentinel-values
+│   │   ├── structural-missingness
+│   │   ├── mcar-mar-and-mnar
+│   │   ├── missingness-by-segment
+│   │   ├── deletion-tradeoffs
+│   │   ├── imputation-options
+│   │   ├── missing-indicators
+│   │   └── sensitivity-analysis
+│   ├── deduplication
+│   │   ├── exact-duplicates
+│   │   ├── business-key-duplicates
+│   │   ├── event-id-deduplication
+│   │   ├── fuzzy-duplicate-review
+│   │   ├── canonical-record-selection
+│   │   ├── latest-record-selection
+│   │   ├── conflicting-values
+│   │   └── audit-trail
+│   ├── text-and-category-cleaning
+│   │   ├── whitespace-and-invisible-characters
+│   │   ├── unicode-normalization
+│   │   ├── case-normalization
+│   │   ├── spelling-and-synonym-mapping
+│   │   ├── category-dictionaries
+│   │   ├── regex-extraction
+│   │   ├── mixed-language-values
+│   │   └── preserving-original-values
+│   ├── numeric-and-unit-cleaning
+│   │   ├── decimal-and-thousands-separators
+│   │   ├── percentages-as-numbers
+│   │   ├── currency-codes
+│   │   ├── unit-conversion
+│   │   ├── precision-and-scale
+│   │   ├── invalid-and-infinite-values
+│   │   ├── negative-value-validation
+│   │   └── numeric-identifiers-as-text
+│   ├── date-and-time-cleaning
+│   │   ├── explicit-date-formats
+│   │   ├── ambiguous-date-parsing
+│   │   ├── timestamps-and-epochs
+│   │   ├── timezone-localization
+│   │   ├── timezone-conversion
+│   │   ├── daylight-saving-boundaries
+│   │   ├── fiscal-calendar-mapping
+│   │   └── date-range-validation
+│   ├── outlier-treatment
+│   │   ├── error-versus-valid-extreme
+│   │   ├── univariate-screening
+│   │   ├── segment-specific-thresholds
+│   │   ├── multivariate-screening
+│   │   ├── winsorization-tradeoffs
+│   │   ├── transformation-tradeoffs
+│   │   ├── robust-estimators
+│   │   └── before-and-after-comparison
+│   ├── reshaping-and-combination
+│   │   ├── pivot-and-unpivot
+│   │   ├── split-and-explode
+│   │   ├── nesting-and-flattening
+│   │   ├── append-and-union
+│   │   ├── joins-and-key-validation
+│   │   ├── sorting-and-ordering
+│   │   ├── grouped-transformations
+│   │   └── aggregation-with-grain-control
+│   ├── entity-resolution
+│   │   ├── identifier-standardization
+│   │   ├── deterministic-matching
+│   │   ├── probabilistic-matching-overview
+│   │   ├── candidate-pair-generation
+│   │   ├── match-thresholds
+│   │   ├── false-match-review
+│   │   ├── unmatched-record-policy
+│   │   └── entity-crosswalks
+│   ├── analysis-ready-features
+│   │   ├── business-flags
+│   │   ├── date-derived-features
+│   │   ├── categorical-binning
+│   │   ├── ordered-categories
+│   │   ├── normalized-measures
+│   │   ├── lagged-features
+│   │   ├── time-of-availability
+│   │   └── leakage-prevention
+│   └── transformation-governance
+│       ├── raw-data-preservation
+│       ├── deterministic-rules
+│       ├── transformation-lineage
+│       ├── parameterized-cleaning
+│       ├── exception-tables
+│       ├── before-and-after-profiles
+│       ├── reversibility-and-audit
+│       └── documented-assumptions
+├── databases-and-analytical-data-modeling
+│   ├── relational-foundations
+│   │   ├── tables-rows-and-columns
+│   │   ├── primary-and-foreign-keys
+│   │   ├── candidate-and-composite-keys
+│   │   ├── relationships
+│   │   ├── cardinality-and-optionality
+│   │   ├── constraints
+│   │   ├── normalization
+│   │   └── denormalization
+│   ├── query-and-storage-concepts
+│   │   ├── logical-and-physical-models
+│   │   ├── row-and-column-stores
+│   │   ├── transactions-and-isolation
+│   │   ├── indexes-and-partitions
+│   │   ├── views-and-materialized-views
+│   │   ├── operational-and-analytical-workloads
+│   │   ├── query-execution-basics
+│   │   └── read-access-boundaries
+│   ├── dimensional-modeling
+│   │   ├── business-process-selection
+│   │   ├── fact-table-grain
+│   │   ├── dimensions-and-measures
+│   │   ├── star-schema
+│   │   ├── snowflake-schema
+│   │   ├── conformed-dimensions
+│   │   ├── surrogate-keys
+│   │   └── shared-calendar-dimension
+│   ├── fact-table-design
+│   │   ├── transaction-facts
+│   │   ├── periodic-snapshots
+│   │   ├── accumulating-snapshots
+│   │   ├── factless-facts
+│   │   ├── additive-measures
+│   │   ├── semi-additive-measures
+│   │   ├── non-additive-measures
+│   │   └── mixed-grain-prevention
+│   ├── dimension-design
+│   │   ├── slowly-changing-dimensions
+│   │   ├── type-one-overwrites
+│   │   ├── type-two-history
+│   │   ├── role-playing-dimensions
+│   │   ├── degenerate-dimensions
+│   │   ├── junk-dimensions
+│   │   ├── unknown-members
+│   │   └── hierarchy-design
+│   ├── relationship-edge-cases
+│   │   ├── bridge-tables
+│   │   ├── many-to-many-relationships
+│   │   ├── fact-to-fact-join-risks
+│   │   ├── late-arriving-dimensions
+│   │   ├── late-arriving-facts
+│   │   ├── effective-date-joins
+│   │   ├── orphan-fact-handling
+│   │   └── duplicated-dimension-keys
+│   ├── analytical-data-products
+│   │   ├── staging-tables
+│   │   ├── intermediate-models
+│   │   ├── domain-data-marts
+│   │   ├── wide-reporting-tables
+│   │   ├── event-tables
+│   │   ├── snapshot-tables
+│   │   ├── aggregate-tables
+│   │   └── semantic-models
+│   ├── warehouse-and-lake-concepts
+│   │   ├── data-warehouse
+│   │   ├── data-lake
+│   │   ├── lakehouse
+│   │   ├── object-storage
+│   │   ├── columnar-file-layout
+│   │   ├── partition-pruning
+│   │   ├── compute-and-storage-separation
+│   │   └── workload-and-cost-management
+│   └── model-validation
+│       ├── grain-tests
+│       ├── key-tests
+│       ├── relationship-tests
+│       ├── aggregate-reconciliation
+│       ├── historical-correctness
+│       ├── metric-consistency
+│       ├── source-lineage
+│       └── consumer-acceptance
+├── sql-foundations
+│   ├── query-mental-model
+│   │   ├── declarative-querying
+│   │   ├── logical-processing-order
+│   │   ├── result-grain
+│   │   ├── set-and-bag-semantics
+│   │   ├── deterministic-ordering
+│   │   ├── expression-evaluation
+│   │   ├── aliases-and-name-resolution
+│   │   └── dialect-differences
+│   ├── selection-and-filtering
+│   │   ├── select-and-from
+│   │   ├── column-projection
+│   │   ├── distinct
+│   │   ├── where
+│   │   ├── and-or-not
+│   │   ├── between-and-in
+│   │   ├── like-and-patterns
+│   │   └── order-by-and-row-limits
+│   ├── null-and-boolean-logic
+│   │   ├── null-as-unknown
+│   │   ├── is-null-and-is-not-null
+│   │   ├── three-valued-logic
+│   │   ├── null-comparisons
+│   │   ├── coalesce-and-nullif
+│   │   ├── null-safe-comparisons
+│   │   ├── not-in-null-trap
+│   │   └── null-and-empty-string
+│   ├── expressions-and-types
+│   │   ├── arithmetic-expressions
+│   │   ├── integer-and-decimal-division
+│   │   ├── explicit-casting
+│   │   ├── implicit-conversion-risks
+│   │   ├── case-expressions
+│   │   ├── safe-division
+│   │   ├── numeric-precision
+│   │   └── date-and-string-types
+│   ├── aggregation
+│   │   ├── count-star-and-count-column
+│   │   ├── sum-and-average
+│   │   ├── min-and-max
+│   │   ├── count-distinct
+│   │   ├── group-by
+│   │   ├── having
+│   │   ├── conditional-aggregation
+│   │   └── aggregation-grain
+│   ├── joins
+│   │   ├── inner-join
+│   │   ├── left-join
+│   │   ├── right-and-full-outer-join
+│   │   ├── cross-join
+│   │   ├── self-join
+│   │   ├── join-predicates
+│   │   ├── where-versus-on-filtering
+│   │   └── join-cardinality-checks
+│   ├── subqueries-and-set-operations
+│   │   ├── scalar-subqueries
+│   │   ├── derived-tables
+│   │   ├── correlated-subqueries
+│   │   ├── exists-and-not-exists
+│   │   ├── union-and-union-all
+│   │   ├── intersect
+│   │   ├── except
+│   │   └── common-table-expressions
+│   ├── text-functions
+│   │   ├── concatenation
+│   │   ├── substring
+│   │   ├── trim
+│   │   ├── case-conversion
+│   │   ├── replace
+│   │   ├── split-and-extract
+│   │   ├── regular-expressions
+│   │   └── dialect-and-collation-differences
+│   ├── date-functions
+│   │   ├── date-parsing
+│   │   ├── date-truncation
+│   │   ├── date-extraction
+│   │   ├── date-arithmetic
+│   │   ├── date-differences
+│   │   ├── calendar-generation
+│   │   ├── timestamp-comparisons
+│   │   └── timezone-conversion
+│   └── safe-database-work
+│       ├── read-only-analysis
+│       ├── parameterized-queries
+│       ├── transaction-basics
+│       ├── temporary-tables
+│       ├── create-view-basics
+│       ├── safe-export
+│       ├── production-query-limits
+│       └── query-comments-and-formatting
+├── sql-analytics-and-query-optimization
+│   ├── window-functions
+│   │   ├── foundations
+│   │   │   ├── over-clause
+│   │   │   ├── partition-by
+│   │   │   ├── window-order-by
+│   │   │   ├── row-preservation
+│   │   │   ├── named-windows
+│   │   │   ├── aggregate-versus-window-functions
+│   │   │   ├── filtering-window-results
+│   │   │   └── deterministic-tie-breaking
+│   │   ├── ranking-and-navigation
+│   │   │   ├── row-number
+│   │   │   ├── rank
+│   │   │   ├── dense-rank
+│   │   │   ├── ntile
+│   │   │   ├── lag
+│   │   │   ├── lead
+│   │   │   ├── first-value
+│   │   │   └── last-value
+│   │   └── frames-and-aggregation
+│   │       ├── rows-frames
+│   │       ├── range-frames
+│   │       ├── groups-frames
+│   │       ├── default-frame-pitfalls
+│   │       ├── cumulative-totals
+│   │       ├── rolling-measures
+│   │       ├── frame-boundaries
+│   │       └── peer-row-behavior
+│   ├── analytical-patterns
+│   │   ├── top-n-per-group
+│   │   ├── latest-record-per-entity
+│   │   ├── deduplication-with-windows
+│   │   ├── percent-of-total
+│   │   ├── conditional-pivoting
+│   │   ├── period-over-period-change
+│   │   ├── share-and-contribution
+│   │   └── weighted-metrics
+│   ├── time-and-event-patterns
+│   │   ├── calendar-spines
+│   │   ├── missing-period-fill
+│   │   ├── gaps-and-islands
+│   │   ├── sessionization
+│   │   ├── event-sequences
+│   │   ├── as-of-joins
+│   │   ├── overlapping-intervals
+│   │   └── retention-by-cohort
+│   ├── advanced-data-shapes
+│   │   ├── json-extraction
+│   │   ├── array-expansion
+│   │   ├── nested-records
+│   │   ├── recursive-ctes
+│   │   ├── hierarchy-traversal
+│   │   ├── grouping-sets
+│   │   ├── rollup-and-cube
+│   │   └── dialect-specific-qualify
+│   ├── correctness-traps
+│   │   ├── join-fanout
+│   │   ├── accidental-inner-joins
+│   │   ├── distinct-hiding-duplicates
+│   │   ├── averaging-averages
+│   │   ├── integer-truncation
+│   │   ├── timezone-boundaries
+│   │   ├── nondeterministic-limits
+│   │   └── filtering-before-versus-after-aggregation
+│   ├── query-performance
+│   │   ├── explain-plans
+│   │   ├── scanned-rows-and-bytes
+│   │   ├── early-projection
+│   │   ├── partition-filters
+│   │   ├── index-aware-predicates
+│   │   ├── preaggregation
+│   │   ├── reusable-intermediates
+│   │   └── correlated-subquery-cost
+│   ├── warehouse-cost-controls
+│   │   ├── dry-run-estimates
+│   │   ├── query-budgets
+│   │   ├── sampling-and-limit-differences
+│   │   ├── partition-pruning
+│   │   ├── clustering-awareness
+│   │   ├── approximate-distinct-tradeoffs
+│   │   ├── result-cache-behavior
+│   │   └── cancellation-and-timeouts
+│   ├── sql-testing-and-review
+│   │   ├── small-reference-datasets
+│   │   ├── hand-calculated-results
+│   │   ├── grain-and-key-assertions
+│   │   ├── boundary-date-tests
+│   │   ├── null-and-duplicate-tests
+│   │   ├── reconciliation-queries
+│   │   ├── query-refactoring
+│   │   └── peer-review
+│   └── sql-engines-and-portability
+│       ├── postgresql
+│       ├── duckdb
+│       ├── sqlite
+│       ├── sql-server
+│       ├── mysql
+│       ├── bigquery
+│       ├── snowflake
+│       └── spark-sql
+├── spreadsheets-and-excel
+│   ├── workbook-foundations
+│   │   ├── workbooks-and-worksheets
+│   │   ├── cells-ranges-and-tables
+│   │   ├── data-types
+│   │   ├── number-formats
+│   │   ├── relative-absolute-and-mixed-references
+│   │   ├── named-ranges
+│   │   ├── structured-references
+│   │   └── navigation-and-shortcuts
+│   ├── data-organization
+│   │   ├── one-record-per-row
+│   │   ├── consistent-column-headers
+│   │   ├── input-calculation-output-separation
+│   │   ├── raw-and-cleaned-sheets
+│   │   ├── excel-tables
+│   │   ├── data-validation
+│   │   ├── controlled-dropdowns
+│   │   └── sheet-protection-boundaries
+│   ├── core-formulas
+│   │   ├── sum-average-count
+│   │   ├── min-max-and-round
+│   │   ├── if-and-ifs
+│   │   ├── and-or-not
+│   │   ├── sumif-and-sumifs
+│   │   ├── countif-and-countifs
+│   │   ├── averageif-and-averageifs
+│   │   └── subtotal-and-aggregate
+│   ├── lookup-and-reference
+│   │   ├── xlookup
+│   │   ├── index-and-match
+│   │   ├── exact-and-approximate-matching
+│   │   ├── missing-match-handling
+│   │   ├── duplicate-key-risks
+│   │   ├── multi-key-lookup
+│   │   ├── two-way-lookup
+│   │   └── lookup-audit-checks
+│   ├── text-and-date-functions
+│   │   ├── trim-clean-and-substitute
+│   │   ├── text-split-and-extract
+│   │   ├── text-join
+│   │   ├── value-and-text-conversion
+│   │   ├── date-and-time-construction
+│   │   ├── networkdays-and-workday
+│   │   ├── eomonth-and-period-buckets
+│   │   └── locale-sensitive-parsing
+│   ├── dynamic-arrays
+│   │   ├── filter
+│   │   ├── sort-and-sortby
+│   │   ├── unique
+│   │   ├── sequence
+│   │   ├── take-and-drop
+│   │   ├── stack-and-reshape
+│   │   ├── spill-ranges
+│   │   └── compatibility-and-fallbacks
+│   ├── formula-engineering
+│   │   ├── let
+│   │   ├── lambda
+│   │   ├── reusable-calculations
+│   │   ├── array-calculation-debugging
+│   │   ├── error-handling
+│   │   ├── circular-references
+│   │   ├── volatile-function-awareness
+│   │   └── formula-auditing
+│   ├── pivot-analysis
+│   │   ├── pivottable-creation
+│   │   ├── row-column-and-value-fields
+│   │   ├── aggregation-selection
+│   │   ├── grouping-and-binning
+│   │   ├── slicers-and-timelines
+│   │   ├── show-values-as
+│   │   ├── pivotcharts
+│   │   └── refresh-and-source-expansion
+│   ├── analytical-modeling
+│   │   ├── scenario-tables
+│   │   ├── goal-seek
+│   │   ├── sensitivity-data-tables
+│   │   ├── solver-basics
+│   │   ├── assumptions-and-constraints
+│   │   ├── forecast-sheets
+│   │   ├── what-if-comparisons
+│   │   └── model-limitations
+│   ├── charts-and-reporting
+│   │   ├── chart-selection
+│   │   ├── combo-chart-cautions
+│   │   ├── conditional-formatting
+│   │   ├── sparklines
+│   │   ├── dynamic-chart-ranges
+│   │   ├── executive-summary-sheet
+│   │   ├── print-and-export-layout
+│   │   └── accessible-formatting
+│   ├── power-pivot-and-data-model
+│   │   ├── multi-table-model
+│   │   ├── relationships
+│   │   ├── calendar-table
+│   │   ├── measures-versus-calculated-columns
+│   │   ├── dax-entry-point
+│   │   ├── distinct-counts
+│   │   ├── filter-propagation
+│   │   └── model-reconciliation
+│   └── spreadsheet-reliability
+│       ├── formula-consistency
+│       ├── hardcoded-value-detection
+│       ├── hidden-rows-and-filters
+│       ├── date-serial-pitfalls
+│       ├── rounding-and-precision
+│       ├── external-link-risks
+│       ├── file-versioning
+│       └── independent-control-totals
+├── google-sheets-and-collaboration
+│   ├── workspace-basics
+│   │   ├── spreadsheet-tabs
+│   │   ├── ranges-and-named-ranges
+│   │   ├── data-types
+│   │   ├── locale-and-timezone-settings
+│   │   ├── frozen-headers
+│   │   ├── sorting-and-filter-views
+│   │   ├── protected-ranges
+│   │   └── revision-history
+│   ├── formulas-and-arrays
+│   │   ├── arrayformula
+│   │   ├── filter
+│   │   ├── sort
+│   │   ├── unique
+│   │   ├── query-function
+│   │   ├── xlookup
+│   │   ├── index-and-match
+│   │   └── named-functions
+│   ├── data-preparation
+│   │   ├── split-and-text-functions
+│   │   ├── regexextract-and-regexreplace
+│   │   ├── date-and-time-functions
+│   │   ├── conditional-aggregation
+│   │   ├── validation-and-dropdowns
+│   │   ├── duplicate-checking
+│   │   ├── type-normalization
+│   │   └── formula-error-review
+│   ├── query-function
+│   │   ├── select-where-and-order-by
+│   │   ├── group-by-and-aggregation
+│   │   ├── pivot
+│   │   ├── label-and-format
+│   │   ├── headers-argument
+│   │   ├── mixed-type-column-pitfalls
+│   │   ├── date-literals
+│   │   └── query-language-versus-sql
+│   ├── imports-and-connections
+│   │   ├── importrange
+│   │   ├── imported-data-permissions
+│   │   ├── csv-import
+│   │   ├── data-refresh-behavior
+│   │   ├── google-forms-input
+│   │   ├── connected-sheets-overview
+│   │   ├── connector-quotas
+│   │   └── large-sheet-limitations
+│   ├── analysis-and-reporting
+│   │   ├── pivot-tables
+│   │   ├── charts
+│   │   ├── slicers
+│   │   ├── conditional-formatting
+│   │   ├── sparklines
+│   │   ├── summary-tabs
+│   │   ├── dashboard-filters
+│   │   └── publishing-and-sharing-review
+│   ├── collaborative-controls
+│   │   ├── owner-and-editor-roles
+│   │   ├── comment-and-review-workflow
+│   │   ├── input-template-design
+│   │   ├── accidental-edit-prevention
+│   │   ├── public-link-risks
+│   │   ├── change-log
+│   │   ├── data-dictionary-tab
+│   │   └── handoff-documentation
+│   └── automation-boundaries
+│       ├── apps-script-basics
+│       ├── authorized-scopes
+│       ├── scheduled-triggers
+│       ├── batch-operations
+│       ├── execution-quotas
+│       ├── idempotent-refresh
+│       ├── failure-notifications
+│       └── human-approval-for-exports
+├── power-query-and-data-transformation
+│   ├── query-lifecycle
+│   │   ├── connect-preview-transform-load
+│   │   ├── applied-steps
+│   │   ├── query-dependencies
+│   │   ├── reference-versus-duplicate
+│   │   ├── query-folding
+│   │   ├── load-destinations
+│   │   ├── refresh-lifecycle
+│   │   └── source-credential-management
+│   ├── connectors-and-import
+│   │   ├── text-and-csv
+│   │   ├── excel-files
+│   │   ├── folders-and-combine-files
+│   │   ├── databases
+│   │   ├── web-and-json
+│   │   ├── sharepoint-files
+│   │   ├── privacy-levels
+│   │   └── connector-capability-differences
+│   ├── profiling-and-types
+│   │   ├── column-quality
+│   │   ├── column-distribution
+│   │   ├── column-profile
+│   │   ├── full-dataset-versus-preview-profiling
+│   │   ├── explicit-types
+│   │   ├── locale-aware-conversion
+│   │   ├── errors-versus-null
+│   │   └── schema-checking
+│   ├── row-and-column-transforms
+│   │   ├── select-and-remove-columns
+│   │   ├── rename-and-reorder
+│   │   ├── filter-and-sort
+│   │   ├── remove-duplicates
+│   │   ├── replace-values
+│   │   ├── fill-down-and-up
+│   │   ├── split-and-merge-columns
+│   │   └── conditional-columns
+│   ├── reshape-and-combine
+│   │   ├── merge-queries
+│   │   ├── join-kinds
+│   │   ├── join-expansion-and-fanout
+│   │   ├── append-queries
+│   │   ├── pivot-and-unpivot
+│   │   ├── group-by
+│   │   ├── nested-tables
+│   │   └── aggregate-before-merge
+│   ├── m-language
+│   │   ├── let-and-in
+│   │   ├── scalar-types
+│   │   ├── lists-records-and-tables
+│   │   ├── expressions-and-functions
+│   │   ├── each-and-underscore
+│   │   ├── custom-functions
+│   │   ├── parameters
+│   │   └── try-and-otherwise
+│   ├── advanced-transformation
+│   │   ├── dynamic-file-combination
+│   │   ├── schema-drift-handling
+│   │   ├── date-and-calendar-tables
+│   │   ├── pagination-patterns
+│   │   ├── reusable-cleaning-functions
+│   │   ├── normalized-dimensions
+│   │   ├── parameterized-source-selection
+│   │   └── explicit-business-rules
+│   ├── performance-and-refresh
+│   │   ├── folding-inspection
+│   │   ├── early-filtering
+│   │   ├── unnecessary-step-removal
+│   │   ├── buffering-tradeoffs
+│   │   ├── preview-and-refresh-differences
+│   │   ├── incremental-source-filters
+│   │   ├── gateway-dependencies
+│   │   └── refresh-error-diagnostics
+│   └── quality-and-handoff
+│       ├── row-count-checkpoints
+│       ├── rejected-row-queries
+│       ├── control-total-reconciliation
+│       ├── transformation-documentation
+│       ├── dependency-diagrams
+│       ├── parameter-documentation
+│       ├── refresh-instructions
+│       └── deployment-validation
+├── python-for-data-analysis
+│   ├── environment-and-workflow
+│   │   ├── python-installation
+│   │   ├── virtual-environments
+│   │   ├── package-management
+│   │   ├── notebooks-and-scripts
+│   │   ├── editor-and-kernel-selection
+│   │   ├── project-layout
+│   │   ├── dependency-pinning
+│   │   └── reproducible-execution
+│   ├── language-foundations
+│   │   ├── values-and-types
+│   │   ├── lists-tuples-and-dictionaries
+│   │   ├── sets-and-membership
+│   │   ├── conditionals-and-loops
+│   │   ├── functions-and-modules
+│   │   ├── comprehensions
+│   │   ├── exceptions-and-logging
+│   │   └── pathlib-and-file-io
+│   ├── notebook-practice
+│   │   ├── kernel-state
+│   │   ├── execution-order
+│   │   ├── restart-and-run-all
+│   │   ├── markdown-and-methodology
+│   │   ├── parameter-cells
+│   │   ├── cell-output-hygiene
+│   │   ├── notebook-to-script-refactoring
+│   │   └── reproducibility-checks
+│   ├── numpy
+│   │   ├── arrays-and-dtypes
+│   │   ├── shapes-and-axes
+│   │   ├── indexing-and-masks
+│   │   ├── broadcasting
+│   │   ├── vectorized-operations
+│   │   ├── aggregations
+│   │   ├── numerical-precision
+│   │   └── random-generators-and-seeds
+│   ├── pandas
+│   │   ├── dataframes-and-types
+│   │   │   ├── series-and-dataframes
+│   │   │   ├── index-and-columns
+│   │   │   ├── explicit-dtypes
+│   │   │   ├── nullable-dtypes
+│   │   │   ├── categorical-data
+│   │   │   ├── datetime-and-timedelta
+│   │   │   ├── string-data
+│   │   │   └── types-and-memory-usage
+│   │   ├── selection-and-transformation
+│   │   │   ├── loc-and-iloc
+│   │   │   ├── boolean-filtering
+│   │   │   ├── assign-and-mutate
+│   │   │   ├── sort-and-rank
+│   │   │   ├── vectorized-string-operations
+│   │   │   ├── map-and-replace
+│   │   │   ├── safe-assignment
+│   │   │   └── copy-and-view-behavior
+│   │   ├── grouping-and-reshaping
+│   │   │   ├── groupby-aggregation
+│   │   │   ├── groupby-transform
+│   │   │   ├── pivot-and-pivot-table
+│   │   │   ├── melt
+│   │   │   ├── crosstab
+│   │   │   ├── stack-and-unstack
+│   │   │   ├── explode
+│   │   │   └── multiindex
+│   │   ├── joins-and-validation
+│   │   │   ├── merge-keys
+│   │   │   ├── merge-cardinality-validation
+│   │   │   ├── merge-indicators
+│   │   │   ├── concat
+│   │   │   ├── index-alignment
+│   │   │   ├── asof-and-ordered-merge
+│   │   │   ├── null-key-behavior
+│   │   │   └── unmatched-row-investigation
+│   │   └── time-and-quality
+│   │       ├── missing-value-handling
+│   │       ├── duplicate-detection
+│   │       ├── timezone-aware-series
+│   │       ├── resampling
+│   │       ├── rolling-and-expanding
+│   │       ├── shifting-and-lagging
+│   │       ├── calendar-reindexing
+│   │       └── assertions-and-control-totals
+│   ├── io-and-database-integration
+│   │   ├── csv-and-excel
+│   │   ├── json-normalization
+│   │   ├── parquet-and-arrow
+│   │   ├── sql-connections
+│   │   ├── parameterized-sql
+│   │   ├── chunked-reading
+│   │   ├── api-responses
+│   │   └── safe-data-exports
+│   ├── statistics-and-visualization
+│   │   ├── scipy-stats
+│   │   ├── statsmodels
+│   │   ├── matplotlib
+│   │   ├── plotly
+│   │   ├── descriptive-summaries
+│   │   ├── regression-output
+│   │   ├── confidence-interval-plots
+│   │   └── figure-export-and-metadata
+│   ├── scalable-local-analysis
+│   │   ├── polars-expressions
+│   │   ├── lazy-versus-eager-execution
+│   │   ├── duckdb-over-files
+│   │   ├── parquet-projection
+│   │   ├── predicate-pushdown
+│   │   ├── chunked-aggregation
+│   │   ├── memory-profiling
+│   │   └── engine-result-parity
+│   └── code-quality-and-testing
+│       ├── reusable-functions
+│       ├── type-hints
+│       ├── docstrings
+│       ├── pytest
+│       ├── dataframe-equality-tests
+│       ├── edge-case-fixtures
+│       ├── formatting-and-linting
+│       └── dependency-and-security-review
+├── r-for-data-analysis
+│   ├── r-foundations
+│   │   ├── vectors-and-types
+│   │   ├── lists-and-dataframes
+│   │   ├── factors
+│   │   ├── missing-values
+│   │   ├── functions
+│   │   ├── control-flow
+│   │   ├── vectorized-operations
+│   │   └── environments-and-scope
+│   ├── project-workflow
+│   │   ├── r-and-rstudio
+│   │   ├── projects-and-working-directories
+│   │   ├── package-management
+│   │   ├── renv-lockfiles
+│   │   ├── scripts-and-notebooks
+│   │   ├── seed-and-session-info
+│   │   ├── data-path-configuration
+│   │   └── reproducible-rendering
+│   ├── data-import
+│   │   ├── readr
+│   │   ├── readxl
+│   │   ├── arrow
+│   │   ├── dbi-and-database-connections
+│   │   ├── jsonlite
+│   │   ├── encoding-and-locale
+│   │   ├── column-type-specification
+│   │   └── import-problem-inspection
+│   ├── tidy-data-transformation
+│   │   ├── tibble
+│   │   ├── dplyr-select-filter-mutate
+│   │   ├── group-by-and-summarise
+│   │   ├── arrange-and-distinct
+│   │   ├── tidyr-pivoting
+│   │   ├── separate-and-unite
+│   │   ├── stringr
+│   │   └── forcats
+│   ├── joins-and-time-analysis
+│   │   ├── join-relationships
+│   │   ├── unmatched-key-review
+│   │   ├── crosswalk-validation
+│   │   ├── lubridate
+│   │   ├── calendar-aggregation
+│   │   ├── rolling-window-packages
+│   │   ├── timezone-handling
+│   │   └── date-boundary-tests
+│   ├── statistical-analysis
+│   │   ├── descriptive-statistics
+│   │   ├── t-tests-and-proportion-tests
+│   │   ├── linear-models
+│   │   ├── generalized-linear-models
+│   │   ├── robust-and-nonparametric-methods
+│   │   ├── broom-result-tidying
+│   │   ├── bootstrap-simulation
+│   │   └── assumption-diagnostics
+│   ├── ggplot2
+│   │   ├── data-and-aesthetic-mapping
+│   │   ├── geoms-and-statistics
+│   │   ├── scales-and-guides
+│   │   ├── facets
+│   │   ├── themes
+│   │   ├── uncertainty-intervals
+│   │   ├── annotations
+│   │   └── accessible-export
+│   ├── reporting-and-applications
+│   │   ├── quarto
+│   │   ├── parameterized-reports
+│   │   ├── tables-and-formatting
+│   │   ├── rmarkdown-maintenance
+│   │   ├── shiny-basics
+│   │   ├── deployment-and-permissions
+│   │   ├── report-validation
+│   │   └── report-artifact-versioning
+│   └── workflow-quality
+│       ├── testthat
+│       ├── assertive-data-checks
+│       ├── function-based-pipelines
+│       ├── target-based-workflows
+│       ├── session-independent-execution
+│       ├── dependency-reproducibility
+│       ├── profiling-and-memory
+│       └── python-and-r-result-comparison
+├── exploratory-data-analysis
+│   ├── eda-planning
+│   │   ├── business-question-and-grain
+│   │   ├── data-understanding
+│   │   ├── exploratory-versus-confirmatory-work
+│   │   ├── hypothesis-log
+│   │   ├── sampling-for-exploration
+│   │   ├── comparison-groups
+│   │   ├── segment-inventory
+│   │   └── reproducible-analysis-notebook
+│   ├── univariate-analysis
+│   │   ├── frequency-tables
+│   │   ├── numerical-summaries
+│   │   ├── histograms
+│   │   ├── density-plots
+│   │   ├── box-and-violin-plots
+│   │   ├── empirical-distribution-functions
+│   │   ├── category-balance
+│   │   └── tail-and-extreme-value-review
+│   ├── bivariate-analysis
+│   │   ├── cross-tabulation
+│   │   ├── grouped-summaries
+│   │   ├── scatterplots
+│   │   ├── correlation-analysis
+│   │   ├── distribution-comparisons
+│   │   ├── rate-comparisons
+│   │   ├── conditional-distributions
+│   │   └── stratified-views
+│   ├── multivariate-exploration
+│   │   ├── pairwise-relationships
+│   │   ├── segment-by-time-analysis
+│   │   ├── correlation-matrices
+│   │   ├── interaction-patterns
+│   │   ├── dimensionality-reduction-for-exploration
+│   │   ├── multicollinearity-screening
+│   │   ├── sparse-combination-detection
+│   │   └── subgroup-sample-size
+│   ├── composition-and-change
+│   │   ├── contribution-analysis
+│   │   ├── mix-shifts
+│   │   ├── within-segment-change
+│   │   ├── between-segment-change
+│   │   ├── rate-decomposition
+│   │   ├── waterfall-decomposition
+│   │   ├── baseline-selection
+│   │   └── aggregation-reversal-checks
+│   ├── missingness-and-outliers
+│   │   ├── missingness-patterns
+│   │   ├── missingness-by-outcome
+│   │   ├── missingness-by-segment
+│   │   ├── structural-versus-accidental-gaps
+│   │   ├── unusual-record-inspection
+│   │   ├── group-relative-outliers
+│   │   ├── sensitivity-to-exclusion
+│   │   └── unresolved-data-issues
+│   ├── time-oriented-exploration
+│   │   ├── trend-and-seasonality
+│   │   ├── calendar-effects
+│   │   ├── weekday-and-hour-patterns
+│   │   ├── missing-time-intervals
+│   │   ├── event-aligned-comparisons
+│   │   ├── lag-relationships
+│   │   ├── structural-break-candidates
+│   │   └── partial-period-bias
+│   ├── hypothesis-generation
+│   │   ├── surprising-patterns
+│   │   ├── plausible-mechanisms
+│   │   ├── competing-explanations
+│   │   ├── confounder-candidates
+│   │   ├── needed-follow-up-data
+│   │   ├── observational-limitations
+│   │   ├── confirmatory-plan
+│   │   └── actionability-screening
+│   └── eda-output
+│       ├── finding-register
+│       ├── supporting-figures
+│       ├── source-and-filter-disclosure
+│       ├── reproducible-summary-tables
+│       ├── assumptions-and-caveats
+│       ├── validated-anomalies
+│       ├── recommended-next-analysis
+│       └── stakeholder-readout
+├── statistical-inference-and-hypothesis-testing
+│   ├── inference-foundations
+│   │   ├── population-and-estimand
+│   │   ├── sampling-design
+│   │   ├── independent-and-paired-observations
+│   │   ├── sampling-variability
+│   │   ├── standard-error
+│   │   ├── estimator-properties
+│   │   ├── confidence-level
+│   │   └── interpretation-boundaries
+│   ├── interval-estimation
+│   │   ├── mean-intervals
+│   │   ├── proportion-intervals
+│   │   ├── difference-in-means
+│   │   ├── difference-in-proportions
+│   │   ├── bootstrap-intervals
+│   │   ├── small-sample-limitations
+│   │   ├── interval-width-and-precision
+│   │   └── confidence-versus-prediction-intervals
+│   ├── hypothesis-framework
+│   │   ├── null-and-alternative
+│   │   ├── test-statistic
+│   │   ├── null-distribution
+│   │   ├── p-values
+│   │   ├── significance-level
+│   │   ├── type-one-and-type-two-errors
+│   │   ├── power-and-sample-size
+│   │   └── effect-size-and-practical-significance
+│   ├── mean-and-location-tests
+│   │   ├── one-sample-t-test
+│   │   ├── independent-samples-t-test
+│   │   ├── welch-t-test
+│   │   ├── paired-t-test
+│   │   ├── anova
+│   │   ├── paired-and-repeated-measure-designs
+│   │   ├── nonparametric-alternatives
+│   │   └── assumption-checks
+│   ├── categorical-and-rate-tests
+│   │   ├── binomial-test
+│   │   ├── proportion-tests
+│   │   ├── chi-square-independence
+│   │   ├── fisher-exact-test
+│   │   ├── sparse-cell-cautions
+│   │   ├── risk-difference
+│   │   ├── risk-ratio
+│   │   └── odds-ratio
+│   ├── robust-and-resampling-methods
+│   │   ├── permutation-tests
+│   │   ├── bootstrap-design
+│   │   ├── stratified-bootstrap
+│   │   ├── cluster-bootstrap
+│   │   ├── robust-location-estimators
+│   │   ├── rank-based-tests
+│   │   ├── outlier-sensitivity
+│   │   └── non-independent-data-cautions
+│   ├── sample-size-and-power
+│   │   ├── minimum-detectable-effect
+│   │   ├── baseline-variance
+│   │   ├── baseline-rate
+│   │   ├── allocation-ratio
+│   │   ├── power-curves
+│   │   ├── design-effect
+│   │   ├── attrition-and-missingness
+│   │   └── precision-based-planning
+│   ├── multiple-testing
+│   │   ├── familywise-error
+│   │   ├── bonferroni-and-holm
+│   │   ├── false-discovery-rate
+│   │   ├── primary-and-secondary-outcomes
+│   │   ├── pre-specified-subgroups
+│   │   ├── exploratory-labeling
+│   │   ├── repeated-peeking-risks
+│   │   └── selective-reporting
+│   ├── bayesian-analysis-overview
+│   │   ├── prior-likelihood-and-posterior
+│   │   ├── conjugate-examples
+│   │   ├── credible-intervals
+│   │   ├── posterior-predictive-checks
+│   │   ├── prior-sensitivity
+│   │   ├── probability-of-benefit
+│   │   ├── expected-loss
+│   │   └── bayesian-and-frequentist-interpretations
+│   └── reporting-and-reproducibility
+│       ├── effect-and-interval-first
+│       ├── test-choice-rationale
+│       ├── assumptions-and-violations
+│       ├── exact-sample-counts
+│       ├── multiplicity-disclosure
+│       ├── inconclusive-versus-no-effect
+│       ├── analysis-code-and-seeds
+│       └── decision-implications
+├── experimentation-and-causal-analysis
+│   ├── causal-foundations
+│   │   ├── counterfactuals
+│   │   ├── potential-outcomes
+│   │   ├── treatment-and-control
+│   │   ├── estimands
+│   │   ├── confounding
+│   │   ├── selection-bias
+│   │   ├── mediators-and-colliders
+│   │   └── causal-diagrams
+│   ├── experiment-design
+│   │   ├── research-question
+│   │   ├── hypothesis-and-metric
+│   │   ├── randomization-unit
+│   │   ├── analysis-unit
+│   │   ├── treatment-allocation
+│   │   ├── stratification-and-blocking
+│   │   ├── eligibility-and-exclusions
+│   │   └── pre-analysis-plan
+│   ├── online-experimentation
+│   │   ├── assignment-and-exposure
+│   │   ├── sticky-bucketing
+│   │   ├── control-and-variant-integrity
+│   │   ├── aa-tests
+│   │   ├── sample-ratio-mismatch
+│   │   ├── instrumentation-validation
+│   │   ├── novelty-and-learning-effects
+│   │   └── network-interference
+│   ├── experiment-metrics
+│   │   ├── primary-metric
+│   │   ├── guardrail-metrics
+│   │   ├── invariant-metrics
+│   │   ├── ratio-metric-inference
+│   │   ├── user-level-aggregation
+│   │   ├── triggered-analysis-risks
+│   │   ├── exposure-windows
+│   │   └── delayed-outcomes
+│   ├── analysis-methods
+│   │   ├── intention-to-treat
+│   │   ├── difference-in-means
+│   │   ├── regression-adjustment
+│   │   ├── pre-experiment-covariates
+│   │   ├── cuped-overview
+│   │   ├── cluster-robust-inference
+│   │   ├── sequential-testing-design
+│   │   └── heterogeneous-effects-with-caution
+│   ├── experiment-failure-modes
+│   │   ├── repeated-peeking
+│   │   ├── early-stop-bias
+│   │   ├── multiple-variants-and-metrics
+│   │   ├── post-treatment-filtering
+│   │   ├── cross-device-contamination
+│   │   ├── noncompliance
+│   │   ├── missing-outcome-bias
+│   │   └── partial-rollout-confounding
+│   ├── quasi-experimental-methods
+│   │   ├── difference-in-differences
+│   │   ├── parallel-trends-assumption
+│   │   ├── interrupted-time-series
+│   │   ├── regression-discontinuity
+│   │   ├── synthetic-control
+│   │   ├── matching-and-weighting
+│   │   ├── instrumental-variable-overview
+│   │   └── identification-assumptions
+│   ├── causal-validation
+│   │   ├── covariate-balance
+│   │   ├── overlap-and-positivity
+│   │   ├── pretrend-checks
+│   │   ├── placebo-tests
+│   │   ├── negative-controls
+│   │   ├── sensitivity-to-unmeasured-confounding
+│   │   ├── robustness-specifications
+│   │   └── external-validity
+│   └── experiment-decisions
+│       ├── absolute-and-relative-lift
+│       ├── uncertainty-and-business-impact
+│       ├── guardrail-review
+│       ├── rollout-and-holdback
+│       ├── segment-safety-review
+│       ├── cost-benefit-tradeoffs
+│       ├── inconclusive-result-handling
+│       └── post-launch-monitoring
+├── regression-and-predictive-analytics
+│   ├── modeling-boundaries
+│   │   ├── prediction-versus-explanation
+│   │   ├── prediction-versus-causation
+│   │   ├── statistical-model-versus-ml-system
+│   │   ├── baseline-first
+│   │   ├── business-loss-function
+│   │   ├── feature-availability
+│   │   ├── analyst-and-data-scientist-handoff
+│   │   └── model-risk-and-scope
+│   ├── linear-regression
+│   │   ├── simple-linear-regression
+│   │   ├── multiple-linear-regression
+│   │   ├── coefficient-interpretation
+│   │   ├── categorical-predictors
+│   │   ├── interactions-and-polynomials
+│   │   ├── residual-analysis
+│   │   ├── confidence-and-prediction-intervals
+│   │   └── extrapolation-risks
+│   ├── diagnostics-and-assumptions
+│   │   ├── linearity
+│   │   ├── heteroskedasticity
+│   │   ├── residual-dependence
+│   │   ├── multicollinearity
+│   │   ├── influential-points
+│   │   ├── omitted-variable-bias
+│   │   ├── transformations
+│   │   └── model-misspecification
+│   ├── generalized-linear-models
+│   │   ├── logistic-regression
+│   │   ├── predicted-probabilities
+│   │   ├── odds-and-log-odds
+│   │   ├── poisson-regression
+│   │   ├── count-exposure-offsets
+│   │   ├── overdispersion
+│   │   ├── negative-binomial-overview
+│   │   └── marginal-effects
+│   ├── predictive-workflow
+│   │   ├── training-validation-test-splits
+│   │   ├── temporal-and-group-splits
+│   │   ├── preprocessing-pipelines
+│   │   ├── missing-value-strategy
+│   │   ├── categorical-encoding
+│   │   ├── feature-leakage
+│   │   ├── cross-validation
+│   │   └── reproducible-baselines
+│   ├── introductory-models
+│   │   ├── regularized-regression
+│   │   ├── decision-trees
+│   │   ├── random-forests
+│   │   ├── gradient-boosting
+│   │   ├── nearest-neighbors
+│   │   ├── simple-ensembles
+│   │   ├── hyperparameter-search
+│   │   └── complexity-and-interpretability-tradeoffs
+│   ├── evaluation
+│   │   ├── mae-and-rmse
+│   │   ├── residual-by-segment
+│   │   ├── confusion-matrix
+│   │   ├── precision-and-recall
+│   │   ├── roc-and-pr-curves
+│   │   ├── threshold-selection
+│   │   ├── calibration
+│   │   └── cost-sensitive-evaluation
+│   └── interpretation-and-use
+│       ├── global-and-local-explanations
+│       ├── feature-importance-limitations
+│       ├── correlated-feature-effects
+│       ├── prediction-uncertainty
+│       ├── subgroup-performance
+│       ├── decision-support-not-automatic-causality
+│       ├── monitoring-and-revalidation
+│       └── model-card-and-handoff
+├── time-series-and-forecasting
+│   ├── time-series-foundations
+│   │   ├── time-index
+│   │   ├── regular-and-irregular-frequency
+│   │   ├── stocks-flows-and-rates
+│   │   ├── trend
+│   │   ├── seasonality
+│   │   ├── cycles
+│   │   ├── calendar-effects
+│   │   └── observation-versus-availability-time
+│   ├── time-series-preparation
+│   │   ├── timestamp-standardization
+│   │   ├── missing-periods
+│   │   ├── duplicate-timestamps
+│   │   ├── resampling
+│   │   ├── aggregation-and-disaggregation
+│   │   ├── business-calendar
+│   │   ├── holiday-features
+│   │   └── incomplete-period-handling
+│   ├── exploration-and-diagnostics
+│   │   ├── time-plots
+│   │   ├── seasonal-subseries
+│   │   ├── autocorrelation
+│   │   ├── partial-autocorrelation
+│   │   ├── stationarity-intuition
+│   │   ├── decomposition
+│   │   ├── structural-breaks
+│   │   └── outlier-and-event-annotation
+│   ├── baseline-forecasts
+│   │   ├── last-value-naive
+│   │   ├── seasonal-naive
+│   │   ├── historical-average
+│   │   ├── moving-average
+│   │   ├── drift-baseline
+│   │   ├── business-rule-baseline
+│   │   ├── baseline-comparison
+│   │   └── forecast-horizon
+│   ├── forecasting-methods
+│   │   ├── exponential-smoothing
+│   │   ├── holt-and-holt-winters
+│   │   ├── arima-overview
+│   │   ├── seasonal-arima
+│   │   ├── dynamic-regression
+│   │   ├── calendar-regression
+│   │   ├── intermittent-demand-overview
+│   │   └── model-assumption-review
+│   ├── backtesting-and-evaluation
+│   │   ├── chronological-splits
+│   │   ├── rolling-origin-validation
+│   │   ├── expanding-and-sliding-windows
+│   │   ├── multi-horizon-evaluation
+│   │   ├── mae-rmse-and-mase
+│   │   ├── mape-zero-value-limitations
+│   │   ├── leakage-free-features
+│   │   └── benchmark-comparison
+│   ├── uncertainty-and-scenarios
+│   │   ├── prediction-intervals
+│   │   ├── interval-coverage
+│   │   ├── scenario-assumptions
+│   │   ├── forecast-versus-target
+│   │   ├── sensitivity-to-drivers
+│   │   ├── uncertainty-by-horizon
+│   │   ├── downside-and-upside-cases
+│   │   └── scenario-communication
+│   ├── hierarchies-and-operations
+│   │   ├── grouped-and-hierarchical-series
+│   │   ├── aggregation-consistency
+│   │   ├── reconciliation-overview
+│   │   ├── low-volume-segments
+│   │   ├── forecast-refresh
+│   │   ├── revision-tracking
+│   │   ├── human-overrides
+│   │   └── forecast-value-added
+│   └── monitoring-and-alerting
+│       ├── residual-monitoring
+│       ├── seasonal-thresholds
+│       ├── control-chart-basics
+│       ├── false-alert-rates
+│       ├── change-point-screening
+│       ├── anomaly-investigation
+│       ├── alert-owner-and-runbook
+│       └── retraining-or-reanalysis-triggers
+├── segmentation-cohorts-and-retention
+│   ├── segmentation-foundations
+│   │   ├── business-purpose
+│   │   ├── unit-of-segmentation
+│   │   ├── behavioral-demographic-and-value-segments
+│   │   ├── mutually-exclusive-versus-overlapping
+│   │   ├── stability-and-actionability
+│   │   ├── segment-size-constraints
+│   │   ├── sensitive-attribute-review
+│   │   └── segment-definition-versioning
+│   ├── rule-based-segmentation
+│   │   ├── recency-frequency-monetary
+│   │   ├── lifecycle-stages
+│   │   ├── value-tiers
+│   │   ├── usage-intensity
+│   │   ├── product-affinity
+│   │   ├── account-size
+│   │   ├── channel-and-region
+│   │   └── eligibility-and-exclusion
+│   ├── clustering-for-analysis
+│   │   ├── feature-scaling
+│   │   ├── feature-selection
+│   │   ├── k-means
+│   │   ├── hierarchical-clustering
+│   │   ├── density-based-clustering-overview
+│   │   ├── cluster-number-selection
+│   │   ├── stability-validation
+│   │   └── interpretation-and-business-fit
+│   ├── cohort-construction
+│   │   ├── acquisition-cohorts
+│   │   ├── behavioral-cohorts
+│   │   ├── calendar-cohorts
+│   │   ├── first-event-definition
+│   │   ├── cohort-membership-locking
+│   │   ├── observation-window
+│   │   ├── cohort-maturity
+│   │   └── identity-and-deduplication
+│   ├── retention-analysis
+│   │   ├── classic-retention
+│   │   ├── rolling-retention
+│   │   ├── bounded-and-unbounded-retention
+│   │   ├── repeat-purchase-retention
+│   │   ├── activity-retention
+│   │   ├── revenue-retention
+│   │   ├── retention-curves
+│   │   └── cohort-heatmaps
+│   ├── churn-and-reactivation
+│   │   ├── customer-and-revenue-churn
+│   │   ├── inactivity-thresholds
+│   │   ├── voluntary-and-involuntary-churn
+│   │   ├── reactivation
+│   │   ├── resurrection-cohorts
+│   │   ├── churn-reason-analysis
+│   │   ├── competing-definitions
+│   │   └── intervention-measurement
+│   ├── lifetime-and-censoring
+│   │   ├── right-censoring
+│   │   ├── left-truncation-overview
+│   │   ├── time-to-event
+│   │   ├── event-definition
+│   │   ├── at-risk-population
+│   │   ├── kaplan-meier-overview
+│   │   ├── unequal-follow-up
+│   │   └── survivor-bias
+│   ├── customer-value-analysis
+│   │   ├── observed-lifetime-value
+│   │   ├── margin-based-value
+│   │   ├── discounted-value-overview
+│   │   ├── cohort-based-value
+│   │   ├── acquisition-cost-alignment
+│   │   ├── payback-windows
+│   │   ├── uncertainty-and-assumptions
+│   │   └── prediction-versus-observation
+│   └── cohort-validation
+│       ├── cohort-size-reconciliation
+│       ├── immature-cohort-censoring
+│       ├── denominator-consistency
+│       ├── calendar-alignment
+│       ├── timezone-consistency
+│       ├── late-event-adjustments
+│       ├── segment-mix-effects
+│       └── interpretation-limitations
+├── data-visualization-and-design
+│   ├── visual-reasoning
+│   │   ├── analytical-question
+│   │   ├── visual-encoding
+│   │   ├── position-length-area-and-color
+│   │   ├── preattentive-features
+│   │   ├── perceptual-accuracy
+│   │   ├── cognitive-load
+│   │   ├── exploratory-versus-explanatory
+│   │   └── context-and-comparison
+│   ├── chart-selection
+│   │   ├── comparison-and-ranking
+│   │   │   ├── bar-charts
+│   │   │   ├── dot-plots
+│   │   │   ├── lollipop-charts
+│   │   │   ├── slope-charts
+│   │   │   ├── small-multiples
+│   │   │   ├── bullet-charts
+│   │   │   ├── benchmark-lines
+│   │   │   └── ranked-tables
+│   │   ├── distribution-and-relationship
+│   │   │   ├── histograms
+│   │   │   ├── box-plots
+│   │   │   ├── violin-plots
+│   │   │   ├── density-plots
+│   │   │   ├── empirical-distribution-plots
+│   │   │   ├── scatterplots
+│   │   │   ├── hexbin-plots
+│   │   │   └── correlation-heatmaps
+│   │   └── time-composition-and-geography
+│   │       ├── line-charts
+│   │       ├── area-charts
+│   │       ├── stacked-bars
+│   │       ├── waterfall-charts
+│   │       ├── treemaps-when-appropriate
+│   │       ├── choropleth-maps
+│   │       ├── proportional-symbol-maps
+│   │       └── cohort-heatmaps
+│   ├── scales-and-axes
+│   │   ├── zero-baselines-for-bars
+│   │   ├── linear-and-log-scales
+│   │   ├── consistent-scales
+│   │   ├── axis-labels
+│   │   ├── dual-axis-risks
+│   │   ├── truncated-axes
+│   │   ├── date-axis-spacing
+│   │   └── transformed-scale-disclosure
+│   ├── color-and-accessibility
+│   │   ├── categorical-sequential-and-diverging-palettes
+│   │   ├── colorblind-safe-choices
+│   │   ├── contrast-and-readability
+│   │   ├── redundant-encodings
+│   │   ├── accessible-tables
+│   │   ├── text-alternatives
+│   │   ├── keyboard-interaction
+│   │   └── non-color-cues
+│   ├── layout-and-typography
+│   │   ├── visual-hierarchy
+│   │   ├── whitespace
+│   │   ├── alignment
+│   │   ├── typography-and-size
+│   │   ├── grid-layout
+│   │   ├── number-formatting
+│   │   ├── units-and-decimal-precision
+│   │   └── mobile-and-print-layouts
+│   ├── annotation-and-context
+│   │   ├── descriptive-titles
+│   │   ├── takeaway-titles
+│   │   ├── source-and-refresh-labels
+│   │   ├── reference-lines
+│   │   ├── event-markers
+│   │   ├── footnotes-and-caveats
+│   │   ├── uncertainty-bands
+│   │   └── direct-labeling
+│   ├── misleading-visuals
+│   │   ├── three-dimensional-distortion
+│   │   ├── area-and-volume-errors
+│   │   ├── cherry-picked-time-ranges
+│   │   ├── inconsistent-denominators
+│   │   ├── cumulative-versus-period-confusion
+│   │   ├── unnormalized-map-values
+│   │   ├── overplotting
+│   │   └── omitted-uncertainty
+│   └── visual-validation
+│       ├── data-to-mark-reconciliation
+│       ├── totals-and-label-checks
+│       ├── sorting-and-category-order
+│       ├── sample-size-disclosure
+│       ├── chart-question-fit
+│       ├── accessibility-review
+│       ├── alternative-chart-comparison
+│       └── audience-comprehension-tests
+├── dashboards-and-bi-delivery
+│   ├── requirements-and-audience
+│   │   ├── decision-context
+│   │   ├── executive-operational-and-analytical-use
+│   │   ├── user-personas
+│   │   ├── metric-priority
+│   │   ├── refresh-expectations
+│   │   ├── access-needs
+│   │   ├── device-and-channel
+│   │   └── acceptance-criteria
+│   ├── information-architecture
+│   │   ├── overview-to-detail
+│   │   ├── hierarchy-and-navigation
+│   │   ├── page-purpose
+│   │   ├── metric-grouping
+│   │   ├── consistent-dimensions
+│   │   ├── drilldown-paths
+│   │   ├── guided-analysis
+│   │   └── glossary-and-help
+│   ├── interaction-design
+│   │   ├── global-and-local-filters
+│   │   ├── cross-filtering
+│   │   ├── drillthrough
+│   │   ├── tooltips
+│   │   ├── bookmarks-and-saved-views
+│   │   ├── parameter-controls
+│   │   ├── reset-state
+│   │   └── empty-and-error-states
+│   ├── semantic-layer-design
+│   │   ├── shared-metric-definitions
+│   │   ├── reusable-dimensions
+│   │   ├── relationship-cardinality
+│   │   ├── time-intelligence-consistency
+│   │   ├── certified-datasets
+│   │   ├── metric-ownership
+│   │   ├── change-management
+│   │   └── model-documentation
+│   ├── dashboard-quality
+│   │   ├── source-reconciliation
+│   │   ├── filter-context-tests
+│   │   ├── row-level-access-tests
+│   │   ├── fresh-and-stale-data-states
+│   │   ├── date-boundary-tests
+│   │   ├── export-consistency
+│   │   ├── calculation-edge-cases
+│   │   └── stakeholder-acceptance
+│   ├── performance-and-usability
+│   │   ├── query-count-and-cost
+│   │   ├── model-size
+│   │   ├── visual-density
+│   │   ├── caching-and-extracts
+│   │   ├── slow-visual-diagnostics
+│   │   ├── load-time-budget
+│   │   ├── accessibility
+│   │   └── user-task-testing
+│   ├── release-and-distribution
+│   │   ├── development-test-production
+│   │   ├── workspace-and-project-structure
+│   │   ├── permission-review
+│   │   ├── refresh-scheduling
+│   │   ├── subscriptions-and-alerts
+│   │   ├── release-notes
+│   │   ├── rollback-plan
+│   │   └── ownership-handoff
+│   └── adoption-and-maintenance
+│       ├── user-training
+│       ├── usage-analysis
+│       ├── feedback-collection
+│       ├── metric-definition-questions
+│       ├── dashboard-sprawl-review
+│       ├── retirement-policy
+│       ├── operational-runbook
+│       └── periodic-reconciliation
+├── power-bi-and-dax
+│   ├── power-bi-workflow
+│   │   ├── desktop-and-service
+│   │   ├── reports-and-dashboards
+│   │   ├── semantic-models
+│   │   ├── power-query-integration
+│   │   ├── workspaces-and-apps
+│   │   ├── licensing-and-capability-checks
+│   │   ├── fabric-integration-boundaries
+│   │   └── author-and-consumer-roles
+│   ├── connectivity-and-storage
+│   │   ├── import-mode
+│   │   ├── directquery
+│   │   ├── direct-lake-overview
+│   │   ├── composite-models
+│   │   ├── live-connections
+│   │   ├── storage-mode-tradeoffs
+│   │   ├── gateway-requirements
+│   │   └── credential-and-refresh-configuration
+│   ├── modeling
+│   │   ├── star-schema
+│   │   ├── cardinality
+│   │   ├── cross-filter-direction
+│   │   ├── active-and-inactive-relationships
+│   │   ├── date-table
+│   │   ├── role-playing-dimensions
+│   │   ├── many-to-many-cautions
+│   │   └── model-metadata-and-formatting
+│   ├── dax-foundations
+│   │   ├── measures
+│   │   ├── calculated-columns
+│   │   ├── calculated-tables
+│   │   ├── variables
+│   │   ├── operators-and-types
+│   │   ├── blank-semantics
+│   │   ├── divide-and-error-handling
+│   │   └── measure-dependencies
+│   ├── dax-context
+│   │   ├── row-context
+│   │   ├── filter-context
+│   │   ├── context-transition
+│   │   ├── calculate-and-calculatetable
+│   │   ├── iterator-context
+│   │   ├── relationship-filter-propagation
+│   │   ├── all-removefilters-and-keepfilters
+│   │   └── evaluation-order-investigation
+│   ├── dax-patterns
+│   │   ├── sumx-and-iterators
+│   │   ├── distinctcount
+│   │   ├── conditional-measures
+│   │   ├── selectedvalue
+│   │   ├── filter-and-values
+│   │   ├── related-and-relatedtable
+│   │   ├── userelationship
+│   │   └── treatas
+│   ├── time-intelligence
+│   │   ├── calendar-requirements
+│   │   ├── year-to-date
+│   │   ├── period-comparison
+│   │   ├── prior-period-calculations
+│   │   ├── rolling-periods
+│   │   ├── custom-fiscal-calendars
+│   │   ├── incomplete-period-comparison
+│   │   └── version-dependent-calendar-features
+│   ├── advanced-measures
+│   │   ├── percent-of-total
+│   │   ├── weighted-average
+│   │   ├── ranking-and-top-n
+│   │   ├── cumulative-totals
+│   │   ├── semi-additive-balances
+│   │   ├── dynamic-segmentation
+│   │   ├── calculation-groups
+│   │   └── totals-versus-row-calculations
+│   ├── report-authoring
+│   │   ├── visual-selection
+│   │   ├── slicers-and-interactions
+│   │   ├── drillthrough-and-tooltips
+│   │   ├── bookmarks
+│   │   ├── field-parameters
+│   │   ├── conditional-formatting
+│   │   ├── mobile-layout
+│   │   └── accessibility-and-alt-text
+│   ├── security-and-delivery
+│   │   ├── row-level-security
+│   │   ├── dynamic-security-rules
+│   │   ├── object-level-security-overview
+│   │   ├── workspace-roles
+│   │   ├── app-audiences
+│   │   ├── sensitivity-labels
+│   │   ├── publish-to-web-risks
+│   │   └── permission-testing
+│   ├── performance-and-operations
+│   │   ├── performance-analyzer
+│   │   ├── dax-studio-overview
+│   │   ├── model-cardinality
+│   │   ├── optimization-of-iterators
+│   │   ├── query-folding
+│   │   ├── incremental-refresh
+│   │   ├── deployment-pipelines
+│   │   └── refresh-and-usage-monitoring
+│   └── validation-and-maintenance
+│       ├── dax-query-tests
+│       ├── cross-tool-reconciliation
+│       ├── filter-context-test-cases
+│       ├── total-and-subtotal-checks
+│       ├── calendar-edge-tests
+│       ├── model-versioning
+│       ├── release-review
+│       └── consumer-feedback
+├── tableau
+│   ├── platform-and-workflow
+│   │   ├── desktop
+│   │   ├── cloud-and-server
+│   │   ├── public-data-exposure-risk
+│   │   ├── worksheets-dashboards-and-stories
+│   │   ├── data-sources
+│   │   ├── packaged-workbooks
+│   │   ├── workbook-organization
+│   │   └── product-and-version-compatibility
+│   ├── data-connection-and-modeling
+│   │   ├── live-and-extract-connections
+│   │   ├── relationships-versus-joins
+│   │   ├── logical-and-physical-layers
+│   │   ├── union-and-pivot
+│   │   ├── blending-boundaries
+│   │   ├── extracts-and-refresh
+│   │   ├── data-type-mapping
+│   │   └── data-source-validation
+│   ├── visual-grammar
+│   │   ├── dimensions-and-measures
+│   │   ├── discrete-and-continuous
+│   │   ├── fields-and-pills
+│   │   ├── marks-card
+│   │   ├── shelves
+│   │   ├── aggregations
+│   │   ├── granularity
+│   │   └── view-level-of-detail
+│   ├── calculations
+│   │   ├── row-level-calculations
+│   │   ├── aggregate-calculations
+│   │   ├── type-and-null-handling
+│   │   ├── date-and-string-calculations
+│   │   ├── conditional-expressions
+│   │   ├── parameters
+│   │   ├── sets
+│   │   └── calculated-field-validation
+│   ├── table-calculations
+│   │   ├── addressing-and-partitioning
+│   │   ├── running-total
+│   │   ├── percent-of-total
+│   │   ├── difference-and-percent-difference
+│   │   ├── moving-average
+│   │   ├── ranking
+│   │   ├── lookup-and-window-functions
+│   │   └── compute-using-debugging
+│   ├── level-of-detail
+│   │   ├── fixed
+│   │   ├── include
+│   │   ├── exclude
+│   │   ├── lod-versus-table-calculations
+│   │   ├── nested-lod-overview
+│   │   ├── aggregation-consistency
+│   │   ├── context-filter-interaction
+│   │   └── lod-result-validation
+│   ├── order-of-operations
+│   │   ├── extract-filters
+│   │   ├── data-source-filters
+│   │   ├── context-filters
+│   │   ├── dimension-filters
+│   │   ├── measure-filters
+│   │   ├── table-calculation-filters
+│   │   ├── top-n-filter-behavior
+│   │   └── filter-order-debugging
+│   ├── dashboards-and-actions
+│   │   ├── tiled-and-floating-layouts
+│   │   ├── containers
+│   │   ├── filter-actions
+│   │   ├── highlight-actions
+│   │   ├── parameter-actions
+│   │   ├── set-actions
+│   │   ├── device-layouts
+│   │   └── navigation-and-accessibility
+│   ├── analytics-and-communication
+│   │   ├── reference-lines
+│   │   ├── trend-lines
+│   │   ├── forecast-overview
+│   │   ├── clusters-overview
+│   │   ├── maps-and-geographic-roles
+│   │   ├── annotations
+│   │   ├── viz-in-tooltip
+│   │   └── data-story-sequencing
+│   └── performance-and-governance
+│       ├── performance-recording
+│       ├── extract-optimization
+│       ├── worksheet-and-mark-count
+│       ├── efficient-calculations
+│       ├── published-data-sources
+│       ├── permissions-and-row-security
+│       ├── certification-and-lineage
+│       └── refresh-monitoring
+├── looker-and-self-service-analytics
+│   ├── platform-boundaries
+│   │   ├── looker-versus-looker-studio
+│   │   ├── semantic-model-versus-report-layer
+│   │   ├── managed-versus-open-source-bi
+│   │   ├── deployment-and-licensing-checks
+│   │   ├── warehouse-connectivity
+│   │   ├── shared-metric-reuse
+│   │   ├── governance-responsibilities
+│   │   └── tool-selection-criteria
+│   ├── looker-modeling
+│   │   ├── lookml-projects
+│   │   ├── views-and-models
+│   │   ├── dimensions-and-measures
+│   │   ├── explores-and-joins
+│   │   ├── primary-keys-and-relationships
+│   │   ├── fanout-and-symmetric-aggregates
+│   │   ├── derived-tables
+│   │   └── model-validation
+│   ├── looker-analysis
+│   │   ├── explore-workflow
+│   │   ├── filters-and-custom-fields
+│   │   ├── table-calculations
+│   │   ├── pivots
+│   │   ├── looks-and-dashboards
+│   │   ├── drill-fields
+│   │   ├── scheduling-and-delivery
+│   │   └── generated-sql-inspection
+│   ├── looker-governance
+│   │   ├── development-and-production-modes
+│   │   ├── git-integration
+│   │   ├── content-validation
+│   │   ├── data-access-controls
+│   │   ├── user-attributes
+│   │   ├── data-freshness-and-caching
+│   │   ├── usage-monitoring
+│   │   └── documentation
+│   ├── looker-studio
+│   │   ├── connectors
+│   │   ├── data-sources
+│   │   ├── dimensions-and-metrics
+│   │   ├── calculated-fields
+│   │   ├── blends-and-join-grain
+│   │   ├── controls-and-date-ranges
+│   │   ├── report-sharing
+│   │   └── refresh-and-cache-behavior
+│   ├── open-source-bi
+│   │   ├── metabase
+│   │   ├── apache-superset
+│   │   ├── sql-based-datasets
+│   │   ├── semantic-metric-definitions
+│   │   ├── dashboards-and-filters
+│   │   ├── permissions-and-row-security
+│   │   ├── deployment-ownership
+│   │   └── upgrade-and-compatibility-review
+│   ├── self-service-enablement
+│   │   ├── certified-datasets
+│   │   ├── metric-glossaries
+│   │   ├── reusable-explores
+│   │   ├── query-examples
+│   │   ├── user-training
+│   │   ├── analyst-office-hours
+│   │   ├── discoverability
+│   │   └── governed-sandboxing
+│   └── self-service-validation
+│       ├── metric-parity-tests
+│       ├── filter-and-date-consistency
+│       ├── duplicate-measure-detection
+│       ├── access-control-review
+│       ├── stale-report-detection
+│       ├── query-cost-monitoring
+│       ├── consumer-feedback
+│       └── report-retirement
+├── analytics-engineering-and-data-platforms
+│   ├── modern-data-stack
+│   │   ├── source-systems
+│   │   ├── ingestion
+│   │   ├── storage
+│   │   ├── transformation
+│   │   ├── orchestration
+│   │   ├── semantic-layer
+│   │   ├── bi-consumption
+│   │   └── reverse-etl-boundaries
+│   ├── warehouse-platforms
+│   │   ├── bigquery
+│   │   ├── snowflake
+│   │   ├── redshift
+│   │   ├── azure-synapse-and-fabric
+│   │   ├── databricks
+│   │   ├── duckdb
+│   │   ├── local-versus-cloud-analysis
+│   │   └── platform-selection-tradeoffs
+│   ├── warehouse-usage
+│   │   ├── sql-dialect-differences
+│   │   ├── projects-schemas-and-datasets
+│   │   ├── compute-and-storage-models
+│   │   ├── partitioning-and-clustering
+│   │   ├── external-tables
+│   │   ├── query-history
+│   │   ├── cost-estimation
+│   │   └── access-roles
+│   ├── transformation-modeling
+│   │   ├── raw-staging-intermediate-marts
+│   │   ├── dependency-graphs
+│   │   ├── source-freshness
+│   │   ├── incremental-models
+│   │   ├── snapshot-history
+│   │   ├── backfills
+│   │   ├── late-arriving-data
+│   │   └── idempotent-transformations
+│   ├── dbt-foundations
+│   │   ├── project-structure
+│   │   ├── sources-and-ref
+│   │   ├── sql-models
+│   │   ├── materializations
+│   │   ├── seeds-and-snapshots
+│   │   ├── jinja-and-macros
+│   │   ├── documentation-and-lineage
+│   │   └── environment-and-target-configuration
+│   ├── dbt-quality
+│   │   ├── generic-data-tests
+│   │   ├── singular-data-tests
+│   │   ├── unit-tests
+│   │   ├── model-contracts
+│   │   ├── source-freshness-checks
+│   │   ├── business-rule-tests
+│   │   ├── test-failure-triage
+│   │   └── ci-validation
+│   ├── semantic-and-metric-layers
+│   │   ├── semantic-entities
+│   │   ├── dimensions-and-time-grains
+│   │   ├── metric-types
+│   │   ├── shared-business-logic
+│   │   ├── fanout-protection
+│   │   ├── governed-metric-queries
+│   │   ├── versioned-definitions
+│   │   └── downstream-consistency
+│   ├── orchestration-and-handoffs
+│   │   ├── schedules-and-dependencies
+│   │   ├── retries-and-idempotency
+│   │   ├── run-logs
+│   │   ├── failure-alerts
+│   │   ├── service-level-expectations
+│   │   ├── engineering-handoff
+│   │   ├── analyst-owned-transformations
+│   │   └── ownership-boundaries
+│   └── cost-performance-and-governance
+│       ├── incremental-processing
+│       ├── query-pruning
+│       ├── materialization-tradeoffs
+│       ├── development-data-sampling
+│       ├── resource-budgets
+│       ├── lineage-and-impact-analysis
+│       ├── access-review
+│       └── recovery-and-reconciliation
+├── product-and-digital-analytics
+│   ├── product-measurement
+│   │   ├── product-goals
+│   │   ├── value-moments
+│   │   ├── north-star-and-input-metrics
+│   │   ├── activation-definitions
+│   │   ├── engagement-definitions
+│   │   ├── outcome-versus-activity-metrics
+│   │   ├── guardrails
+│   │   └── measurement-plan
+│   ├── tracking-design
+│   │   ├── event-taxonomy
+│   │   ├── event-properties
+│   │   ├── user-and-account-identities
+│   │   ├── session-definitions
+│   │   ├── server-and-client-events
+│   │   ├── consent-states
+│   │   ├── schema-versioning
+│   │   └── tracking-qa
+│   ├── funnels-and-journeys
+│   │   ├── ordered-and-unordered-funnels
+│   │   ├── open-and-closed-funnels
+│   │   ├── conversion-windows
+│   │   ├── step-dropoff
+│   │   ├── path-analysis
+│   │   ├── repeated-events
+│   │   ├── identity-stitching
+│   │   └── cross-device-limitations
+│   ├── engagement-analysis
+│   │   ├── active-user-definitions
+│   │   ├── dau-wau-and-mau
+│   │   ├── stickiness-ratio-interpretation
+│   │   ├── feature-adoption
+│   │   ├── depth-and-frequency
+│   │   ├── content-consumption
+│   │   ├── user-versus-account-aggregation
+│   │   └── healthy-versus-compulsive-use-context
+│   ├── onboarding-and-activation
+│   │   ├── signup-to-first-value
+│   │   ├── time-to-value
+│   │   ├── activation-cohorts
+│   │   ├── onboarding-dropoff
+│   │   ├── friction-segmentation
+│   │   ├── first-session-versus-longer-term-outcomes
+│   │   ├── assisted-onboarding-effects
+│   │   └── experiment-opportunities
+│   ├── web-and-app-data
+│   │   ├── page-and-screen-events
+│   │   ├── acquisition-source
+│   │   ├── session-and-user-scope
+│   │   ├── device-and-platform
+│   │   ├── app-version-and-release
+│   │   ├── consent-related-gaps
+│   │   ├── bot-and-internal-traffic
+│   │   └── cross-domain-measurement
+│   ├── analytics-platforms
+│   │   ├── google-analytics-4
+│   │   ├── amplitude
+│   │   ├── mixpanel
+│   │   ├── posthog
+│   │   ├── event-export-to-warehouse
+│   │   ├── metric-parity-across-tools
+│   │   ├── identity-model-differences
+│   │   └── platform-retention-and-sampling-checks
+│   └── product-decision-workflows
+│       ├── feature-opportunity-sizing
+│       ├── release-impact-review
+│       ├── instrumentation-regression-checks
+│       ├── usage-versus-value-tradeoffs
+│       ├── experimentation-readout
+│       ├── adoption-and-retention-follow-up
+│       ├── stakeholder-recommendations
+│       └── outcome-monitoring
+├── marketing-and-growth-analytics
+│   ├── marketing-data-foundations
+│   │   ├── channel-taxonomy
+│   │   ├── campaign-identifiers
+│   │   ├── utm-governance
+│   │   ├── cost-and-performance-exports
+│   │   ├── customer-identity
+│   │   ├── consent-and-measurement-gaps
+│   │   ├── click-and-view-windows
+│   │   └── source-reconciliation
+│   ├── acquisition-and-efficiency
+│   │   ├── impressions-reach-and-frequency
+│   │   ├── clicks-and-click-through-rate
+│   │   ├── conversion-rate
+│   │   ├── cpc-and-cpm
+│   │   ├── cpa-and-cac
+│   │   ├── qualified-lead-cost
+│   │   ├── marginal-versus-average-cost
+│   │   └── channel-mix
+│   ├── attribution
+│   │   ├── first-and-last-touch
+│   │   ├── position-and-rule-based-models
+│   │   ├── platform-reported-attribution
+│   │   ├── cross-channel-deduplication
+│   │   ├── attribution-windows
+│   │   ├── view-through-cautions
+│   │   ├── incrementality-versus-credit
+│   │   └── attribution-limitations
+│   ├── funnel-and-lifecycle
+│   │   ├── visitor-to-lead
+│   │   ├── lead-to-qualified-lead
+│   │   ├── qualified-lead-to-customer
+│   │   ├── lifecycle-stage-conversion
+│   │   ├── nurture-sequences
+│   │   ├── cohort-quality
+│   │   ├── time-to-conversion
+│   │   └── downstream-retention
+│   ├── campaign-evaluation
+│   │   ├── objective-and-baseline
+│   │   ├── audience-overlap
+│   │   ├── creative-performance
+│   │   ├── budget-pacing
+│   │   ├── seasonality-adjustments
+│   │   ├── control-or-holdout-tests
+│   │   ├── incremental-lift
+│   │   └── business-outcome-review
+│   ├── customer-economics
+│   │   ├── acquisition-cost-allocation
+│   │   ├── contribution-margin
+│   │   ├── customer-lifetime-value
+│   │   ├── payback-period
+│   │   ├── retention-and-repurchase
+│   │   ├── cohort-margin
+│   │   ├── promotional-dependence
+│   │   └── uncertainty-and-sensitivity
+│   ├── organic-and-content-analysis
+│   │   ├── search-and-referral-traffic
+│   │   ├── landing-page-performance
+│   │   ├── content-engagement
+│   │   ├── assisted-conversion-cautions
+│   │   ├── lead-quality
+│   │   ├── brand-versus-nonbrand-demand
+│   │   ├── content-cohorts
+│   │   └── publication-and-update-effects
+│   ├── advanced-growth-methods
+│   │   ├── geo-experiments
+│   │   ├── marketing-mix-modeling-overview
+│   │   ├── saturation-and-carryover
+│   │   ├── selection-bias
+│   │   ├── channel-interactions
+│   │   ├── incremental-roas
+│   │   ├── budget-scenario-analysis
+│   │   └── causal-assumptions
+│   └── reporting-and-governance
+│       ├── campaign-scorecards
+│       ├── metric-dictionary
+│       ├── cross-platform-reconciliation
+│       ├── currency-and-tax-consistency
+│       ├── tracking-change-log
+│       ├── privacy-safe-segmentation
+│       ├── action-recommendations
+│       └── ongoing-validation
+├── sales-finance-and-unit-economics
+│   ├── business-records-and-grain
+│   │   ├── orders-and-order-lines
+│   │   ├── invoices-and-invoice-lines
+│   │   ├── payments
+│   │   ├── refunds-and-credits
+│   │   ├── contracts-and-subscriptions
+│   │   ├── customers-and-accounts
+│   │   ├── product-and-currency-dimensions
+│   │   └── transaction-versus-accounting-dates
+│   ├── sales-performance
+│   │   ├── units-and-revenue
+│   │   ├── gross-and-net-sales
+│   │   ├── discount-rate
+│   │   ├── returns-and-refunds
+│   │   ├── average-order-value
+│   │   ├── product-and-region-contribution
+│   │   ├── salesperson-and-territory-comparisons
+│   │   └── seasonal-sales-patterns
+│   ├── pipeline-analysis
+│   │   ├── opportunity-stages
+│   │   ├── stage-conversion
+│   │   ├── win-rate
+│   │   ├── loss-reasons
+│   │   ├── sales-cycle-length
+│   │   ├── pipeline-aging
+│   │   ├── weighted-pipeline-cautions
+│   │   └── forecast-versus-actual
+│   ├── revenue-and-margin
+│   │   ├── revenue-versus-cash
+│   │   ├── gross-margin
+│   │   ├── contribution-margin
+│   │   ├── fixed-and-variable-costs
+│   │   ├── product-profitability
+│   │   ├── cost-allocation
+│   │   ├── currency-normalization
+│   │   └── accounting-definition-alignment
+│   ├── budget-and-variance
+│   │   ├── actual-versus-budget
+│   │   ├── absolute-and-percentage-variance
+│   │   ├── favorable-and-unfavorable-variance
+│   │   ├── price-volume-mix
+│   │   ├── variance-bridges
+│   │   ├── run-rate-versus-forecast
+│   │   ├── rolling-forecast-overview
+│   │   └── scenario-and-assumption-log
+│   ├── subscription-analytics
+│   │   ├── mrr-and-arr-definitions
+│   │   ├── new-expansion-contraction-and-churn
+│   │   ├── recurring-versus-one-time-revenue
+│   │   ├── logo-retention
+│   │   ├── gross-revenue-retention
+│   │   ├── net-revenue-retention
+│   │   ├── cohort-revenue
+│   │   └── proration-and-contract-change-handling
+│   ├── unit-economics
+│   │   ├── customer-acquisition-cost
+│   │   ├── lifetime-value
+│   │   ├── payback-period
+│   │   ├── contribution-per-order
+│   │   ├── break-even-analysis
+│   │   ├── cost-to-serve
+│   │   ├── margin-by-segment
+│   │   └── sensitivity-and-uncertainty
+│   ├── pricing-and-promotion
+│   │   ├── realized-price
+│   │   ├── discount-depth
+│   │   ├── promotional-uplift-observation
+│   │   ├── baseline-demand
+│   │   ├── selection-and-seasonality-bias
+│   │   ├── price-elasticity-overview
+│   │   ├── margin-and-volume-tradeoffs
+│   │   └── controlled-price-testing
+│   └── financial-data-controls
+│       ├── ledger-reconciliation
+│       ├── balance-checks
+│       ├── fiscal-period-mapping
+│       ├── currency-rates-and-dates
+│       ├── tax-inclusive-versus-exclusive-measures
+│       ├── rounding-and-materiality
+│       ├── approval-and-review
+│       └── audit-trail
+├── operations-and-supply-chain-analytics
+│   ├── process-measurement
+│   │   ├── process-map
+│   │   ├── event-log-and-case-id
+│   │   ├── inputs-and-outputs
+│   │   ├── throughput
+│   │   ├── cycle-time
+│   │   ├── lead-time
+│   │   ├── work-in-progress
+│   │   └── service-level-definitions
+│   ├── capacity-and-flow
+│   │   ├── utilization
+│   │   ├── arrival-and-service-rates
+│   │   ├── bottleneck-analysis
+│   │   ├── queue-length
+│   │   ├── little-law-assumptions
+│   │   ├── capacity-planning
+│   │   ├── demand-variability
+│   │   └── overtime-and-backlog-tradeoffs
+│   ├── inventory-analytics
+│   │   ├── stock-on-hand
+│   │   ├── inventory-turnover
+│   │   ├── days-of-inventory
+│   │   ├── stockout-rate
+│   │   ├── overstock-and-obsolescence
+│   │   ├── abc-analysis
+│   │   ├── xyz-variability-analysis
+│   │   └── inventory-aging
+│   ├── procurement-and-supplier-analysis
+│   │   ├── purchase-order-grain
+│   │   ├── supplier-lead-time
+│   │   ├── supplier-reliability
+│   │   ├── price-variance
+│   │   ├── defect-and-return-rates
+│   │   ├── supplier-concentration
+│   │   ├── contract-compliance
+│   │   └── on-time-in-full
+│   ├── fulfillment-and-logistics
+│   │   ├── order-to-delivery-time
+│   │   ├── picking-and-packing-performance
+│   │   ├── shipment-events
+│   │   ├── delivery-success
+│   │   ├── first-attempt-delivery
+│   │   ├── return-logistics
+│   │   ├── shipping-cost
+│   │   └── allocation-and-mix-effects
+│   ├── service-and-support
+│   │   ├── ticket-volume
+│   │   ├── first-response-time
+│   │   ├── resolution-time
+│   │   ├── reopen-rate
+│   │   ├── backlog-aging
+│   │   ├── escalation-rate
+│   │   ├── satisfaction-and-response-bias
+│   │   └── staffing-and-demand-patterns
+│   ├── quality-and-reliability
+│   │   ├── defect-rate
+│   │   ├── first-pass-yield
+│   │   ├── rework-and-scrap
+│   │   ├── pareto-analysis
+│   │   ├── control-charts
+│   │   ├── process-capability-overview
+│   │   ├── measurement-system-awareness
+│   │   └── common-and-special-cause-variation
+│   └── operations-decision-support
+│       ├── demand-and-capacity-scenarios
+│       ├── reorder-policy-simulation
+│       ├── service-versus-cost-tradeoffs
+│       ├── intervention-comparison
+│       ├── process-change-evaluation
+│       ├── exception-prioritization
+│       ├── operational-dashboard
+│       └── decision-and-outcome-tracking
+├── specialized-data-analysis
+│   ├── survey-design
+│   │   ├── research-objectives
+│   │   ├── questionnaire-structure
+│   │   ├── question-wording
+│   │   ├── response-scales
+│   │   ├── ordering-effects
+│   │   ├── sampling-frame
+│   │   ├── pilot-testing
+│   │   └── consent-and-anonymity
+│   ├── survey-analysis
+│   │   ├── response-rate
+│   │   ├── item-nonresponse
+│   │   ├── weighting-and-poststratification
+│   │   ├── likert-item-versus-scale
+│   │   ├── reliability-overview
+│   │   ├── cross-tabs-and-subgroups
+│   │   ├── design-effects-and-standard-errors
+│   │   └── representativeness-limitations
+│   ├── qualitative-and-text-analysis
+│   │   ├── coding-framework
+│   │   ├── thematic-analysis
+│   │   ├── inter-coder-review
+│   │   ├── text-normalization
+│   │   ├── language-identification
+│   │   ├── keyword-and-frequency-analysis
+│   │   ├── sentiment-validation
+│   │   └── topic-modeling-as-exploration
+│   ├── geospatial-foundations
+│   │   ├── coordinates-and-projections
+│   │   ├── geographic-identifiers
+│   │   ├── boundary-versions
+│   │   ├── points-lines-and-polygons
+│   │   ├── spatial-joins
+│   │   ├── distance-and-proximity
+│   │   ├── area-normalized-measures
+│   │   └── geocoding-quality
+│   ├── spatial-analysis-pitfalls
+│   │   ├── choropleth-denominators
+│   │   ├── modifiable-areal-unit-problem
+│   │   ├── spatial-autocorrelation
+│   │   ├── geographic-confounding
+│   │   ├── boundary-change-comparability
+│   │   ├── small-area-instability
+│   │   ├── location-privacy
+│   │   └── map-projection-distortion
+│   ├── people-and-workforce-analytics
+│   │   ├── headcount-and-fte
+│   │   ├── hiring-funnel
+│   │   ├── tenure-cohorts
+│   │   ├── attrition-definitions
+│   │   ├── absenteeism
+│   │   ├── workforce-capacity
+│   │   ├── aggregate-pay-analysis
+│   │   └── sensitive-data-and-small-group-protection
+│   ├── marketplace-and-network-analysis
+│   │   ├── supply-and-demand-sides
+│   │   ├── liquidity-and-match-rate
+│   │   ├── time-to-match
+│   │   ├── repeat-transactions
+│   │   ├── buyer-seller-concentration
+│   │   ├── geographic-density
+│   │   ├── network-interference
+│   │   └── balanced-marketplace-metrics
+│   └── public-and-social-impact-analysis
+│       ├── open-data-provenance
+│       ├── population-denominators
+│       ├── demographic-standardization
+│       ├── program-eligibility
+│       ├── coverage-and-access
+│       ├── outcome-indicators
+│       ├── comparison-group-limits
+│       └── public-communication-of-uncertainty
+├── communication-and-data-storytelling
+│   ├── audience-and-purpose
+│   │   ├── decision-maker
+│   │   ├── technical-versus-nontechnical-audience
+│   │   ├── stakeholder-knowledge
+│   │   ├── expected-action
+│   │   ├── time-and-attention-budget
+│   │   ├── incentives-and-concerns
+│   │   ├── communication-channel
+│   │   └── evidence-threshold
+│   ├── insight-development
+│   │   ├── observation-versus-insight
+│   │   ├── materiality-and-impact
+│   │   ├── comparison-and-context
+│   │   ├── plausible-explanations
+│   │   ├── confidence-and-limitations
+│   │   ├── implication-for-decision
+│   │   ├── recommendation-and-owner
+│   │   └── follow-up-evidence
+│   ├── story-structure
+│   │   ├── executive-answer-first
+│   │   ├── situation-complication-question-answer
+│   │   ├── claim-evidence-reasoning
+│   │   ├── baseline-change-and-driver
+│   │   ├── narrative-flow
+│   │   ├── main-message-and-supporting-details
+│   │   ├── counterevidence-and-alternatives
+│   │   └── action-and-next-checkpoint
+│   ├── written-deliverables
+│   │   ├── analytical-brief
+│   │   ├── executive-summary
+│   │   ├── decision-memo
+│   │   ├── methodology-note
+│   │   ├── metric-definition-document
+│   │   ├── chart-caption
+│   │   ├── assumptions-and-caveats
+│   │   └── technical-appendix
+│   ├── presentation-design
+│   │   ├── audience-centered-outline
+│   │   ├── takeaway-headlines
+│   │   ├── one-main-message-per-slide
+│   │   ├── annotated-visuals
+│   │   ├── readable-tables
+│   │   ├── uncertainty-communication
+│   │   ├── recommendation-prioritization
+│   │   └── appendix-for-deep-dives
+│   ├── recommendations
+│   │   ├── feasible-actions
+│   │   ├── impact-and-effort
+│   │   ├── constraints-and-dependencies
+│   │   ├── risk-and-tradeoffs
+│   │   ├── expected-benefit-range
+│   │   ├── experiment-before-rollout
+│   │   ├── ownership-and-deadline
+│   │   └── success-and-guardrail-measures
+│   ├── stakeholder-conversations
+│   │   ├── requirement-negotiation
+│   │   ├── clarifying-metric-definitions
+│   │   ├── explaining-unexpected-results
+│   │   ├── handling-challenges
+│   │   ├── disagreement-and-reconciliation
+│   │   ├── saying-data-is-insufficient
+│   │   ├── avoiding-overclaiming
+│   │   └── documenting-decisions
+│   └── communication-quality
+│       ├── numbers-and-units-check
+│       ├── source-traceability
+│       ├── chart-to-claim-consistency
+│       ├── causal-language-review
+│       ├── accessible-language
+│       ├── uncertainty-not-hidden
+│       ├── reproducible-appendix
+│       └── reviewer-signoff
+├── reproducibility-automation-and-delivery
+│   ├── analysis-project-structure
+│   │   ├── raw-intermediate-and-output-data
+│   │   ├── source-code-and-notebooks
+│   │   ├── configuration-and-parameters
+│   │   ├── documentation-and-dictionary
+│   │   ├── tests-and-fixtures
+│   │   ├── environment-specification
+│   │   ├── report-artifacts
+│   │   └── run-instructions
+│   ├── version-control
+│   │   ├── git-basics
+│   │   ├── meaningful-commits
+│   │   ├── branches-and-pull-requests
+│   │   ├── code-review
+│   │   ├── large-file-boundaries
+│   │   ├── secrets-exclusion
+│   │   ├── dataset-version-references
+│   │   └── release-tags
+│   ├── environment-reproducibility
+│   │   ├── dependency-locking
+│   │   ├── isolated-environments
+│   │   ├── runtime-versioning
+│   │   ├── locale-and-timezone
+│   │   ├── seeds-and-randomness
+│   │   ├── deterministic-sort-order
+│   │   ├── system-dependencies
+│   │   └── container-use-when-needed
+│   ├── pipeline-design
+│   │   ├── extract-transform-validate-analyze-report
+│   │   ├── task-dependencies
+│   │   ├── idempotent-runs
+│   │   ├── parameterized-periods
+│   │   ├── incremental-processing
+│   │   ├── safe-backfills
+│   │   ├── temporary-and-final-outputs
+│   │   └── failure-recovery
+│   ├── testing-and-validation
+│   │   ├── unit-tests-for-transformations
+│   │   ├── schema-and-key-tests
+│   │   ├── integration-tests
+│   │   ├── end-to-end-report-tests
+│   │   ├── golden-result-fixtures
+│   │   ├── statistical-tolerance-checks
+│   │   ├── cross-tool-parity
+│   │   └── human-review-gates
+│   ├── report-automation
+│   │   ├── scheduled-queries
+│   │   ├── parameterized-notebooks
+│   │   ├── templated-reports
+│   │   ├── dashboard-refresh
+│   │   ├── safe-export-formats
+│   │   ├── destination-permissions
+│   │   ├── delivery-confirmation
+│   │   └── stale-output-prevention
+│   ├── operational-monitoring
+│   │   ├── run-status
+│   │   ├── row-count-and-freshness-alerts
+│   │   ├── schema-change-alerts
+│   │   ├── query-cost-alerts
+│   │   ├── calculation-drift
+│   │   ├── unexpected-distribution-shifts
+│   │   ├── alert-routing
+│   │   └── incident-runbooks
+│   └── handoff-and-maintenance
+│       ├── owner-and-backup
+│       ├── documentation-checklist
+│       ├── refresh-instructions
+│       ├── known-limitations
+│       ├── access-transfer-review
+│       ├── monitoring-ownership
+│       ├── maintenance-cadence
+│       └── decommissioning-plan
+├── governance-privacy-and-ethics
+│   ├── data-governance
+│   │   ├── ownership-and-stewardship
+│   │   ├── data-catalog
+│   │   ├── business-glossary
+│   │   ├── data-classification
+│   │   ├── lineage-and-provenance
+│   │   ├── retention-and-deletion
+│   │   ├── data-contracts
+│   │   └── issue-escalation
+│   ├── access-and-security
+│   │   ├── least-privilege
+│   │   ├── read-only-credentials
+│   │   ├── credential-management
+│   │   ├── role-and-row-level-access
+│   │   ├── approved-storage
+│   │   ├── encrypted-transfer
+│   │   ├── audit-logs
+│   │   └── export-access-review
+│   ├── privacy-by-design
+│   │   ├── purpose-limitation
+│   │   ├── data-minimization
+│   │   ├── consent-and-permitted-use
+│   │   ├── sensitive-attribute-handling
+│   │   ├── aggregation-and-suppression
+│   │   ├── pseudonymization-versus-anonymization
+│   │   ├── reidentification-risk
+│   │   └── privacy-review
+│   ├── privacy-preserving-analysis
+│   │   ├── small-cell-suppression
+│   │   ├── minimum-cohort-sizes
+│   │   ├── linkage-risk
+│   │   ├── assessment-of-quasi-identifiers
+│   │   ├── synthetic-data-limitations
+│   │   ├── differential-privacy-overview
+│   │   ├── privacy-utility-tradeoffs
+│   │   └── approved-sharing-process
+│   ├── ethical-analysis
+│   │   ├── representativeness
+│   │   ├── measurement-bias
+│   │   ├── fairness-and-subgroup-impact
+│   │   ├── proxy-discrimination
+│   │   ├── stigmatizing-labels
+│   │   ├── misuse-of-correlation
+│   │   ├── misleading-presentation
+│   │   └── transparency-and-accountability
+│   ├── responsible-inference
+│   │   ├── uncertainty-disclosure
+│   │   ├── selective-reporting-prevention
+│   │   ├── pre-specified-versus-exploratory-work
+│   │   ├── subgroup-overinterpretation
+│   │   ├── causal-claim-boundaries
+│   │   ├── negative-and-null-results
+│   │   ├── expert-review-for-high-stakes-use
+│   │   └── harm-and-benefit-review
+│   ├── file-and-query-safety
+│   │   ├── csv-formula-injection
+│   │   ├── parameterized-queries
+│   │   ├── unsafe-macros
+│   │   ├── untrusted-files-and-attachments
+│   │   ├── public-dashboard-exposure
+│   │   ├── prompt-injection-in-source-data
+│   │   ├── accidental-sensitive-exports
+│   │   └── secure-artifact-cleanup
+│   └── policy-and-compliance-workflow
+│       ├── applicable-policy-identification
+│       ├── permitted-use-and-licensing
+│       ├── regional-requirement-review
+│       ├── legal-and-privacy-team-handoff
+│       ├── documented-approvals
+│       ├── access-and-retention-evidence
+│       ├── incident-reporting
+│       └── periodic-policy-review
+├── ai-assisted-analysis
+│   ├── ai-role-and-boundaries
+│   │   ├── drafting-versus-evidence
+│   │   ├── analysis-assistance-versus-autonomous-decisions
+│   │   ├── probabilistic-output
+│   │   ├── human-accountability
+│   │   ├── sensitive-data-boundaries
+│   │   ├── approved-tools
+│   │   ├── model-and-tool-limitations
+│   │   └── task-fit-assessment
+│   ├── context-and-task-design
+│   │   ├── business-question
+│   │   ├── schema-and-dictionary
+│   │   ├── metric-definitions
+│   │   ├── sample-and-edge-cases
+│   │   ├── explicit-constraints
+│   │   ├── required-output-format
+│   │   ├── assumptions-to-surface
+│   │   └── reproducibility-requirements
+│   ├── assisted-workflows
+│   │   ├── sql-draft-generation
+│   │   ├── formula-explanation
+│   │   ├── code-refactoring
+│   │   ├── data-profiling-suggestions
+│   │   ├── chart-alternatives
+│   │   ├── documentation-drafting
+│   │   ├── report-summarization
+│   │   └── test-case-generation
+│   ├── text-to-sql-validation
+│   │   ├── schema-grounding
+│   │   ├── join-and-grain-review
+│   │   ├── metric-definition-review
+│   │   ├── dialect-and-syntax-checks
+│   │   ├── read-only-execution
+│   │   ├── query-cost-limits
+│   │   ├── control-total-reconciliation
+│   │   └── manual-reference-cases
+│   ├── code-and-calculation-validation
+│   │   ├── independent-recomputation
+│   │   ├── test-fixtures
+│   │   ├── type-and-null-behavior
+│   │   ├── date-and-timezone-checks
+│   │   ├── statistical-assumption-checks
+│   │   ├── package-and-api-verification
+│   │   ├── output-to-source-traceability
+│   │   └── no-fabricated-results
+│   ├── narrative-and-chart-review
+│   │   ├── claim-evidence-linking
+│   │   ├── unsupported-causality-detection
+│   │   ├── missing-caveats
+│   │   ├── numerical-consistency
+│   │   ├── denominator-verification
+│   │   ├── source-citation-checks
+│   │   ├── visual-distortion-review
+│   │   └── human-final-edit
+│   ├── safe-tool-use
+│   │   ├── scoped-data-access
+│   │   ├── sandboxed-execution
+│   │   ├── untrusted-content-handling
+│   │   ├── no-embedded-secrets
+│   │   ├── approval-before-sharing
+│   │   ├── external-action-boundaries
+│   │   ├── query-and-tool-logs
+│   │   └── rollback-and-stop-controls
+│   └── evaluation-and-adoption
+│       ├── representative-task-set
+│       ├── expected-answer-and-metric-tests
+│       ├── hallucination-and-error-categories
+│       ├── time-saved-versus-review-cost
+│       ├── reproducibility-comparison
+│       ├── privacy-and-security-review
+│       ├── documented-failure-cases
+│       └── periodic-reevaluation
+├── professional-practice-and-portfolio
+│   ├── analyst-work-management
+│   │   ├── intake-and-triage
+│   │   ├── stakeholder-prioritization
+│   │   ├── task-estimation
+│   │   ├── analysis-backlog
+│   │   ├── time-boxed-exploration
+│   │   ├── review-checkpoints
+│   │   ├── decision-tracking
+│   │   └── retrospective
+│   ├── collaboration
+│   │   ├── domain-expert-partnership
+│   │   ├── data-engineer-handoff
+│   │   ├── analytics-engineer-review
+│   │   ├── designer-and-product-collaboration
+│   │   ├── finance-definition-alignment
+│   │   ├── privacy-and-security-escalation
+│   │   ├── peer-code-review
+│   │   └── shared-documentation
+│   ├── portfolio-design
+│   │   ├── problem-selection
+│   │   ├── public-or-synthetic-data
+│   │   ├── clear-business-question
+│   │   ├── end-to-end-workflow
+│   │   ├── honest-results
+│   │   ├── reproducible-repository
+│   │   ├── decision-oriented-summary
+│   │   └── limitations-and-next-steps
+│   ├── portfolio-artifacts
+│   │   ├── data-dictionary
+│   │   ├── sql-analysis-notebook
+│   │   ├── cleaned-data-specification
+│   │   ├── quality-check-report
+│   │   ├── dashboard-or-visual-report
+│   │   ├── statistical-method-note
+│   │   ├── executive-memo
+│   │   └── reproducibility-guide
+│   ├── interview-preparation
+│   │   ├── sql-problem-solving
+│   │   ├── spreadsheet-cases
+│   │   ├── statistics-explanation
+│   │   ├── metric-design-cases
+│   │   ├── product-and-business-cases
+│   │   ├── dashboard-critique
+│   │   ├── data-quality-investigation
+│   │   └── communication-and-tradeoffs
+│   ├── technical-exercises
+│   │   ├── joins-and-cardinality
+│   │   ├── window-functions
+│   │   ├── cohort-and-retention-queries
+│   │   ├── data-cleaning
+│   │   ├── edge-case-debugging
+│   │   ├── experiment-readouts
+│   │   ├── chart-selection
+│   │   └── assumption-identification
+│   ├── professional-development
+│   │   ├── skills-gap-assessment
+│   │   ├── core-track-before-tool-sprawl
+│   │   ├── official-documentation-practice
+│   │   ├── domain-learning
+│   │   ├── peer-feedback
+│   │   ├── project-retrospectives
+│   │   ├── updated-portfolio
+│   │   └── evidence-based-learning-plan
+│   └── analysis-quality-rubric
+│       ├── question-clarity
+│       ├── data-provenance
+│       ├── correct-grain
+│       ├── metric-definition
+│       ├── method-appropriateness
+│       ├── reproducibility
+│       ├── uncertainty-communication
+│       └── actionability
+└── practice-projects
+    ├── spreadsheet-sales-workbook
+    │   ├── business-question
+    │   ├── raw-sales-import
+    │   ├── cleaned-table
+    │   ├── lookup-and-summary-formulas
+    │   ├── pivot-analysis
+    │   ├── reconciliation-controls
+    │   ├── executive-summary-sheet
+    │   └── refresh-and-handoff-guide
+    ├── power-query-folder-consolidation
+    │   ├── monthly-file-contract
+    │   ├── folder-ingestion
+    │   ├── schema-and-type-normalization
+    │   ├── invalid-row-quarantine
+    │   ├── merge-and-append-validation
+    │   ├── parameterized-refresh
+    │   ├── control-total-report
+    │   └── repeatable-delivery
+    ├── sql-business-analysis-lab
+    │   ├── relational-schema
+    │   ├── sample-and-edge-case-data
+    │   ├── join-grain-tests
+    │   ├── aggregation-queries
+    │   ├── window-function-queries
+    │   ├── cohort-queries
+    │   ├── query-plan-review
+    │   └── documented-answer-set
+    ├── python-data-cleaning-pipeline
+    │   ├── raw-dataset-profile
+    │   ├── cleaning-specification
+    │   ├── deterministic-transformations
+    │   ├── missing-and-duplicate-review
+    │   ├── unit-and-date-normalization
+    │   ├── validation-test-suite
+    │   ├── parquet-output
+    │   └── reproducible-runbook
+    ├── r-statistical-analysis-report
+    │   ├── research-question
+    │   ├── sampling-and-assumption-review
+    │   ├── tidy-data-preparation
+    │   ├── exploratory-visuals
+    │   ├── statistical-comparison
+    │   ├── effect-size-and-interval
+    │   ├── parameterized-quarto-report
+    │   └── limitations-and-recommendations
+    ├── power-bi-executive-dashboard
+    │   ├── stakeholder-requirements
+    │   ├── star-schema
+    │   ├── dax-measures
+    │   ├── calendar-and-context-tests
+    │   ├── accessible-report-pages
+    │   ├── row-level-security-tests
+    │   ├── refresh-and-deployment
+    │   └── business-readout
+    ├── tableau-service-performance-dashboard
+    │   ├── service-data-and-grain
+    │   ├── relationships-and-calculations
+    │   ├── lod-and-filter-order-tests
+    │   ├── interactive-dashboard
+    │   ├── accessible-layout
+    │   ├── performance-review
+    │   ├── source-reconciliation
+    │   └── stakeholder-handoff
+    ├── looker-governed-metrics
+    │   ├── metric-contract
+    │   ├── lookml-view-and-explore
+    │   ├── join-cardinality-validation
+    │   ├── reusable-measures
+    │   ├── access-controls
+    │   ├── dashboard-and-drill-paths
+    │   ├── sql-parity-tests
+    │   └── documentation-and-training
+    ├── local-analytics-warehouse
+    │   ├── source-file-inventory
+    │   ├── duckdb-or-cloud-sandbox
+    │   ├── staging-and-mart-design
+    │   ├── sql-transformations
+    │   ├── snapshot-and-history-requirements
+    │   ├── data-quality-tests
+    │   ├── query-cost-and-performance-review
+    │   └── source-to-report-lineage
+    ├── dbt-analytics-mart
+    │   ├── source-contract
+    │   ├── staging-models
+    │   ├── dimensional-mart
+    │   ├── incremental-processing
+    │   ├── data-and-unit-tests
+    │   ├── documentation-and-lineage
+    │   ├── ci-validation
+    │   └── metric-consumption-and-handoff
+    ├── product-funnel-investigation
+    │   ├── tracking-plan-review
+    │   ├── identity-and-session-policy
+    │   ├── conversion-window-definition
+    │   ├── funnel-and-segment-queries
+    │   ├── dropoff-validation
+    │   ├── instrumentation-gap-analysis
+    │   ├── experiment-proposals
+    │   └── decision-memo
+    ├── customer-retention-cohorts
+    │   ├── acquisition-cohort-definition
+    │   ├── activity-and-churn-definitions
+    │   ├── cohort-maturity-handling
+    │   ├── retention-matrix
+    │   ├── reactivation-analysis
+    │   ├── segment-mix-review
+    │   ├── denominator-reconciliation
+    │   └── retention-recommendations
+    ├── subscription-revenue-analysis
+    │   ├── contract-and-billing-data
+    │   ├── mrr-movement-classification
+    │   ├── revenue-retention-metrics
+    │   ├── customer-cohorts
+    │   ├── currency-and-proration-policy
+    │   ├── financial-reconciliation
+    │   ├── executive-dashboard
+    │   └── metric-dictionary
+    ├── marketing-channel-efficiency
+    │   ├── campaign-and-cost-data
+    │   ├── channel-taxonomy
+    │   ├── attribution-window-alignment
+    │   ├── qualified-conversion-metrics
+    │   ├── cohort-acquisition-cost
+    │   ├── attribution-limitations
+    │   ├── budget-scenario-analysis
+    │   └── recommendations-and-guardrails
+    ├── ab-test-readout
+    │   ├── pre-analysis-plan
+    │   ├── randomization-and-exposure-checks
+    │   ├── sample-ratio-mismatch-check
+    │   ├── primary-and-guardrail-metrics
+    │   ├── effect-and-uncertainty-estimates
+    │   ├── multiplicity-and-stopping-review
+    │   ├── rollout-recommendation
+    │   └── reproducible-analysis
+    ├── quasi-experiment-case-study
+    │   ├── intervention-and-estimand
+    │   ├── comparison-group-selection
+    │   ├── identification-assumptions
+    │   ├── pretrend-and-balance-checks
+    │   ├── effect-estimation
+    │   ├── placebo-and-sensitivity-tests
+    │   ├── alternative-explanations
+    │   └── limitations-and-decision-use
+    ├── sales-demand-forecast
+    │   ├── calendar-and-data-preparation
+    │   ├── naive-and-seasonal-baselines
+    │   ├── rolling-origin-backtests
+    │   ├── candidate-forecast-models
+    │   ├── horizon-specific-error
+    │   ├── interval-coverage-review
+    │   ├── demand-scenarios
+    │   └── refresh-and-monitoring-plan
+    ├── inventory-and-stockout-analysis
+    │   ├── product-location-grain
+    │   ├── inventory-and-sales-reconciliation
+    │   ├── stockout-and-availability-definitions
+    │   ├── abc-xyz-segmentation
+    │   ├── replenishment-lead-time-analysis
+    │   ├── holding-versus-service-tradeoff
+    │   ├── scenario-simulation
+    │   └── operations-dashboard
+    ├── budget-variance-and-profitability
+    │   ├── actual-budget-and-calendar-alignment
+    │   ├── revenue-and-cost-definitions
+    │   ├── price-volume-mix-decomposition
+    │   ├── contribution-margin-analysis
+    │   ├── variance-bridge
+    │   ├── reconciliation-to-control-totals
+    │   ├── management-memo
+    │   └── assumptions-and-sensitivity
+    ├── support-operations-analysis
+    │   ├── ticket-and-status-event-data
+    │   ├── sla-and-business-hours-policy
+    │   ├── response-and-resolution-metrics
+    │   ├── backlog-aging
+    │   ├── staffing-and-arrival-patterns
+    │   ├── satisfaction-response-bias
+    │   ├── action-prioritization
+    │   └── service-dashboard
+    ├── survey-and-customer-feedback
+    │   ├── questionnaire-and-sampling-review
+    │   ├── response-and-missingness-profile
+    │   ├── survey-weighting-rationale
+    │   ├── score-and-cross-tab-analysis
+    │   ├── open-text-coding
+    │   ├── subgroup-privacy-checks
+    │   ├── uncertainty-and-bias-report
+    │   └── customer-action-recommendations
+    ├── geospatial-service-coverage
+    │   ├── boundary-and-location-data
+    │   ├── coordinate-reference-validation
+    │   ├── spatial-joins
+    │   ├── population-normalized-coverage
+    │   ├── distance-and-access-analysis
+    │   ├── small-area-uncertainty
+    │   ├── map-accessibility-review
+    │   └── geographic-limitations
+    ├── text-feedback-analysis
+    │   ├── permitted-text-corpus
+    │   ├── deidentification-and-cleaning
+    │   ├── coding-rubric
+    │   ├── manual-reference-labels
+    │   ├── assisted-theme-or-sentiment-analysis
+    │   ├── error-and-bias-review
+    │   ├── quantified-theme-summary
+    │   └── evidence-linked-report
+    ├── tracking-and-metric-audit
+    │   ├── event-taxonomy-inventory
+    │   ├── source-and-dashboard-definitions
+    │   ├── identity-and-deduplication-checks
+    │   ├── cross-tool-metric-reconciliation
+    │   ├── timezone-and-window-review
+    │   ├── data-quality-issue-register
+    │   ├── remediation-priorities
+    │   └── measurement-contract
+    ├── reproducible-report-automation
+    │   ├── source-and-access-setup
+    │   ├── parameterized-pipeline
+    │   ├── automated-data-tests
+    │   ├── report-rendering
+    │   ├── scheduled-run-configuration
+    │   ├── safe-delivery-controls
+    │   ├── monitoring-and-failure-drill
+    │   └── analyst-handoff
+    ├── ai-assisted-analysis-validation
+    │   ├── approved-data-and-task-scope
+    │   ├── manually-verified-baseline
+    │   ├── sql-and-code-generation-review
+    │   ├── edge-case-and-grain-tests
+    │   ├── numerical-and-narrative-checks
+    │   ├── privacy-and-tool-permission-review
+    │   ├── productivity-and-error-comparison
+    │   └── responsible-use-playbook
+    ├── analytics-incident-investigation
+    │   ├── sudden-metric-change
+    │   ├── change-timeline
+    │   ├── source-freshness-and-volume-checks
+    │   ├── schema-and-join-regression-tests
+    │   ├── business-versus-pipeline-explanations
+    │   ├── corrected-metric-reconciliation
+    │   ├── stakeholder-communication
+    │   └── prevention-and-runbook
+    └── end-to-end-data-analyst-capstone
+        ├── stakeholder-problem-and-decision
+        ├── metric-and-data-contract
+        ├── source-acquisition-and-lineage
+        ├── cleaning-and-quality-controls
+        ├── analytical-data-model
+        ├── sql-and-programmatic-analysis
+        ├── statistical-and-business-validation
+        ├── accessible-dashboard-and-report
+        ├── privacy-and-ethics-review
+        ├── recommendation-and-action-owner
+        ├── reproducible-delivery
+        └── outcome-tracking-and-retrospective

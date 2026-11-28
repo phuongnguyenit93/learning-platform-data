@@ -43,7 +43,7 @@ Khi chạy workflow NEW, các chỉ dẫn legacy về Sheet/J3/rowXX/Gradle khô
    chạy refresh thật nếu cần đồng bộ lại tiến độ sau các Worker trước đó.
    Không tự reset bài đã viết.
 
-## 1. Lệnh Python (chạy ở repo java-learning)
+## 1. Lệnh Python (chạy ở `java-learning/learning-platform-data`)
 
 ```powershell
 # Kiểm tra toàn bộ cấu trúc và xem số status cần cập nhật (không ghi file).
@@ -83,6 +83,20 @@ Prime đọc lại `menu-detail-status.yml` sau refresh, lập queue tất cả
 - Hai file đúng sở hữu: `1.overview/overview-001.yml`,
   `1.overview/overview-001.md`.
 
+**BẮT BUỘC giao việc gối đầu (rolling dispatch), không chờ đủ một đợt:**
+Prime giữ các Worker đủ điều kiện làm việc liên tục trong giới hạn pool
+(NORMAL tối đa 3; SPECIAL tối đa N do người dùng chỉ định). Ngay khi **bất kỳ**
+Worker nào báo xong **một bài**, Prime nghiệm thu kết quả và readback của riêng
+bài đó, xác nhận Worker đã release ownership và về SLEEPING/Idle, rồi **giao
+ngay bài PENDING tiếp theo cho chính Worker đó** nếu còn bài hợp lệ. **Không
+đợi** các Worker ACTIVE khác hoàn thành để giao lượt tiếp theo. Ví dụ, Worker 1
+xong bài A và nhận bài D trong lúc Worker 2/3 vẫn viết bài B/C.
+
+Prime theo dõi riêng `PENDING`, `ACTIVE`, `COMPLETED` và
+`BLOCKER/FAILED`; một bài có `status: ""` nhưng đang thuộc Worker ACTIVE
+**không được giao lại**. Chỉ những bài PENDING chưa có owner mới được phân công.
+Không giao đồng thời nhiều bài cho một Worker; không vượt giới hạn pool.
+
 **Ở MỖI lượt giao bài**, Prime tự truyền **nguyên nội dung** ba giá trị
 `SERVICE_NAME`, `SERVICE_NAME_DESCRIBE`, `SPECIAL_NOTE` đã đọc trong preflight
 từ `module-info.json`. Đây là dữ liệu đầu vào **trong lời giao việc**, **không
@@ -114,14 +128,24 @@ YAML bài tương ứng. Prime không giao cùng một bài cho hai Worker đang
 không tính .md khác trạng thái là đã xong; không tự QA/refactor nội dung chuyên
 môn trong STEP 4.
 
-Sau mỗi đợt Worker báo xong (hoặc Prime restart):
-1. Xác minh Worker đã release ownership và cặp file có thật.
-2. Chạy `script/module/step4/refresh_menu_status.py` để đồng bộ trạng thái tổng hợp.
-3. Readback `menu-detail-status.yml`, tiếp tục giao bài `status: ""`.
-4. Xử lý BLOCKER theo từng bài, không reset hoặc overwrite bài có status khác rỗng.
+**Sau từng Worker báo kết quả**, kể cả khi những Worker khác còn ACTIVE
+(hoặc khi Prime restart):
+1. Xác minh report, readback Markdown/status, cặp file có thật và Worker đã
+   release ownership. Nếu BLOCKER/FAILED, ghi nhận đúng bài và xử lý theo
+   bằng chứng; không coi Worker đó là SLEEPING sẵn sàng nhận việc.
+2. Prime chạy `script/module-generate/step4/refresh_menu_status.py` để đồng
+   bộ trạng thái tổng hợp và readback `menu-detail-status.yml`. Prime thực
+   hiện refresh tuần tự, không cho nhiều tiến trình cùng ghi bảng tổng hợp.
+3. Nếu Worker đã hoàn thành hợp lệ và đang SLEEPING/Idle, **giao ngay** một bài
+   `status: ""` chưa có owner cho Worker đó; giữ nguyên các bài Worker khác
+   đang ACTIVE. Không chờ đủ 3 Worker hay chờ cả đợt mới giao tiếp.
+4. Tiếp tục quy trình trên đến khi không còn bài PENDING chưa được giao;
+   xử lý BLOCKER theo từng bài, không reset hoặc overwrite bài có status khác rỗng.
 
-Khi queue rỗng, chạy `refresh_menu_status.py --verify`, readback các status và
-xác nhận **không còn worker ACTIVE/blocked**. Báo:
+**Chỉ khi** không còn bài PENDING, **không còn Worker ACTIVE** và mọi bài đã
+được nghiệm thu, chạy `refresh_menu_status.py --verify`, readback các status
+và xác nhận **không còn worker ACTIVE/blocked**. Queue hết bài chưa giao nhưng
+vẫn còn Worker ACTIVE chưa được xem là hoàn tất. Báo:
 `MODULE_LOCATION`, `SERVICE_NAME`, `TOTAL`, `PENDING`, `WRITTEN`,
 `REFRESH`, `VERIFY`, `WORKER_OWNERSHIP`, `READBACK`, `BLOCKERS`.
 

@@ -28,8 +28,10 @@ Use `ORACLE_SCHEMA=LEARNING_PLATFORM` if the importer connects as another user.
 python -m pip install -r script/requirements-oracle-roadmap.txt
 ```
 
-The script defaults to the same **untracked** `.env.oracle-overview` file used by
-the Overview importer. Alternatively use `--env-file <path>` or set the
+The script defaults to the same **untracked**
+`learning-platform-data/.env.oracle-overview` file used by the Overview
+importer (at `.env.oracle-overview` when working inside this repository).
+Alternatively use `--env-file <path>` or set the
 variables in the current process:
 
 ```dotenv

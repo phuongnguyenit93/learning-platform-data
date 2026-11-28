@@ -47,12 +47,6 @@ blankKnowledge:
   totalFiles: 182
   blankFiles: 182
   filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/language/java/version/java25
-  CURRENT_STEP: '3'
-  SERVICE_NAME: JAVA_VERSION_JAVA25
-  totalFiles: 190
-  blankFiles: 190
-  filledFiles: 0
 - location: learning-platform-data/module/infrastructure/system/security/authentication/certificate-authentication
   CURRENT_STEP: '3'
   SERVICE_NAME: SECURITY_AUTHENTICATION_CERTIFICATE_AUTHENTICATION
@@ -338,12 +332,6 @@ blankKnowledge:
 - location: learning-platform-data/module/platform/development/programming/framework/spring-ai/memory-advisors
   CURRENT_STEP: '3'
   SERVICE_NAME: SPRING_AI_MEMORY_ADVISORS
-  totalFiles: 229
-  blankFiles: 229
-  filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/language/java/version/java26
-  CURRENT_STEP: '3'
-  SERVICE_NAME: JAVA_VERSION_JAVA26
   totalFiles: 229
   blankFiles: 229
   filledFiles: 0
@@ -641,12 +629,6 @@ blankKnowledge:
   totalFiles: 256
   blankFiles: 256
   filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/language/java/version/java27
-  CURRENT_STEP: '3'
-  SERVICE_NAME: JAVA_VERSION_JAVA27
-  totalFiles: 256
-  blankFiles: 256
-  filledFiles: 0
 - location: learning-platform-data/module/platform/support/document/excel
   CURRENT_STEP: '3'
   SERVICE_NAME: SUPPORT_DOCUMENT_EXCEL
@@ -710,12 +692,6 @@ blankKnowledge:
 - location: learning-platform-data/module/infrastructure/devops/devsecops/dependency-scanning
   CURRENT_STEP: '3'
   SERVICE_NAME: DEVSECOPS_DEPENDENCY_SCANNING
-  totalFiles: 261
-  blankFiles: 261
-  filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/configuration
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SPRING_CLOUD_CONFIGURATION
   totalFiles: 261
   blankFiles: 261
   filledFiles: 0
@@ -821,12 +797,6 @@ blankKnowledge:
   totalFiles: 268
   blankFiles: 268
   filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/framework/spring-cloud/service-broker
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SPRING_CLOUD_SERVICE_BROKER
-  totalFiles: 268
-  blankFiles: 268
-  filledFiles: 0
 - location: learning-platform-data/module/platform/development/programming/paradigm/constraint
   CURRENT_STEP: '3'
   SERVICE_NAME: CONSTRAINT_PROGRAMMING
@@ -926,12 +896,6 @@ blankKnowledge:
 - location: learning-platform-data/module/infrastructure/system/security/zero-trust
   CURRENT_STEP: '3'
   SERVICE_NAME: SECURITY_ZERO_TRUST
-  totalFiles: 278
-  blankFiles: 278
-  filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/framework/spring-ai/tool-calling
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SPRING_AI_TOOL_CALLING
   totalFiles: 278
   blankFiles: 278
   filledFiles: 0
@@ -1037,12 +1001,6 @@ blankKnowledge:
   totalFiles: 285
   blankFiles: 285
   filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/framework/spring-ai/evaluation-observability
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SPRING_AI_EVALUATION_OBSERVABILITY
-  totalFiles: 285
-  blankFiles: 285
-  filledFiles: 0
 - location: learning-platform-data/module/infrastructure/devops/devsecops/fundamentals
   CURRENT_STEP: '3'
   SERVICE_NAME: DEVSECOPS_FUNDAMENTALS
@@ -1076,12 +1034,6 @@ blankKnowledge:
 - location: learning-platform-data/module/infrastructure/system/observability/fundamentals
   CURRENT_STEP: '3'
   SERVICE_NAME: SYSTEM_OBSERVABILITY_FUNDAMENTALS
-  totalFiles: 287
-  blankFiles: 287
-  filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/language/java/version/java18
-  CURRENT_STEP: '3'
-  SERVICE_NAME: JAVA_VERSION_JAVA18
   totalFiles: 287
   blankFiles: 287
   filledFiles: 0
@@ -1211,12 +1163,6 @@ blankKnowledge:
   totalFiles: 298
   blankFiles: 298
   filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/framework/spring-ldap
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SPRING_LDAP
-  totalFiles: 298
-  blankFiles: 298
-  filledFiles: 0
 - location: learning-platform-data/module/platform/support/notification/microsoft-team
   CURRENT_STEP: '3'
   SERVICE_NAME: SUPPORT_NOTIFICATION_MICROSOFT_TEAMS
@@ -1288,12 +1234,6 @@ blankKnowledge:
   SERVICE_NAME: VALIDATION_BENCHMARK
   totalFiles: 304
   blankFiles: 304
-  filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/framework/spring-modulith/module-model
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SPRING_MODULITH_MODULE_MODEL
-  totalFiles: 305
-  blankFiles: 305
   filledFiles: 0
 - location: learning-platform-data/module/platform/code-quality/static-analysis/dependency-analysis
   CURRENT_STEP: '3'
@@ -1442,12 +1382,6 @@ blankKnowledge:
 - location: learning-platform-data/module/platform/code-quality/static-analysis/architecture-rules
   CURRENT_STEP: '3'
   SERVICE_NAME: CODE_QUALITY_STATIC_ANALYSIS_ARCHITECTURE_RULES
-  totalFiles: 318
-  blankFiles: 318
-  filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/framework/spring-modulith/documentation-observability
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SPRING_MODULITH_DOCUMENTATION_OBSERVABILITY
   totalFiles: 318
   blankFiles: 318
   filledFiles: 0
@@ -1745,12 +1679,6 @@ blankKnowledge:
   totalFiles: 348
   blankFiles: 348
   filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/language/java/version/java16
-  CURRENT_STEP: '3'
-  SERVICE_NAME: JAVA_VERSION_JAVA16
-  totalFiles: 348
-  blankFiles: 348
-  filledFiles: 0
 - location: learning-platform-data/module/platform/development/software-design/design-technique/refactoring
   CURRENT_STEP: '3'
   SERVICE_NAME: SOFTWARE_DESIGN_DESIGN_TECHNIQUE_REFACTORING
@@ -1886,12 +1814,6 @@ blankKnowledge:
 - location: learning-platform-data/module/infrastructure/system/network/connectivity
   CURRENT_STEP: '3'
   SERVICE_NAME: NETWORK_CONNECTIVITY
-  totalFiles: 364
-  blankFiles: 364
-  filledFiles: 0
-- location: learning-platform-data/module/platform/development/programming/framework/spring-web-services
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SPRING_WEB_SERVICES
   totalFiles: 364
   blankFiles: 364
   filledFiles: 0
@@ -2141,12 +2063,6 @@ blankKnowledge:
   totalFiles: 414
   blankFiles: 414
   filledFiles: 0
-- location: learning-platform-data/module/platform/development/data/persistence/relational-access/mybatis
-  CURRENT_STEP: '3'
-  SERVICE_NAME: MYBATIS
-  totalFiles: 414
-  blankFiles: 414
-  filledFiles: 0
 - location: learning-platform-data/module/infrastructure/system/runtime/network-engine/netty
   CURRENT_STEP: '3'
   SERVICE_NAME: RUNTIME_NETWORK_ENGINE_NETTY
@@ -2267,36 +2183,6 @@ blankKnowledge:
   totalFiles: 485
   blankFiles: 485
   filledFiles: 0
-- location: learning-platform-data/module/infrastructure/system/security/authentication/hmac-request-authentication
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SECURITY_AUTHENTICATION_HMAC_REQUEST_AUTHENTICATION
-  totalFiles: 487
-  blankFiles: 487
-  filledFiles: 0
-- location: learning-platform-data/module/infrastructure/system/security/security-assurance
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SECURITY_SECURITY_ASSURANCE
-  totalFiles: 487
-  blankFiles: 487
-  filledFiles: 0
-- location: learning-platform-data/module/infrastructure/system/security/key-management/fundamentals
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SECURITY_KEY_MANAGEMENT_FUNDAMENTALS
-  totalFiles: 488
-  blankFiles: 488
-  filledFiles: 0
-- location: learning-platform-data/module/infrastructure/system/security/network-security
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SECURITY_NETWORK_SECURITY
-  totalFiles: 494
-  blankFiles: 494
-  filledFiles: 0
-- location: learning-platform-data/module/infrastructure/system/security/security-design/security-requirements
-  CURRENT_STEP: '3'
-  SERVICE_NAME: SECURITY_SECURITY_DESIGN_SECURITY_REQUIREMENTS
-  totalFiles: 499
-  blankFiles: 499
-  filledFiles: 0
 - location: learning-platform-data/module/platform/support/document/pdf
   CURRENT_STEP: '3'
   SERVICE_NAME: SUPPORT_DOCUMENT_PDF
@@ -2306,11 +2192,11 @@ blankKnowledge:
 summary:
   totalModules: 569
   unfinishedModules: 1
-  blankModules: 384
-  finishedModules: 184
+  blankModules: 365
+  finishedModules: 203
   modulesWithoutMarkdown: 0
   missingMetadataModules: 0
-  totalMarkdownFiles: 200517
-  blankMarkdownFiles: 116279
-  filledMarkdownFiles: 84238
-  generatedAt: '2026-11-27T00:11:02+07:00'
+  totalMarkdownFiles: 218760
+  blankMarkdownFiles: 109679
+  filledMarkdownFiles: 109081
+  generatedAt: '2026-11-28T15:17:24+07:00'

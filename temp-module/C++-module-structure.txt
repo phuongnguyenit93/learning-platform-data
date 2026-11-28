@@ -1,0 +1,1025 @@
+cpp-module
+├── foundations
+│   ├── cpp-overview
+│   │   ├── what-cpp-is
+│   │   ├── cpp-language-evolution
+│   │   ├── c-versus-cpp
+│   │   ├── cpp-versus-other-systems-languages
+│   │   ├── compiled-language-and-native-execution
+│   │   ├── standards-and-compiler-implementations
+│   │   ├── cpp-use-cases-and-tradeoffs
+│   │   └── cpp-developer-learning-path
+│   ├── language-standards-and-versions
+│   │   ├── cpp98-and-cpp03
+│   │   ├── cpp11
+│   │   ├── cpp14
+│   │   ├── cpp17
+│   │   ├── cpp20
+│   │   ├── cpp23
+│   │   ├── post-cpp23-evolution-awareness
+│   │   ├── feature-test-macros
+│   │   └── standard-versus-compiler-extensions
+│   ├── development-environment
+│   │   ├── linux-development
+│   │   ├── macos-development
+│   │   ├── windows-development
+│   │   ├── gcc-and-g-plus-plus
+│   │   ├── clang-and-clang-plus-plus
+│   │   ├── microsoft-visual-cpp-and-msvc
+│   │   ├── ide-and-editor-setup
+│   │   ├── debugger-installation
+│   │   └── reproducible-toolchain-setup
+│   ├── compilation-and-build-basics
+│   │   ├── source-files-and-translation-units
+│   │   ├── preprocessing
+│   │   ├── compilation-and-assembly
+│   │   ├── object-files
+│   │   ├── linking-and-executable-generation
+│   │   ├── static-and-dynamic-libraries
+│   │   ├── compiler-driver-and-toolchain
+│   │   └── build-errors-versus-runtime-errors
+│   └── programming-fundamentals
+│       ├── algorithms-and-problem-decomposition
+│       ├── variables-and-expressions
+│       ├── control-flow
+│       ├── functions-and-parameters
+│       ├── data-structures-overview
+│       ├── debugging-and-reasoning
+│       ├── command-line-fundamentals
+│       └── git-and-version-control
+├── core-language-fundamentals
+│   ├── lexical-structure-and-translation
+│   │   ├── tokens-and-keywords
+│   │   ├── identifiers-and-literals
+│   │   ├── comments-and-whitespace
+│   │   ├── operators-and-punctuators
+│   │   ├── character-sets-and-encoding
+│   │   ├── translation-phases
+│   │   ├── preprocessing-tokens
+│   │   └── well-formed-programs-and-diagnostics
+│   ├── types-and-object-model
+│   │   ├── fundamental-types
+│   │   ├── integer-types-and-widths
+│   │   ├── floating-point-types
+│   │   ├── boolean-and-character-types
+│   │   ├── void-and-null-pointer-type
+│   │   ├── cv-qualification
+│   │   ├── type-aliases
+│   │   ├── object-lifetime-and-storage-duration
+│   │   ├── object-representation-and-alignment
+│   │   └── type-traits-and-type-properties
+│   ├── variables-and-initialization
+│   │   ├── declarations-and-definitions
+│   │   ├── copy-initialization
+│   │   ├── direct-initialization
+│   │   ├── list-and-brace-initialization
+│   │   ├── value-zero-and-default-initialization
+│   │   ├── narrowing-conversions
+│   │   ├── const-and-constexpr-variables
+│   │   ├── static-storage-and-thread-storage
+│   │   └── initialization-order
+│   ├── operators-and-expressions
+│   │   ├── arithmetic-and-remainder
+│   │   ├── comparison-and-logical-operators
+│   │   ├── bitwise-and-shift-operators
+│   │   ├── assignment-and-compound-assignment
+│   │   ├── increment-and-decrement
+│   │   ├── conditional-operator
+│   │   ├── operator-precedence-and-associativity
+│   │   ├── implicit-and-explicit-conversions
+│   │   ├── casts-and-conversion-functions
+│   │   └── sequencing-and-evaluation-order
+│   ├── control-flow
+│   │   ├── if-and-else
+│   │   ├── switch-and-fallthrough
+│   │   ├── for-loops
+│   │   ├── range-based-for
+│   │   ├── while-and-do-while
+│   │   ├── break-and-continue
+│   │   ├── return-and-function-exit
+│   │   ├── goto-and-labels
+│   │   └── unreachable-and-termination
+│   ├── functions
+│   │   ├── function-declarations-and-definitions
+│   │   ├── parameters-and-return-types
+│   │   ├── pass-by-value-and-reference
+│   │   ├── const-reference-parameters
+│   │   ├── default-arguments
+│   │   ├── function-overloading
+│   │   ├── overload-resolution
+│   │   ├── inline-functions
+│   │   ├── constexpr-and-consteval-functions
+│   │   ├── recursion
+│   │   └── function-pointers-and-callables
+│   ├── scope-and-linkage
+│   │   ├── block-and-function-scope
+│   │   ├── namespace-scope
+│   │   ├── global-and-local-variables
+│   │   ├── name-lookup
+│   │   ├── argument-dependent-lookup
+│   │   ├── internal-and-external-linkage
+│   │   ├── anonymous-namespaces
+│   │   ├── static-and-extern
+│   │   └── one-definition-rule
+│   └── arrays-pointers-and-references
+│       ├── built-in-arrays
+│       ├── multidimensional-arrays
+│       ├── array-to-pointer-conversion
+│       ├── pointer-declaration-and-arithmetic
+│       ├── null-pointer-and-nullptr
+│       ├── lvalue-and-rvalue-references
+│       ├── const-pointers-and-pointer-to-const
+│       ├── dangling-pointers-and-references
+│       └── spans-and-bounded-views
+├── object-oriented-programming
+│   ├── classes-and-objects
+│   │   ├── class-and-struct
+│   │   ├── data-members-and-member-functions
+│   │   ├── access-specifiers
+│   │   ├── constructors
+│   │   ├── destructors
+│   │   ├── member-initializer-lists
+│   │   ├── this-pointer
+│   │   ├── const-member-functions
+│   │   ├── static-members
+│   │   └── class-invariants
+│   ├── special-member-functions
+│   │   ├── default-constructor
+│   │   ├── copy-constructor
+│   │   ├── copy-assignment-operator
+│   │   ├── move-constructor
+│   │   ├── move-assignment-operator
+│   │   ├── destructor-and-resource-release
+│   │   ├── rule-of-three
+│   │   ├── rule-of-five
+│   │   ├── rule-of-zero
+│   │   └── explicitly-defaulted-and-deleted-functions
+│   ├── encapsulation-and-abstraction
+│   │   ├── public-private-and-protected-interfaces
+│   │   ├── invariants-and-validation
+│   │   ├── implementation-hiding
+│   │   ├── pimpl-idiom
+│   │   ├── interface-segregation
+│   │   └── value-semantics-and-identity
+│   ├── inheritance
+│   │   ├── public-protected-and-private-inheritance
+│   │   ├── base-and-derived-classes
+│   │   ├── constructor-and-destructor-order
+│   │   ├── method-hiding-and-overriding
+│   │   ├── virtual-functions
+│   │   ├── pure-virtual-functions
+│   │   ├── abstract-classes
+│   │   ├── multiple-inheritance
+│   │   ├── virtual-inheritance
+│   │   └── object-slicing
+│   ├── polymorphism
+│   │   ├── compile-time-polymorphism
+│   │   ├── runtime-polymorphism
+│   │   ├── virtual-dispatch
+│   │   ├── virtual-destructors
+│   │   ├── override-and-final
+│   │   ├── dynamic-cast-and-typeid
+│   │   ├── interface-based-design
+│   │   └── type-erasure-overview
+│   └── operator-overloading
+│       ├── member-and-nonmember-operators
+│       ├── arithmetic-and-comparison-overloads
+│       ├── stream-insertion-and-extraction
+│       ├── subscript-and-call-operators
+│       ├── conversion-operators
+│       ├── spaceship-operator
+│       ├── symmetric-operator-design
+│       └── overload-consistency-and-surprise
+├── modern-cpp-and-type-system
+│   ├── auto-and-type-deduction
+│   │   ├── auto-variable-deduction
+│   │   ├── decltype
+│   │   ├── decltype-auto
+│   │   ├── trailing-return-types
+│   │   ├── reference-and-cv-deduction
+│   │   ├── class-template-argument-deduction
+│   │   └── deduction-pitfalls
+│   ├── move-semantics-and-perfect-forwarding
+│   │   ├── lvalues-and-rvalues
+│   │   ├── xvalues-and-prvalues
+│   │   ├── std-move
+│   │   ├── move-constructor-and-assignment
+│   │   ├── forwarding-references
+│   │   ├── std-forward
+│   │   ├── reference-collapsing
+│   │   ├── copy-elision-and-guaranteed-elision
+│   │   └── moved-from-state-contracts
+│   ├── lambdas-and-callables
+│   │   ├── lambda-syntax-and-capture
+│   │   ├── value-and-reference-capture
+│   │   ├── init-capture
+│   │   ├── generic-lambdas
+│   │   ├── mutable-lambdas
+│   │   ├── lambda-closure-types
+│   │   ├── std-function-and-function-objects
+│   │   └── callable-lifetime-and-dangling-captures
+│   ├── constexpr-and-compile-time-programming
+│   │   ├── constexpr-variables-and-functions
+│   │   ├── consteval-and-constinit
+│   │   ├── if-constexpr
+│   │   ├── compile-time-evaluation-rules
+│   │   ├── constexpr-containers-and-algorithms
+│   │   ├── compile-time-string-and-table-generation
+│   │   └── compile-time-versus-runtime-cost
+│   ├── templates
+│   │   ├── function-templates
+│   │   ├── class-templates
+│   │   ├── variable-templates
+│   │   ├── template-parameters
+│   │   ├── template-argument-deduction
+│   │   ├── specialization-and-partial-specialization
+│   │   ├── variadic-templates
+│   │   ├── fold-expressions
+│   │   ├── non-type-template-parameters
+│   │   ├── template-instantiation
+│   │   └── template-error-diagnostics
+│   ├── concepts-and-constraints
+│   │   ├── requires-expressions
+│   │   ├── requires-clauses
+│   │   ├── standard-concepts
+│   │   ├── custom-concepts
+│   │   ├── constrained-overloads
+│   │   ├── concept-refinement
+│   │   └── concepts-versus-sfinae
+│   ├── ranges-and-views
+│   │   ├── range-concepts
+│   │   ├── iterators-and-sentinels
+│   │   ├── views-and-lazy-evaluation
+│   │   ├── filter-and-transform
+│   │   ├── take-drop-and-join
+│   │   ├── range-adaptors-and-pipelines
+│   │   ├── borrowed-ranges-and-lifetime
+│   │   └── ranges-algorithms
+│   └── modern-language-features-by-standard
+│       ├── cpp11-core-features
+│       ├── cpp14-quality-of-life-features
+│       ├── cpp17-structured-bindings-and-variants
+│       ├── cpp20-modules-coroutines-and-concepts
+│       ├── cpp23-deducing-this-and-library-additions
+│       ├── feature-support-and-portability
+│       └── modernization-and-migration
+├── standard-library-and-generic-programming
+│   ├── standard-library-architecture
+│   │   ├── headers-and-namespaces
+│   │   ├── standard-library-version-support
+│   │   ├── complexity-guarantees
+│   │   ├── iterator-and-range-conventions
+│   │   ├── allocator-aware-components
+│   │   └── implementation-versus-standard-contract
+│   ├── strings-and-text
+│   │   ├── std-string
+│   │   ├── std-string-view
+│   │   ├── std-stringstream
+│   │   ├── character-encoding-and-unicode
+│   │   ├── parsing-and-formatting
+│   │   ├── std-format
+│   │   ├── regular-expressions
+│   │   └── text-processing-performance
+│   ├── containers
+│   │   ├── std-array
+│   │   ├── std-vector
+│   │   ├── std-deque-and-list
+│   │   ├── std-forward-list
+│   │   ├── std-map-and-multimap
+│   │   ├── std-unordered-map-and-multimap
+│   │   ├── std-set-and-multiset
+│   │   ├── std-unordered-set
+│   │   ├── std-stack-queue-and-priority-queue
+│   │   ├── std-span
+│   │   └── container-selection-and-complexity
+│   ├── iterators-and-algorithms
+│   │   ├── iterator-categories-and-concepts
+│   │   ├── iterator-invalidation
+│   │   ├── sorting-and-ordering
+│   │   ├── searching-and-binary-search
+│   │   ├── partitioning-and-heap-algorithms
+│   │   ├── transform-and-accumulate
+│   │   ├── remove-erase-idiom
+│   │   ├── ranges-algorithm-overloads
+│   │   └── algorithm-complexity
+│   ├── utility-and-type-support
+│   │   ├── std-pair-and-tuple
+│   │   ├── std-optional
+│   │   ├── std-variant
+│   │   ├── std-any
+│   │   ├── std-expected
+│   │   ├── std-utility-and-exchange
+│   │   ├── std-type-traits
+│   │   ├── std-bit-and-bitset
+│   │   └── std-source-location
+│   ├── smart-pointers-and-ownership
+│   │   ├── std-unique-ptr
+│   │   ├── std-shared-ptr
+│   │   ├── std-weak-ptr
+│   │   ├── make-unique-and-make-shared
+│   │   ├── custom-deleters
+│   │   ├── enable-shared-from-this
+│   │   ├── ownership-cycles
+│   │   └── choosing-ownership-models
+│   ├── input-output-and-filesystem
+│   │   ├── iostream-and-stream-state
+│   │   ├── formatted-and-unformatted-io
+│   │   ├── file-streams
+│   │   ├── filesystem-library
+│   │   ├── paths-and-directory-iteration
+│   │   ├── error-codes-and-error-conditions
+│   │   ├── binary-file-io
+│   │   └── stream-performance-and-buffering
+│   ├── time-and-formatting
+│   │   ├── chrono-durations-and-time-points
+│   │   ├── clocks-and-time-zones
+│   │   ├── calendar-and-date-types
+│   │   ├── duration-casting
+│   │   ├── time-formatting-and-parsing
+│   │   └── monotonic-versus-wall-clock-time
+│   └── generic-programming-practice
+│       ├── algorithms-over-container-types
+│       ├── concepts-for-library-interfaces
+│       ├── customization-points
+│       ├── ranges-composition
+│       ├── value-semantics
+│       ├── compile-time-and-runtime-tradeoffs
+│       └── generic-api-usability
+├── memory-management-and-resource-safety
+│   ├── memory-model-fundamentals
+│   │   ├── stack-and-automatic-storage
+│   │   ├── static-and-thread-local-storage
+│   │   ├── dynamic-storage
+│   │   ├── object-lifetime
+│   │   ├── allocation-and-deallocation
+│   │   ├── alignment-and-padding
+│   │   ├── memory-layout-and-cache-locality
+│   │   └── lifetime-versus-scope
+│   ├── pointers-and-ownership-safety
+│   │   ├── raw-pointer-semantics
+│   │   ├── ownership-versus-observation
+│   │   ├── dangling-and-invalid-pointers
+│   │   ├── use-after-free
+│   │   ├── double-free-and-invalid-free
+│   │   ├── null-dereference
+│   │   ├── pointer-arithmetic-boundaries
+│   │   └── pointer-provenance-and-object-model-awareness
+│   ├── raii-and-resource-management
+│   │   ├── raii-principle
+│   │   ├── deterministic-destruction
+│   │   ├── resource-wrappers
+│   │   ├── exception-safe-construction
+│   │   ├── file-and-lock-guards
+│   │   ├── transaction-and-rollback-guards
+│   │   ├── scope-exit-patterns
+│   │   └── rule-of-zero-design
+│   ├── allocators-and-memory-resources
+│   │   ├── allocator-requirements
+│   │   ├── allocator-aware-containers
+│   │   ├── polymorphic-memory-resource
+│   │   ├── monotonic-buffer-resource
+│   │   ├── pool-and-unsynchronized-pool-resource
+│   │   ├── custom-allocation-strategies
+│   │   ├── arena-and-region-allocation
+│   │   └── allocation-profiling
+│   ├── object-lifetime-and-construction
+│   │   ├── construction-and-destruction-order
+│   │   ├── placement-new
+│   │   ├── object-storage-and-lifetime-start
+│   │   ├── implicit-lifetime-types
+│   │   ├── std-launder-awareness
+│   │   ├── union-and-variant-lifetime
+│   │   └── lifetime-extension-and-temporary-objects
+│   └── resource-safety-analysis
+│       ├── leak-detection
+│       ├── address-sanitizer
+│       ├── leak-sanitizer
+│       ├── undefined-behavior-sanitizer
+│       ├── memory-sanitizer
+│       ├── valgrind-and-heap-profilers
+│       ├── static-analysis-and-lifetime-warnings
+│       └── resource-exhaustion-testing
+├── error-handling-and-correctness
+│   ├── exceptions
+│   │   ├── throw-and-catch
+│   │   ├── exception-hierarchy
+│   │   ├── standard-exception-types
+│   │   ├── custom-exception-types
+│   │   ├── stack-unwinding
+│   │   ├── noexcept
+│   │   ├── exception-safety-guarantees
+│   │   ├── exception-translation-boundaries
+│   │   └── exceptions-versus-error-values
+│   ├── error-handling-design
+│   │   ├── return-codes-and-status-types
+│   │   ├── std-optional-for-absence
+│   │   ├── std-expected-for-errors
+│   │   ├── error-code-and-error-category
+│   │   ├── error-propagation-and-context
+│   │   ├── validation-at-boundaries
+│   │   ├── fail-fast-and-recovery
+│   │   └── error-reporting-contracts
+│   ├── undefined-and-unspecified-behavior
+│   │   ├── undefined-behavior
+│   │   ├── unspecified-behavior
+│   │   ├── implementation-defined-behavior
+│   │   ├── signed-integer-overflow
+│   │   ├── uninitialized-and-indeterminate-values
+│   │   ├── strict-aliasing-and-type-access
+│   │   ├── data-races-and-lifetime-violations
+│   │   └── optimizer-effects-and-reproduction
+│   ├── assertions-and-contracts
+│   │   ├── assert-and-static-assert
+│   │   ├── preconditions-and-postconditions
+│   │   ├── class-invariants
+│   │   ├── defensive-programming
+│   │   ├── debug-versus-release-checks
+│   │   └── contract-design-and-documentation
+│   └── correctness-techniques
+│       ├── invariants-and-proof-sketches
+│       ├── boundary-and-overflow-analysis
+│       ├── property-based-testing
+│       ├── fuzz-testing
+│       ├── differential-testing
+│       ├── static-analysis
+│       ├── sanitizers-and-dynamic-analysis
+│       └── code-review-for-correctness
+├── preprocessor-modules-and-build-engineering
+│   ├── preprocessor
+│   │   ├── include-directives
+│   │   ├── macro-definition-and-expansion
+│   │   ├── function-like-and-object-like-macros
+│   │   ├── conditional-compilation
+│   │   ├── include-guards-and-pragma-once
+│   │   ├── macro-stringification-and-token-pasting
+│   │   ├── predefined-macros
+│   │   └── macro-hazards-and-alternatives
+│   ├── headers-and-translation-units
+│   │   ├── header-and-source-file-responsibilities
+│   │   ├── declaration-versus-definition
+│   │   ├── include-dependency-management
+│   │   ├── forward-declarations
+│   │   ├── header-self-sufficiency
+│   │   ├── compile-time-dependency-reduction
+│   │   └── unity-build-tradeoffs
+│   ├── linking-and-abi
+│   │   ├── symbol-resolution
+│   │   ├── static-linking
+│   │   ├── dynamic-linking
+│   │   ├── shared-library-visibility
+│   │   ├── name-mangling-and-extern-c
+│   │   ├── application-binary-interface
+│   │   ├── binary-compatibility
+│   │   └── linker-errors-and-symbol-inspection
+│   ├── cmake-and-build-systems
+│   │   ├── cmake-project-basics
+│   │   ├── targets-and-properties
+│   │   ├── libraries-and-executables
+│   │   ├── include-directories-and-link-dependencies
+│   │   ├── generator-expressions
+│   │   ├── toolchain-files-and-cross-compilation
+│   │   ├── presets-and-build-configurations
+│   │   ├── install-and-export-packages
+│   │   ├── ctest-integration
+│   │   └── ninja-make-and-msbuild-generators
+│   ├── package-management
+│   │   ├── vcpkg
+│   │   ├── conan
+│   │   ├── system-package-managers
+│   │   ├── dependency-versioning
+│   │   ├── lockfiles-and-manifests
+│   │   ├── reproducible-dependency-resolution
+│   │   └── vendoring-and-third-party-policy
+│   └── cpp-modules
+│       ├── named-modules
+│       ├── module-interface-units
+│       ├── module-implementation-units
+│       ├── export-and-import
+│       ├── header-units-and-global-module-fragment
+│       ├── module-partitions
+│       ├── build-system-module-scanning
+│       └── modules-versus-headers
+├── concurrency-and-parallel-programming
+│   ├── concurrency-fundamentals
+│   │   ├── process-versus-thread
+│   │   ├── concurrency-versus-parallelism
+│   │   ├── shared-and-private-state
+│   │   ├── race-conditions
+│   │   ├── critical-sections
+│   │   ├── memory-ordering-intuition
+│   │   └── thread-lifecycle
+│   ├── std-thread-and-jthread
+│   │   ├── thread-creation-and-joining
+│   │   ├── detach-risks
+│   │   ├── thread-arguments-and-callables
+│   │   ├── jthread-and-stop-token
+│   │   ├── cooperative-cancellation
+│   │   ├── thread-local-storage
+│   │   └── thread-lifetime-and-ownership
+│   ├── synchronization-primitives
+│   │   ├── mutex-and-lock-guard
+│   │   ├── unique-lock-and-shared-lock
+│   │   ├── recursive-and-timed-mutexes
+│   │   ├── condition-variable
+│   │   ├── semaphore
+│   │   ├── latch-and-barrier
+│   │   ├── call-once-and-once-flag
+│   │   └── atomic-wait-and-notify
+│   ├── atomic-and-memory-model
+│   │   ├── std-atomic
+│   │   ├── atomic-operations-and-lock-free
+│   │   ├── memory-order-relaxed
+│   │   ├── acquire-and-release
+│   │   ├── sequential-consistency
+│   │   ├── happens-before
+│   │   ├── synchronization-and-publication
+│   │   └── false-sharing-and-cache-coherence
+│   ├── asynchronous-and-task-based-programming
+│   │   ├── std-async
+│   │   ├── future-and-shared-future
+│   │   ├── promise-and-packaged-task
+│   │   ├── task-execution-and-thread-pools
+│   │   ├── cancellation-and-timeouts
+│   │   ├── continuation-and-composition-patterns
+│   │   └── asynchronous-error-propagation
+│   ├── parallel-algorithms
+│   │   ├── execution-policies
+│   │   ├── parallel-transform-and-reduce
+│   │   ├── unsequenced-execution
+│   │   ├── data-race-restrictions
+│   │   ├── grain-size-and-overhead
+│   │   └── parallel-performance-measurement
+│   └── concurrency-failure-modes
+│       ├── deadlock-and-lock-ordering
+│       ├── livelock-and-starvation
+│       ├── priority-inversion
+│       ├── lost-wakeup
+│       ├── data-race-detection
+│       ├── lock-contention
+│       ├── shutdown-and-cancellation-races
+│       └── thread-sanitizer
+├── input-output-networking-and-systems-programming
+│   ├── file-and-stream-io
+│   │   ├── standard-streams
+│   │   ├── file-streams-and-open-modes
+│   │   ├── binary-and-text-files
+│   │   ├── buffering-and-flushing
+│   │   ├── serialization-and-deserialization
+│   │   ├── filesystem-operations
+│   │   └── robust-io-error-handling
+│   ├── networking-fundamentals
+│   │   ├── ip-tcp-and-udp
+│   │   ├── sockets-and-addresses
+│   │   ├── blocking-and-nonblocking-io
+│   │   ├── client-server-architecture
+│   │   ├── dns-and-name-resolution
+│   │   ├── tls-and-secure-transport
+│   │   └── network-error-and-timeout-handling
+│   ├── socket-programming
+│   │   ├── platform-socket-apis
+│   │   ├── socket-creation-and-binding
+│   │   ├── listen-accept-and-connect
+│   │   ├── send-recv-and-buffering
+│   │   ├── connection-lifecycle
+│   │   ├── multiplexing-select-poll-and-epoll
+│   │   ├── io-completion-ports-overview
+│   │   └── graceful-shutdown
+│   ├── serialization-and-data-formats
+│   │   ├── binary-layout-and-endianness
+│   │   ├── json-and-library-integration
+│   │   ├── xml-and-text-formats
+│   │   ├── protocol-buffers
+│   │   ├── flatbuffers-and-capnproto-overview
+│   │   ├── schema-evolution
+│   │   ├── validation-and-untrusted-input
+│   │   └── serialization-performance
+│   ├── operating-system-integration
+│   │   ├── processes-and-process-creation
+│   │   ├── signals-and-interruption
+│   │   ├── environment-and-command-line
+│   │   ├── pipes-and-interprocess-communication
+│   │   ├── shared-memory-overview
+│   │   ├── file-descriptors-and-handles
+│   │   ├── dynamic-library-loading
+│   │   └── platform-abstraction
+│   └── asynchronous-io-and-event-loops
+│       ├── readiness-based-io
+│       ├── completion-based-io
+│       ├── io-context-and-executor-concepts
+│       ├── boost-asio
+│       ├── standalone-asio
+│       ├── callback-and-coroutine-integration
+│       └── cancellation-and-resource-lifetime
+├── performance-and-low-level-engineering
+│   ├── performance-fundamentals
+│   │   ├── latency-throughput-and-tail-latency
+│   │   ├── algorithmic-complexity
+│   │   ├── cpu-and-memory-cost
+│   │   ├── allocation-and-deallocation-overhead
+│   │   ├── cache-locality-and-data-layout
+│   │   ├── branch-prediction
+│   │   ├── vectorization-and-simd-awareness
+│   │   └── measurement-before-optimization
+│   ├── profiling-and-benchmarking
+│   │   ├── google-benchmark
+│   │   ├── perf-and-linux-profilers
+│   │   ├── valgrind-callgrind
+│   │   ├── visual-studio-profiler
+│   │   ├── xcode-instruments
+│   │   ├── flame-graphs
+│   │   ├── microbenchmark-pitfalls
+│   │   └── reproducible-performance-experiments
+│   ├── cache-and-data-oriented-design
+│   │   ├── cache-hierarchy
+│   │   ├── spatial-and-temporal-locality
+│   │   ├── array-of-structures-versus-structure-of-arrays
+│   │   ├── cache-line-and-false-sharing
+│   │   ├── data-oriented-design
+│   │   ├── memory-pools-and-object-pools
+│   │   ├── hot-cold-data-separation
+│   │   └── layout-driven-optimization
+│   ├── compiler-optimization
+│   │   ├── optimization-levels
+│   │   ├── inlining-and-devirtualization
+│   │   ├── link-time-optimization
+│   │   ├── profile-guided-optimization
+│   │   ├── auto-vectorization
+│   │   ├── assembly-inspection
+│   │   ├── undefined-behavior-and-optimization
+│   │   └── debug-versus-release-performance
+│   └── low-level-data-representation
+│       ├── bit-fields-and-bit-manipulation
+│       ├── alignment-and-padding
+│       ├── endianness
+│       ├── object-representation
+│       ├── memory-mapped-io-awareness
+│       ├── atomics-and-hardware-cost
+│       └── abi-and-structure-layout
+├── testing-debugging-and-code-quality
+│   ├── unit-and-integration-testing
+│   │   ├── test-design-and-isolation
+│   │   ├── google-test
+│   │   ├── catch2
+│   │   ├── doctest
+│   │   ├── fixtures-and-parameterized-tests
+│   │   ├── mocking-and-test-doubles
+│   │   ├── integration-and-system-tests
+│   │   └── test-discovery-and-reporting
+│   ├── debugging
+│   │   ├── gdb
+│   │   ├── lldb
+│   │   ├── visual-studio-debugger
+│   │   ├── breakpoints-and-watchpoints
+│   │   ├── stack-and-core-dump-analysis
+│   │   ├── multithreaded-debugging
+│   │   ├── optimized-build-debugging
+│   │   └── minimal-reproduction-and-bisection
+│   ├── sanitizers-and-dynamic-analysis
+│   │   ├── address-sanitizer
+│   │   ├── undefined-behavior-sanitizer
+│   │   ├── thread-sanitizer
+│   │   ├── memory-sanitizer
+│   │   ├── leak-sanitizer
+│   │   ├── valgrind-memcheck
+│   │   └── sanitizer-ci-integration
+│   ├── static-analysis-and-linting
+│   │   ├── compiler-warnings-and-warning-levels
+│   │   ├── clang-tidy
+│   │   ├── cppcheck
+│   │   ├── clang-static-analyzer
+│   │   ├── include-what-you-use
+│   │   ├── clang-format
+│   │   ├── coding-guidelines-and-profiles
+│   │   └── static-analysis-suppressions
+│   ├── fuzzing-and-property-testing
+│   │   ├── libfuzzer
+│   │   ├── afl-plus-plus
+│   │   ├── honggfuzz-overview
+│   │   ├── corpus-design-and-minimization
+│   │   ├── property-based-testing
+│   │   ├── differential-and-metamorphic-tests
+│   │   └── fuzzing-ci-and-crash-triage
+│   └── code-review-and-quality
+│       ├── readability-and-maintainability
+│       ├── ownership-and-lifetime-review
+│       ├── exception-safety-review
+│       ├── concurrency-correctness-review
+│       ├── api-and-abstraction-review
+│       ├── performance-evidence-review
+│       ├── security-review
+│       └── technical-debt-management
+├── security-and-secure-cpp
+│   ├── secure-programming-fundamentals
+│   │   ├── threat-modeling
+│   │   ├── attack-surface-and-trust-boundaries
+│   │   ├── input-validation-and-sanitization
+│   │   ├── least-privilege-design
+│   │   ├── secure-defaults
+│   │   └── security-review-and-disclosure
+│   ├── memory-and-type-safety
+│   │   ├── buffer-overflow-and-out-of-bounds
+│   │   ├── use-after-free-and-double-free
+│   │   ├── integer-overflow-and-underflow
+│   │   ├── type-confusion-and-invalid-casts
+│   │   ├── uninitialized-memory
+│   │   ├── format-string-and-parsing-risks
+│   │   └── safe-container-and-span-usage
+│   ├── cryptography-and-secure-communication
+│   │   ├── cryptographic-library-selection
+│   │   ├── openssl-and-tls-integration
+│   │   ├── certificate-validation
+│   │   ├── secure-random-number-generation
+│   │   ├── password-hashing-versus-encryption
+│   │   ├── key-and-secret-management
+│   │   └── protocol-and-crypto-misuse-avoidance
+│   ├── dependency-and-supply-chain-security
+│   │   ├── dependency-inventory-and-sbom
+│   │   ├── vulnerability-scanning
+│   │   ├── package-source-and-integrity
+│   │   ├── reproducible-builds
+│   │   ├── signed-artifacts
+│   │   └── patch-and-upgrade-policy
+│   └── secure-development-practices
+│       ├── compiler-hardening-flags
+│       ├── sanitizer-and-fuzzing-policy
+│       ├── secure-code-review
+│       ├── static-analysis-gates
+│       ├── secrets-and-credential-handling
+│       ├── security-regression-tests
+│       └── incident-response-readiness
+├── software-architecture-and-design
+│   ├── object-oriented-design
+│   │   ├── solid-principles
+│   │   ├── composition-over-inheritance
+│   │   ├── dependency-inversion
+│   │   ├── interface-design
+│   │   ├── value-objects-and-entities
+│   │   ├── invariants-and-encapsulation
+│   │   └── object-lifetime-and-ownership-design
+│   ├── design-patterns
+│   │   ├── factory-and-abstract-factory
+│   │   ├── builder
+│   │   ├── strategy
+│   │   ├── observer
+│   │   ├── adapter-and-facade
+│   │   ├── decorator-and-composite
+│   │   ├── command-and-state
+│   │   ├── visitor
+│   │   ├── pimpl
+│   │   └── pattern-selection-and-tradeoffs
+│   ├── generic-and-library-design
+│   │   ├── generic-api-contracts
+│   │   ├── concepts-and-customization
+│   │   ├── type-erasure
+│   │   ├── compile-time-polymorphism
+│   │   ├── allocator-aware-design
+│   │   ├── header-only-library-tradeoffs
+│   │   └── api-stability-and-versioning
+│   ├── application-architecture
+│   │   ├── layered-architecture
+│   │   ├── hexagonal-and-clean-architecture
+│   │   ├── domain-driven-design-overview
+│   │   ├── event-driven-architecture
+│   │   ├── plugin-and-extension-architecture
+│   │   ├── dependency-boundaries
+│   │   ├── configuration-and-composition-root
+│   │   └── architecture-decision-records
+│   └── maintainability-and-evolution
+│       ├── modularity-and-coupling
+│       ├── refactoring-and-modernization
+│       ├── legacy-code-characterization-tests
+│       ├── compatibility-and-deprecation
+│       ├── technical-debt-management
+│       ├── architecture-fitness-functions
+│       └── when-to-use-another-language
+├── domain-specializations
+│   ├── systems-and-platform-development
+│   │   ├── operating-system-concepts
+│   │   ├── process-and-thread-management
+│   │   ├── memory-and-virtual-memory
+│   │   ├── file-systems-and-storage
+│   │   ├── system-calls-and-kernel-boundaries
+│   │   ├── daemons-and-services
+│   │   └── linux-and-windows-platform-apis
+│   ├── embedded-and-iot-development
+│   │   ├── microcontroller-and-soc-basics
+│   │   ├── cross-compilation-and-toolchains
+│   │   ├── memory-and-cpu-constraints
+│   │   ├── interrupts-and-device-drivers-overview
+│   │   ├── hardware-registers-and-peripherals
+│   │   ├── real-time-operating-systems
+│   │   ├── firmware-update-and-boot-process
+│   │   └── hardware-in-the-loop-testing
+│   ├── game-development
+│   │   ├── game-loop-and-time-step
+│   │   ├── entity-component-system
+│   │   ├── math-and-linear-algebra
+│   │   ├── physics-and-collision
+│   │   ├── graphics-api-overview
+│   │   ├── resource-and-asset-management
+│   │   ├── audio-and-input
+│   │   ├── multithreaded-game-systems
+│   │   └── engine-integration
+│   ├── graphics-and-computer-vision
+│   │   ├── rasterization-and-rendering-pipeline
+│   │   ├── opengl-and-vulkan-overview
+│   │   ├── direct3d-and-metal-overview
+│   │   ├── shaders-and-gpu-programming
+│   │   ├── image-processing
+│   │   ├── opencv
+│   │   ├── camera-and-video-pipelines
+│   │   └── gpu-memory-and-synchronization
+│   ├── finance-and-trading-systems
+│   │   ├── precision-and-fixed-point-arithmetic
+│   │   ├── low-latency-system-design
+│   │   ├── market-data-ingestion
+│   │   ├── order-and-event-processing
+│   │   ├── deterministic-replay
+│   │   ├── concurrency-and-contention
+│   │   └── auditability-and-reliability
+│   ├── high-performance-computing
+│   │   ├── numerical-computing
+│   │   ├── cache-aware-algorithms
+│   │   ├── simd-and-vector-instructions
+│   │   ├── openmp
+│   │   ├── mpi-overview
+│   │   ├── gpu-compute-and-cuda-overview
+│   │   ├── workload-distribution
+│   │   └── scientific-validation-and-reproducibility
+│   └── desktop-and-cross-platform-applications
+│       ├── qt-framework
+│       ├── wxwidgets-and-alternatives
+│       ├── event-loop-and-ui-thread
+│       ├── model-view-controller-and-model-view
+│       ├── native-platform-integration
+│       ├── packaging-and-installers
+│       └── cross-platform-testing
+├── tooling-and-professional-engineering
+│   ├── compiler-toolchain-mastery
+│   │   ├── gcc-toolchain
+│   │   ├── clang-toolchain
+│   │   ├── msvc-toolchain
+│   │   ├── compiler-flags-and-diagnostics
+│   │   ├── compile-commands-and-database
+│   │   ├── assembly-and-symbol-inspection
+│   │   └── cross-compiler-validation
+│   ├── build-and-dependency-engineering
+│   │   ├── cmake-project-organization
+│   │   ├── package-manager-integration
+│   │   ├── static-and-shared-library-packaging
+│   │   ├── cross-compilation
+│   │   ├── build-caching-and-incremental-builds
+│   │   ├── generated-code-and-codegen
+│   │   └── reproducible-and-hermetic-builds
+│   ├── continuous-integration-and-delivery
+│   │   ├── github-actions
+│   │   ├── gitlab-ci
+│   │   ├── jenkins-and-buildkite
+│   │   ├── compiler-and-standard-matrix
+│   │   ├── sanitizer-and-static-analysis-pipelines
+│   │   ├── unit-and-integration-test-pipelines
+│   │   ├── artifact-and-package-publishing
+│   │   └── release-and-signing-workflows
+│   ├── documentation-and-collaboration
+│   │   ├── api-documentation-and-doxygen
+│   │   ├── readme-and-build-instructions
+│   │   ├── design-and-architecture-documents
+│   │   ├── code-review-and-pull-requests
+│   │   ├── issue-and-defect-tracking
+│   │   ├── semantic-versioning
+│   │   ├── changelog-and-release-notes
+│   │   └── maintenance-and-support-policy
+│   └── career-and-portfolio
+│       ├── junior-cpp-developer
+│       ├── software-engineer-cpp
+│       ├── senior-and-staff-engineer
+│       ├── systems-programmer
+│       ├── embedded-cpp-engineer
+│       ├── game-engine-programmer
+│       ├── performance-and-platform-engineer
+│       ├── technical-interview-preparation
+│       └── portfolio-and-open-source-contributions
+└── practice-projects
+    ├── cpp-language-basics-lab
+    │   ├── variables-types-and-expressions
+    │   ├── control-flow-and-functions
+    │   ├── arrays-pointers-and-references
+    │   ├── classes-and-object-lifecycle
+    │   ├── compiler-warning-experiments
+    │   └── unit-tests-and-debugging
+    ├── command-line-file-processor
+    │   ├── command-line-argument-parsing
+    │   ├── filesystem-and-file-streams
+    │   ├── text-and-csv-processing
+    │   ├── error-handling-and-validation
+    │   ├── large-file-streaming
+    │   ├── benchmark-and-memory-profile
+    │   └── cross-platform-build
+    ├── generic-data-structures-library
+    │   ├── dynamic-array
+    │   ├── linked-list-and-hash-table
+    │   ├── iterators-and-algorithm-compatibility
+    │   ├── templates-and-concepts
+    │   ├── allocator-awareness
+    │   ├── exception-safety
+    │   ├── property-based-tests
+    │   └── api-documentation
+    ├── memory-safe-resource-manager
+    │   ├── raii-resource-wrappers
+    │   ├── unique-and-shared-ownership
+    │   ├── custom-deleter-and-scope-guard
+    │   ├── file-and-socket-resource-management
+    │   ├── failure-injection
+    │   ├── sanitizer-and-leak-tests
+    │   └── ownership-design-review
+    ├── network-client-and-server
+    │   ├── socket-client
+    │   ├── concurrent-server
+    │   ├── protocol-and-message-framing
+    │   ├── timeout-and-reconnection
+    │   ├── serialization-and-validation
+    │   ├── tls-integration
+    │   ├── load-and-failure-tests
+    │   └── deployment-and-runbook
+    ├── multithreaded-task-queue
+    │   ├── worker-thread-pool
+    │   ├── synchronized-task-queue
+    │   ├── futures-and-result-propagation
+    │   ├── cancellation-and-shutdown
+    │   ├── bounded-queue-and-backpressure
+    │   ├── race-and-deadlock-tests
+    │   ├── thread-sanitizer-validation
+    │   └── throughput-benchmark
+    ├── cpp-rest-api-service
+    │   ├── http-framework-selection
+    │   ├── routing-and-request-validation
+    │   ├── json-serialization
+    │   ├── database-and-connection-management
+    │   ├── authentication-and-authorization
+    │   ├── structured-logging-and-metrics
+    │   ├── integration-and-contract-tests
+    │   └── docker-and-ci-deployment
+    ├── embedded-device-controller
+    │   ├── target-board-and-toolchain
+    │   ├── hardware-abstraction-layer
+    │   ├── sensor-and-actuator-interface
+    │   ├── interrupt-and-task-coordination
+    │   ├── memory-and-timing-budget
+    │   ├── fault-handling-and-watchdog
+    │   ├── hardware-in-the-loop-tests
+    │   └── firmware-build-and-release
+    ├── 2d-game-or-simulation
+    │   ├── game-loop-and-fixed-time-step
+    │   ├── entity-component-system
+    │   ├── input-and-event-handling
+    │   ├── collision-and-physics
+    │   ├── rendering-and-resource-management
+    │   ├── audio-and-scene-management
+    │   ├── profiling-and-optimization
+    │   └── gameplay-and-regression-tests
+    ├── image-processing-pipeline
+    │   ├── image-loading-and-format-support
+    │   ├── pixel-and-buffer-representation
+    │   ├── filtering-and-transformations
+    │   ├── parallel-image-operations
+    │   ├── memory-and-cache-optimization
+    │   ├── correctness-and-reference-tests
+    │   └── performance-benchmark
+    ├── reusable-cpp-library
+    │   ├── public-api-and-header-design
+    │   ├── templates-and-concepts
+    │   ├── error-and-ownership-contracts
+    │   ├── cmake-install-and-export
+    │   ├── package-manager-distribution
+    │   ├── abi-and-versioning-policy
+    │   ├── documentation-and-examples
+    │   └── consumer-compatibility-tests
+    ├── performance-profiling-lab
+    │   ├── baseline-workload-and-metrics
+    │   ├── cpu-and-memory-profiling
+    │   ├── cache-and-allocation-analysis
+    │   ├── algorithm-and-data-layout-optimization
+    │   ├── compiler-optimization-comparison
+    │   ├── regression-benchmark-suite
+    │   └── evidence-based-performance-report
+    ├── secure-parser-and-protocol-library
+    │   ├── input-format-and-threat-model
+    │   ├── bounded-buffer-and-length-validation
+    │   ├── integer-overflow-and-resource-limits
+    │   ├── parser-state-machine
+    │   ├── fuzzing-and-corpus-management
+    │   ├── sanitizer-and-static-analysis
+    │   ├── compatibility-and-regression-tests
+    │   └── security-review-report
+    └── production-cpp-capstone
+        ├── requirements-and-architecture
+        ├── domain-model-and-api-contracts
+        ├── modern-cpp-and-resource-safety
+        ├── concurrency-and-networking
+        ├── error-handling-and-observability
+        ├── unit-integration-and-fuzz-tests
+        ├── performance-and-security-review
+        ├── cmake-and-dependency-management
+        ├── multi-compiler-and-platform-ci
+        ├── packaging-and-release
+        └── documentation-and-maintenance-plan

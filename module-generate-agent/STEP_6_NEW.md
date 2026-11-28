@@ -11,7 +11,7 @@ YAML chính thức và dọn staging. Không dùng Google Sheets hoặc Gradle.
 - **Một job = một Menu cấp 1** (một chương). Worker đọc đầy đủ và QA/refactor
   mọi Markdown bài học của chương để kiểm soát độ chính xác, chiều sâu và trùng
   lặp. Bài đã tốt thì giữ nguyên byte.
-- Prime chạy `script/module/step6/split_menu.py` để tách từng chương từ
+- Prime chạy `script/module-generate/step6/split_menu.py` để tách từng chương từ
   `content/knowledge/<lang>/menu-detail-status.yml` ra `temp/step6/`.
 - Worker điền metadata **từng bài trong file YAML riêng của chương**:
   `difficult`, `focus`, `problemSolved`, `mechanism`,
@@ -25,7 +25,7 @@ YAML chính thức và dọn staging. Không dùng Google Sheets hoặc Gradle.
   cung cấp dữ liệu so sánh giữa các bài; frontend có thể dựng bảng từ các
   trường này khi cần.
 - Khi tất cả status chương đều `WRITTEN` và Prime QA PASS, chạy
-  `script/module/step6/merge_menu.py` để ghép lại `menu-detail-status.yml`.
+  `script/module-generate/step6/merge_menu.py` để ghép lại `menu-detail-status.yml`.
 - Sau Knowledge merge, Prime chạy `merge-readme-related.py` để ghép đúng
   `readmeRelated.anchorList` vào ba `format/*.yml` và **Prime nâng Phase 5**.
   Worker chương **không được** đánh dấu Phase 5.
@@ -74,10 +74,10 @@ Từ root `java-learning`, Prime chạy:
 
 ```powershell
 # Chỉ kiểm tra, không tạo staging.
-python script/module/step6/split_menu.py --module "<MODULE_LOCATION>" --lang vi --dry-run
+python script/module-generate/step6/split_menu.py --module "<MODULE_LOCATION>" --lang vi --dry-run
 
 # Tách các chương để giao Worker.
-python script/module/step6/split_menu.py --module "<MODULE_LOCATION>" --lang vi
+python script/module-generate/step6/split_menu.py --module "<MODULE_LOCATION>" --lang vi
 ```
 
 Staging được cách ly theo `SERVICE_NAME` và `lang`, không trộn các module:
@@ -279,8 +279,8 @@ nguyên `status`, `slug`, `title`, số lượng và thứ tự các bài trong 
    của Prime có QA PASS và không còn Worker ACTIVE/BLOCKER, Prime chạy MERGE:
 
    ```powershell
-   python script/module/step6/merge_menu.py --module "<MODULE_LOCATION>" --lang vi --dry-run
-   python script/module/step6/merge_menu.py --module "<MODULE_LOCATION>" --lang vi
+   python script/module-generate/step6/merge_menu.py --module "<MODULE_LOCATION>" --lang vi --dry-run
+   python script/module-generate/step6/merge_menu.py --module "<MODULE_LOCATION>" --lang vi
    ```
 
    Merge đối chiếu đầy đủ index/slug/title/thứ tự/lesson status, yêu cầu sáu
@@ -293,8 +293,8 @@ nguyên `status`, `slug`, `title`, số lượng và thứ tự các bài trong 
    số bài, trường nội dung, identity, trạng thái. Sau đó merge Related bằng:
 
    ```powershell
-   python script/module/step6/merge-readme-related.py --module "<MODULE_LOCATION>" --lang vi --dry-run
-   python script/module/step6/merge-readme-related.py --module "<MODULE_LOCATION>" --lang vi
+   python script/module-generate/step6/merge-readme-related.py --module "<MODULE_LOCATION>" --lang vi --dry-run
+   python script/module-generate/step6/merge-readme-related.py --module "<MODULE_LOCATION>" --lang vi
    ```
 
    Script đọc 100% Related proposals đã hoàn thành, kiểm slug hợp lệ,
@@ -308,8 +308,8 @@ nguyên `status`, `slug`, `title`, số lượng và thứ tự các bài trong 
 4. Khi cả ba Phase 5 PASS, Prime xuất đúng byte dữ liệu:
 
    ```powershell
-   python script/module/step6/export-casestudy-quiz-interview.py --module "<MODULE_LOCATION>" --lang vi --dry-run
-   python script/module/step6/export-casestudy-quiz-interview.py --module "<MODULE_LOCATION>" --lang vi
+   python script/module-generate/step6/export-casestudy-quiz-interview.py --module "<MODULE_LOCATION>" --lang vi --dry-run
+   python script/module-generate/step6/export-casestudy-quiz-interview.py --module "<MODULE_LOCATION>" --lang vi
    ```
 
    Đích: `content/quiz/vi/quiz.yml`, `content/interview/vi/interview.yml`,
@@ -321,8 +321,8 @@ nguyên `status`, `slug`, `title`, số lượng và thứ tự các bài trong 
 5. **Sau khi xuất thành công toàn bộ ba loại**, chạy script dọn staging:
 
    ```powershell
-   python script/module/step6/delete_temp_split_menu.py --module "<MODULE_LOCATION>" --lang vi --dry-run
-   python script/module/step6/delete_temp_split_menu.py --module "<MODULE_LOCATION>" --lang vi
+   python script/module-generate/step6/delete_temp_split_menu.py --module "<MODULE_LOCATION>" --lang vi --dry-run
+   python script/module-generate/step6/delete_temp_split_menu.py --module "<MODULE_LOCATION>" --lang vi
    ```
 
    Script xác minh Knowledge merge, tất cả Related, ba `Phase 5`, ba file

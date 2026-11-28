@@ -16,8 +16,8 @@ import tempfile
 import yaml
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_OUTPUT = Path("script/module-generate/status-report/missing-service-name-describe.yml")
+REPO_ROOT = Path(__file__).resolve().parents[4]
+DEFAULT_OUTPUT = Path(__file__).resolve().with_name("missing-service-name-describe.yml")
 
 
 def read_value(metadata: dict, key: str, path: Path) -> object:

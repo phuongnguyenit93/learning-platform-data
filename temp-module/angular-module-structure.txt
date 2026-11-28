@@ -1,0 +1,3499 @@
+module
+├── foundation
+│   ├── angular-overview
+│   │   ├── application-framework
+│   │   ├── component-driven-development
+│   │   ├── declarative-ui
+│   │   ├── dependency-injection
+│   │   ├── integrated-tooling
+│   │   ├── use-cases-and-tradeoffs
+│   │   └── angular-and-angularjs
+│   ├── platform-map
+│   │   ├── angular-core
+│   │   ├── angular-common
+│   │   ├── angular-compiler
+│   │   ├── angular-router
+│   │   ├── angular-forms
+│   │   ├── angular-platform-browser
+│   │   ├── angular-ssr
+│   │   └── angular-cli
+│   ├── mental-model
+│   │   ├── component-tree
+│   │   ├── template-and-view-tree
+│   │   ├── injector-hierarchy
+│   │   ├── reactive-dependency-graph
+│   │   ├── render-and-update-cycle
+│   │   ├── browser-and-server-boundaries
+│   │   └── state-and-events
+│   ├── application-shapes
+│   │   ├── internal-business-application
+│   │   ├── public-content-site
+│   │   ├── customer-portal
+│   │   ├── administrative-console
+│   │   ├── embedded-widget
+│   │   ├── progressive-web-app
+│   │   └── hybrid-rendered-site
+│   ├── thinking-in-angular
+│   │   ├── user-journeys
+│   │   ├── component-boundaries
+│   │   ├── data-flow
+│   │   ├── ownership-of-state
+│   │   ├── service-responsibilities
+│   │   ├── route-boundaries
+│   │   └── incremental-feature-delivery
+│   ├── learning-workflow
+│   │   ├── official-documentation-navigation
+│   │   ├── minimal-reproduction
+│   │   ├── browser-experiments
+│   │   ├── observable-behavior
+│   │   ├── assertions-and-tests
+│   │   ├── debugging-first-principles
+│   │   └── practice-and-retrospective
+│   ├── cross-framework-orientation
+│   │   ├── angular-and-react
+│   │   ├── templates-and-jsx
+│   │   ├── services-and-custom-hooks
+│   │   ├── signals-and-state-snapshots
+│   │   ├── dependency-injection-and-context
+│   │   ├── framework-and-library-tradeoffs
+│   │   └── migration-mindset
+│   ├── version-and-support-literacy
+│   │   ├── semantic-versioning
+│   │   ├── release-notes
+│   │   ├── support-windows
+│   │   ├── node-typescript-rxjs-compatibility
+│   │   ├── stable-preview-and-experimental-apis
+│   │   ├── deprecation-policy
+│   │   └── upgrade-planning
+│   └── learning-tracks
+│       ├── frontend-beginner
+│       ├── javascript-developer
+│       ├── typescript-developer
+│       ├── java-backend-developer
+│       ├── enterprise-frontend-engineer
+│       ├── component-library-author
+│       └── application-maintainer
+├── web-typescript-and-platform-prerequisites
+│   ├── html-foundations
+│   │   ├── semantic-elements
+│   │   ├── document-structure
+│   │   ├── forms-and-labels
+│   │   ├── links-and-buttons
+│   │   ├── tables-and-lists
+│   │   ├── native-dialog
+│   │   └── accessibility-tree
+│   ├── css-foundations
+│   │   ├── cascade-and-specificity
+│   │   ├── box-model
+│   │   ├── flexbox
+│   │   ├── grid
+│   │   ├── responsive-layouts
+│   │   ├── logical-properties
+│   │   └── custom-properties
+│   ├── javascript-foundations
+│   │   ├── lexical-scope
+│   │   ├── closures
+│   │   ├── object-identity
+│   │   ├── destructuring-and-spread
+│   │   ├── array-transformations
+│   │   ├── modules
+│   │   └── promises-and-async-await
+│   ├── browser-execution
+│   │   ├── call-stack
+│   │   ├── tasks-and-microtasks
+│   │   ├── event-loop
+│   │   ├── event-propagation
+│   │   ├── rendering-pipeline
+│   │   ├── fetch-and-abort-controller
+│   │   └── observers-and-cleanup
+│   ├── core-typescript
+│   │   ├── primitive-and-object-types
+│   │   ├── interfaces-and-type-aliases
+│   │   ├── union-and-intersection-types
+│   │   ├── literal-types
+│   │   ├── optional-and-nullable-values
+│   │   ├── generics
+│   │   └── narrowing-and-type-guards
+│   ├── advanced-typescript
+│   │   ├── discriminated-unions
+│   │   ├── mapped-types
+│   │   ├── conditional-types
+│   │   ├── utility-types
+│   │   ├── readonly-contracts
+│   │   ├── satisfies-and-const-assertions
+│   │   └── exhaustive-checks
+│   ├── classes-and-decorators
+│   │   ├── class-fields
+│   │   ├── access-control
+│   │   ├── inheritance-and-composition
+│   │   ├── abstract-classes
+│   │   ├── decorator-configuration
+│   │   ├── angular-decorator-compilation
+│   │   └── runtime-and-type-erasure
+│   ├── asynchronous-contracts
+│   │   ├── promises-and-observables
+│   │   ├── cancellation-and-teardown
+│   │   ├── push-and-pull-models
+│   │   ├── cold-and-hot-producers
+│   │   ├── error-propagation
+│   │   ├── concurrency-and-ordering
+│   │   └── resource-lifetime
+│   ├── web-protocols
+│   │   ├── http-methods
+│   │   ├── status-codes
+│   │   ├── request-and-response-headers
+│   │   ├── cookies-and-sessions
+│   │   ├── same-origin-policy
+│   │   ├── cors
+│   │   └── browser-caching
+│   └── engineering-basics
+│       ├── git-and-branches
+│       ├── command-line
+│       ├── package-managers
+│       ├── lockfiles
+│       ├── environment-variables
+│       ├── test-driven-feedback
+│       └── code-review
+├── workspace-cli-and-development-workflow
+│   ├── environment-setup
+│   │   ├── supported-node-version
+│   │   ├── package-manager-selection
+│   │   ├── local-cli-version
+│   │   ├── editor-integration
+│   │   ├── angular-language-service
+│   │   ├── browser-devtools
+│   │   └── first-project
+│   ├── project-creation
+│   │   ├── ng-new
+│   │   ├── standalone-application
+│   │   ├── routing-setup
+│   │   ├── style-format
+│   │   ├── strict-mode
+│   │   ├── ssr-selection
+│   │   └── initial-test-setup
+│   ├── workspace-layout
+│   │   ├── angular-json
+│   │   ├── package-json
+│   │   ├── typescript-configuration
+│   │   ├── source-directory
+│   │   ├── public-assets
+│   │   ├── application-config
+│   │   └── route-config
+│   ├── cli-commands
+│   │   ├── ng-serve
+│   │   ├── ng-build
+│   │   ├── ng-test
+│   │   ├── ng-generate
+│   │   ├── ng-add
+│   │   ├── ng-update
+│   │   └── ng-version
+│   ├── bootstrap-and-providers
+│   │   ├── bootstrap-application
+│   │   ├── application-config
+│   │   ├── application-wide-providers
+│   │   ├── environment-providers
+│   │   ├── provider-functions
+│   │   ├── application-initializers
+│   │   └── startup-failures
+│   ├── local-development
+│   │   ├── development-server
+│   │   ├── rebuild-and-hmr
+│   │   ├── proxy-configuration
+│   │   ├── https-development
+│   │   ├── local-api-mocks
+│   │   ├── port-and-host-configuration
+│   │   └── reproducible-startup
+│   ├── build-configurations
+│   │   ├── development-and-production
+│   │   ├── named-configurations
+│   │   ├── file-replacements
+│   │   ├── runtime-configuration
+│   │   ├── build-time-values
+│   │   ├── public-configuration-and-secrets
+│   │   └── configuration-validation
+│   ├── code-generation
+│   │   ├── component-generation
+│   │   ├── service-generation
+│   │   ├── directive-generation
+│   │   ├── pipe-generation
+│   │   ├── guard-and-resolver-generation
+│   │   ├── library-generation
+│   │   └── schematic-defaults
+│   ├── quality-workflow
+│   │   ├── formatting
+│   │   ├── linting
+│   │   ├── typechecking
+│   │   ├── template-checking
+│   │   ├── tests
+│   │   ├── pre-commit-checks
+│   │   └── continuous-integration
+│   └── project-hygiene
+│       ├── dependency-locking
+│       ├── source-and-output-separation
+│       ├── reproducible-installs
+│       ├── editor-settings
+│       ├── naming-conventions
+│       ├── license-and-attribution
+│       └── minimal-project-documentation
+├── components-and-public-apis
+│   ├── component-anatomy
+│   │   ├── component-decorator
+│   │   ├── selector
+│   │   ├── template
+│   │   ├── styles
+│   │   ├── host-element
+│   │   ├── standalone-imports
+│   │   └── component-instance
+│   ├── component-design
+│   │   ├── single-responsibility
+│   │   ├── presentational-and-container-roles
+│   │   ├── feature-and-shared-components
+│   │   ├── public-api-design
+│   │   ├── composition-over-inheritance
+│   │   ├── lifecycle-ownership
+│   │   └── dependency-budget
+│   ├── inputs
+│   │   ├── signal-inputs
+│   │   │   ├── input-function
+│   │   │   ├── required-inputs
+│   │   │   ├── default-values
+│   │   │   ├── input-aliases
+│   │   │   ├── input-transforms
+│   │   │   ├── boolean-and-number-transforms
+│   │   │   └── readonly-input-signals
+│   │   └── decorator-interop
+│   │       ├── input-decorator
+│   │       ├── required-input-metadata
+│   │       ├── setter-based-inputs
+│   │       ├── transform-functions
+│   │       ├── signal-and-decorator-coexistence
+│   │       └── migration-of-public-contracts
+│   ├── outputs
+│   │   ├── output-function
+│   │   ├── event-payload-design
+│   │   ├── output-aliases
+│   │   ├── output-emission
+│   │   ├── output-subscription
+│   │   ├── programmatic-output-cleanup
+│   │   └── event-emitter-interop
+│   ├── model-inputs
+│   │   ├── model-function
+│   │   ├── implicit-change-output
+│   │   ├── two-way-component-binding
+│   │   ├── model-aliases
+│   │   ├── writable-model-state
+│   │   ├── parent-child-ownership
+│   │   └── model-and-form-model-differences
+│   ├── content-projection
+│   │   ├── ng-content
+│   │   ├── single-slot-projection
+│   │   ├── multi-slot-selection
+│   │   ├── fallback-content
+│   │   ├── projected-content-ownership
+│   │   ├── conditional-projection-limitations
+│   │   └── template-fragments-for-lazy-content
+│   ├── host-elements
+│   │   ├── host-properties
+│   │   ├── host-attributes
+│   │   ├── host-events
+│   │   ├── class-and-style-bindings
+│   │   ├── host-binding-collisions
+│   │   ├── native-element-semantics
+│   │   └── host-directive-composition
+│   ├── component-queries
+│   │   ├── view-child
+│   │   ├── view-children
+│   │   ├── content-child
+│   │   ├── content-children
+│   │   ├── required-queries
+│   │   ├── query-read-tokens
+│   │   └── query-timing
+│   ├── component-composition
+│   │   ├── wrapper-components
+│   │   ├── controlled-and-uncontrolled-contracts
+│   │   ├── slots-and-template-inputs
+│   │   ├── compound-component-contracts
+│   │   ├── component-tokens
+│   │   ├── nested-component-communication
+│   │   └── api-evolution
+│   └── programmatic-components
+│       ├── ng-component-outlet
+│       ├── view-container-ref
+│       ├── create-component
+│       ├── input-binding
+│       ├── output-binding
+│       ├── two-way-binding
+│       └── environment-injector-lifetime
+├── templates-bindings-and-control-flow
+│   ├── template-mental-model
+│   │   ├── html-and-angular-syntax
+│   │   ├── expression-evaluation
+│   │   ├── template-scope
+│   │   ├── component-context
+│   │   ├── local-variables
+│   │   ├── binding-update-cycle
+│   │   └── template-typechecking
+│   ├── interpolation-and-properties
+│   │   ├── text-interpolation
+│   │   ├── native-property-binding
+│   │   ├── component-property-binding
+│   │   ├── attribute-binding
+│   │   ├── class-binding
+│   │   ├── style-binding
+│   │   └── boolean-attribute-semantics
+│   ├── expression-rules
+│   │   ├── supported-operators
+│   │   ├── optional-chaining
+│   │   ├── nullish-coalescing
+│   │   ├── non-null-assertions
+│   │   ├── expression-side-effects
+│   │   ├── function-calls-in-templates
+│   │   └── unsupported-javascript-constructs
+│   ├── listeners-and-two-way-binding
+│   │   ├── event-binding
+│   │   ├── event-object
+│   │   ├── key-modifiers
+│   │   ├── event-filtering
+│   │   ├── default-browser-actions
+│   │   ├── two-way-binding-syntax
+│   │   └── model-and-ngmodel-boundaries
+│   ├── conditional-control-flow
+│   │   ├── if-block
+│   │   ├── else-if-block
+│   │   ├── else-block
+│   │   ├── expression-aliases
+│   │   ├── conditional-state-ownership
+│   │   ├── branch-recreation
+│   │   └── accessible-conditional-content
+│   ├── iteration-control-flow
+│   │   ├── for-block
+│   │   ├── track-expression
+│   │   ├── stable-identifiers
+│   │   ├── contextual-variables
+│   │   ├── empty-block
+│   │   ├── reordering-and-identity
+│   │   └── nested-loops
+│   ├── switch-control-flow
+│   │   ├── switch-block
+│   │   ├── case-block
+│   │   ├── default-block
+│   │   ├── discriminated-union-views
+│   │   ├── exhaustiveness-review
+│   │   ├── fallback-rendering
+│   │   └── migration-from-structural-switch
+│   ├── local-template-state
+│   │   ├── let-declarations
+│   │   ├── template-reference-variables
+│   │   ├── export-as
+│   │   ├── template-variable-scope
+│   │   ├── repeated-expression-reuse
+│   │   ├── reference-lifetime
+│   │   └── shadowing-and-naming
+│   ├── fragment-composition
+│   │   ├── ng-template
+│   │   ├── template-ref
+│   │   ├── ng-container
+│   │   ├── ng-template-outlet
+│   │   ├── context-objects
+│   │   ├── implicit-context
+│   │   └── injector-selection
+│   └── template-quality
+│       ├── strict-templates
+│       ├── nullable-expressions
+│       ├── safe-narrowing
+│       ├── expensive-computation-avoidance
+│       ├── semantic-html
+│       ├── escaped-interpolation
+│       └── readable-template-boundaries
+├── directives-pipes-and-template-composition
+│   ├── directive-foundations
+│   │   ├── attribute-directives
+│   │   ├── structural-directives
+│   │   ├── component-and-directive-differences
+│   │   ├── selector-matching
+│   │   ├── standalone-imports
+│   │   ├── directive-inputs
+│   │   └── host-element-contracts
+│   ├── attribute-directive-design
+│   │   ├── behavioral-enhancement
+│   │   ├── host-listeners
+│   │   ├── host-bindings
+│   │   ├── renderer-usage
+│   │   ├── stateful-directives
+│   │   ├── disabled-state-handling
+│   │   └── teardown-and-cleanup
+│   ├── structural-directives
+│   │   ├── template-ref
+│   │   ├── view-container-ref
+│   │   ├── embedded-views
+│   │   ├── view-creation-and-destruction
+│   │   ├── microsyntax
+│   │   ├── desugaring
+│   │   └── one-structural-directive-per-host
+│   ├── structural-type-safety
+│   │   ├── template-context-guards
+│   │   ├── input-guards
+│   │   ├── generic-directive-contexts
+│   │   ├── strict-template-inference
+│   │   ├── required-context-properties
+│   │   ├── typed-template-outlets
+│   │   └── diagnostic-tests
+│   ├── directive-composition
+│   │   ├── host-directives
+│   │   ├── input-and-output-exposure
+│   │   ├── composition-order
+│   │   ├── host-binding-conflicts
+│   │   ├── behavior-reuse
+│   │   ├── provider-collision-review
+│   │   └── composition-testing
+│   ├── built-in-pipes
+│   │   ├── date-pipe
+│   │   ├── decimal-pipe
+│   │   ├── percent-pipe
+│   │   ├── currency-pipe
+│   │   ├── case-conversion-pipes
+│   │   ├── json-pipe
+│   │   ├── keyvalue-pipe
+│   │   └── slice-pipe
+│   ├── async-pipe
+│   │   ├── observable-subscription
+│   │   ├── promise-resolution
+│   │   ├── subscription-replacement
+│   │   ├── view-destruction-cleanup
+│   │   ├── nullable-first-value
+│   │   ├── duplicate-subscription-avoidance
+│   │   └── change-detection-notifications
+│   ├── custom-pipes
+│   │   ├── pipe-transform
+│   │   ├── pure-pipes
+│   │   ├── impure-pipe-tradeoffs
+│   │   ├── argument-design
+│   │   ├── locale-aware-transforms
+│   │   ├── memoization-boundaries
+│   │   └── testability
+│   ├── reusable-view-contracts
+│   │   ├── cell-templates
+│   │   ├── empty-state-templates
+│   │   ├── loading-templates
+│   │   ├── action-templates
+│   │   ├── context-shape-design
+│   │   ├── projection-versus-template-input
+│   │   └── accessibility-responsibilities
+│   └── migration-and-maintenance
+│       ├── ngif-to-if-block
+│       ├── ngfor-to-for-block
+│       ├── ngswitch-to-switch-block
+│       ├── legacy-directive-reading
+│       ├── tracking-behavior-parity
+│       ├── template-guard-preservation
+│       └── incremental-migration-tests
+├── dependency-injection-and-service-lifetimes
+│   ├── di-mental-model
+│   │   ├── consumer-provider-token
+│   │   ├── injection-and-construction
+│   │   ├── dependency-graph
+│   │   ├── injector-tree
+│   │   ├── resolution-path
+│   │   ├── instance-sharing
+│   │   └── service-lifetime
+│   ├── injectable-services
+│   │   ├── injectable-decorator
+│   │   ├── provided-in-root
+│   │   ├── tree-shakable-providers
+│   │   ├── explicit-provider-registration
+│   │   ├── service-responsibility
+│   │   ├── stateful-and-stateless-services
+│   │   └── cleanup-ownership
+│   ├── provider-recipes
+│   │   ├── class-providers
+│   │   ├── value-providers
+│   │   ├── factory-providers
+│   │   ├── existing-providers
+│   │   ├── multi-providers
+│   │   ├── provider-order
+│   │   └── typed-injection-tokens
+│   ├── injection-context
+│   │   ├── inject-function
+│   │   ├── constructor-injection
+│   │   ├── field-initializer-injection
+│   │   ├── factory-injection
+│   │   ├── run-in-injection-context
+│   │   ├── assert-in-injection-context
+│   │   └── async-context-boundaries
+│   ├── injector-hierarchies
+│   │   ├── environment-injector
+│   │   ├── element-injector
+│   │   ├── root-scope
+│   │   ├── route-scope
+│   │   ├── component-scope
+│   │   ├── view-providers
+│   │   └── projected-content-visibility
+│   ├── resolution-options
+│   │   ├── optional-injection
+│   │   ├── self-resolution
+│   │   ├── skip-self-resolution
+│   │   ├── host-boundary
+│   │   ├── combinations-of-options
+│   │   ├── missing-provider-diagnostics
+│   │   └── circular-dependency-diagnostics
+│   ├── scoping-and-lifetime
+│   │   ├── root-singletons
+│   │   ├── feature-local-services
+│   │   ├── route-provider-lifetime
+│   │   ├── component-provider-lifetime
+│   │   ├── repeated-component-instances
+│   │   ├── environment-injector-destruction
+│   │   └── destroy-ref
+│   ├── provider-functions
+│   │   ├── environment-providers
+│   │   ├── composition-of-providers
+│   │   ├── configurable-feature-providers
+│   │   ├── token-based-settings
+│   │   ├── initializer-order
+│   │   ├── request-scoped-server-data
+│   │   └── library-provider-apis
+│   ├── architectural-patterns
+│   │   ├── ports-and-adapters
+│   │   ├── repository-tokens
+│   │   ├── strategy-selection
+│   │   ├── feature-configuration
+│   │   ├── plugin-registration
+│   │   ├── test-doubles
+│   │   └── explicit-dependency-boundaries
+│   └── testing-and-diagnostics
+│       ├── testbed-provider-overrides
+│       ├── injection-context-tests
+│       ├── scope-isolation-tests
+│       ├── provider-visibility-reproductions
+│       ├── accidental-duplicate-instances
+│       ├── singleton-state-leaks
+│       └── ssr-request-isolation
+├── component-lifecycle-and-rendering
+│   ├── creation-and-initialization
+│   │   ├── constructor-and-injection
+│   │   ├── initial-input-assignment
+│   │   ├── ng-on-changes
+│   │   ├── ng-on-init
+│   │   ├── initial-template-evaluation
+│   │   ├── child-initialization
+│   │   └── initialization-order-experiments
+│   ├── content-and-view-hooks
+│   │   ├── ng-after-content-init
+│   │   ├── ng-after-content-checked
+│   │   ├── ng-after-view-init
+│   │   ├── ng-after-view-checked
+│   │   ├── content-and-view-boundaries
+│   │   ├── query-availability
+│   │   └── change-during-check-errors
+│   ├── custom-checking
+│   │   ├── ng-do-check
+│   │   ├── iterable-differs
+│   │   ├── keyvalue-differs
+│   │   ├── mutation-detection-cost
+│   │   ├── manual-checking-alternatives
+│   │   ├── signal-driven-replacements
+│   │   └── lifecycle-instrumentation
+│   ├── render-callbacks
+│   │   ├── after-next-render
+│   │   ├── after-every-render
+│   │   ├── after-render-effect
+│   │   ├── browser-only-render-work
+│   │   ├── phased-dom-access
+│   │   ├── layout-read-write-order
+│   │   └── callback-cleanup
+│   ├── change-detection-mental-model
+│   │   ├── state-notifications
+│   │   ├── dirty-views
+│   │   ├── scheduling
+│   │   ├── traversal
+│   │   ├── binding-comparison
+│   │   ├── dom-commit
+│   │   └── skipped-subtrees
+│   ├── onpush-behavior
+│   │   ├── input-reference-changes
+│   │   ├── bound-event-handlers
+│   │   ├── template-signal-reads
+│   │   ├── async-pipe-updates
+│   │   ├── mark-for-check
+│   │   ├── subtree-boundaries
+│   │   └── mutable-input-pitfalls
+│   ├── zoneless-applications
+│   │   ├── notification-sources
+│   │   ├── provide-zoneless-change-detection
+│   │   ├── signal-based-notification
+│   │   ├── component-ref-input-updates
+│   │   ├── bound-listener-notifications
+│   │   ├── library-compatibility
+│   │   └── missing-update-diagnosis
+│   ├── zone-based-interop
+│   │   ├── zonejs-patching
+│   │   ├── ng-zone
+│   │   ├── run-outside-angular
+│   │   ├── reentering-angular
+│   │   ├── third-party-callbacks
+│   │   ├── zone-pollution
+│   │   └── zone-to-zoneless-migration
+│   ├── manual-render-control
+│   │   ├── change-detector-ref
+│   │   ├── detect-changes
+│   │   ├── detach-and-reattach
+│   │   ├── mark-for-check
+│   │   ├── explicit-refresh-boundaries
+│   │   ├── overuse-risks
+│   │   └── production-test-parity
+│   ├── destruction-and-resources
+│   │   ├── ng-on-destroy
+│   │   ├── destroy-ref-on-destroy
+│   │   ├── subscription-teardown
+│   │   ├── timer-cleanup
+│   │   ├── observer-disconnection
+│   │   ├── dynamic-view-cleanup
+│   │   └── navigation-leak-tests
+│   └── rendering-correctness
+│       ├── stable-list-identity
+│       ├── asynchronous-boundaries
+│       ├── changed-after-check-errors
+│       ├── unnecessary-rerenders
+│       ├── stale-dom-diagnosis
+│       ├── render-loop-prevention
+│       └── browser-and-server-differences
+├── signals-and-reactive-state
+│   ├── signal-fundamentals
+│   │   ├── signal-creation
+│   │   ├── reading-values
+│   │   ├── set-and-update
+│   │   ├── readonly-signal-view
+│   │   ├── value-equality
+│   │   ├── object-mutation-boundaries
+│   │   └── signal-naming
+│   ├── computed-state
+│   │   ├── computed-function
+│   │   ├── lazy-evaluation
+│   │   ├── memoization
+│   │   ├── dynamic-dependencies
+│   │   ├── derived-view-models
+│   │   ├── pure-derivations
+│   │   └── computed-error-behavior
+│   ├── reactive-graph
+│   │   ├── producers-and-consumers
+│   │   ├── dependency-tracking
+│   │   ├── invalidation
+│   │   ├── conditional-dependency-removal
+│   │   ├── reactive-context
+│   │   ├── synchronous-read-tracking
+│   │   └── async-read-boundaries
+│   ├── state-modeling
+│   │   ├── minimal-source-state
+│   │   ├── derived-versus-stored-state
+│   │   ├── normalization
+│   │   ├── immutable-updates
+│   │   ├── finite-state-models
+│   │   ├── discriminated-state-unions
+│   │   └── ownership-and-scope
+│   ├── linked-signal
+│   │   ├── writable-derived-state
+│   │   ├── source-and-computation
+│   │   ├── previous-value-context
+│   │   ├── dependent-selection
+│   │   ├── reset-on-source-change
+│   │   ├── custom-equality
+│   │   └── linked-versus-computed
+│   ├── side-effects
+│   │   ├── effect-function
+│   │   ├── external-system-synchronization
+│   │   ├── cleanup-callback
+│   │   ├── injection-context
+│   │   ├── effect-ref
+│   │   ├── manual-destruction
+│   │   └── effect-error-handling
+│   ├── effect-design
+│   │   ├── avoid-state-propagation-effects
+│   │   ├── computed-instead-of-copying
+│   │   ├── untracked-reads
+│   │   ├── dependency-auditing
+│   │   ├── lifecycle-boundaries
+│   │   ├── asynchronous-cancellation
+│   │   └── feedback-loop-prevention
+│   ├── signal-equality
+│   │   ├── object-is-default
+│   │   ├── custom-equality
+│   │   ├── comparator-cost
+│   │   ├── immutable-data-identity
+│   │   ├── reference-stability
+│   │   ├── equality-and-derived-work
+│   │   └── correctness-before-optimization
+│   ├── component-integration
+│   │   ├── template-signal-reads
+│   │   ├── input-signal-derivation
+│   │   ├── model-signal-ownership
+│   │   ├── signal-query-results
+│   │   ├── onpush-notification
+│   │   ├── service-owned-signals
+│   │   └── local-versus-shared-state
+│   └── signal-debugging
+│       ├── dependency-graph-inspection
+│       ├── write-source-tracing
+│       ├── stale-derived-state
+│       ├── unwanted-dependencies
+│       ├── invalid-reactive-context
+│       ├── signal-lifetime
+│       └── unit-testing-derived-state
+├── rxjs-and-asynchronous-streams
+│   ├── observable-foundations
+│   │   ├── observable
+│   │   ├── observer
+│   │   ├── subscription
+│   │   ├── next-error-complete
+│   │   ├── subscription-lifecycle
+│   │   ├── lazy-execution
+│   │   └── teardown-logic
+│   ├── creation-and-conversion
+│   │   ├── of
+│   │   ├── from
+│   │   ├── defer
+│   │   ├── from-event
+│   │   ├── interval
+│   │   ├── timer
+│   │   ├── throw-error
+│   │   └── empty-and-never
+│   ├── hot-and-cold-streams
+│   │   ├── producer-ownership
+│   │   ├── cold-http-streams
+│   │   ├── hot-ui-events
+│   │   ├── subjects
+│   │   ├── behavior-subject
+│   │   ├── replay-subject
+│   │   └── async-subject
+│   ├── transformation-and-filtering
+│   │   ├── map
+│   │   ├── filter
+│   │   ├── scan
+│   │   ├── reduce
+│   │   ├── start-with
+│   │   ├── pairwise
+│   │   ├── distinct-until-changed
+│   │   └── partitioning
+│   ├── higher-order-streams
+│   │   ├── observable-of-observables
+│   │   ├── switch-map
+│   │   ├── merge-map
+│   │   ├── concat-map
+│   │   ├── exhaust-map
+│   │   ├── concurrency-limits
+│   │   └── flattening-selection
+│   ├── combination
+│   │   ├── combine-latest
+│   │   ├── with-latest-from
+│   │   ├── fork-join
+│   │   ├── zip
+│   │   ├── merge
+│   │   ├── concat
+│   │   └── race
+│   ├── rate-and-load-control
+│   │   ├── debounce-time
+│   │   ├── throttle-time
+│   │   ├── audit-time
+│   │   ├── sample-time
+│   │   ├── buffer-time
+│   │   ├── windowing
+│   │   └── bounded-concurrency
+│   ├── error-and-completion
+│   │   ├── catch-error
+│   │   ├── retry
+│   │   ├── timeout
+│   │   ├── finalize
+│   │   ├── take
+│   │   ├── take-until
+│   │   └── completion-dependent-operators
+│   ├── multicasting-and-caching
+│   │   ├── share
+│   │   ├── share-replay
+│   │   ├── refcount
+│   │   ├── reset-on-error
+│   │   ├── reset-on-complete
+│   │   ├── replay-buffer-size
+│   │   └── cache-invalidation
+│   ├── scheduling-and-ordering
+│   │   ├── synchronous-emissions
+│   │   ├── async-scheduler
+│   │   ├── queue-scheduler
+│   │   ├── animation-frame-scheduler
+│   │   ├── observe-on
+│   │   ├── subscribe-on
+│   │   └── virtual-time
+│   ├── angular-stream-patterns
+│   │   ├── typeahead-search
+│   │   ├── dependent-requests
+│   │   ├── submit-exhaustion
+│   │   ├── sequential-saves
+│   │   ├── parallel-data-load
+│   │   ├── polling-with-stop
+│   │   └── route-param-switching
+│   └── stream-testing-and-pitfalls
+│       ├── test-scheduler
+│       ├── marble-tests
+│       ├── nested-subscriptions
+│       ├── ignored-error-channels
+│       ├── unbounded-replay
+│       ├── duplicate-http-subscriptions
+│       └── never-completing-loaders
+├── signals-rxjs-and-async-resource-interop
+│   ├── choosing-reactivity
+│   │   ├── signals-for-current-state
+│   │   ├── observables-for-event-streams
+│   │   ├── promises-for-single-results
+│   │   ├── boundary-adapter-placement
+│   │   ├── cancellation-requirements
+│   │   ├── ownership-of-subscriptions
+│   │   └── avoid-redundant-mirroring
+│   ├── observable-to-signal
+│   │   ├── to-signal
+│   │   ├── initial-value
+│   │   ├── require-sync
+│   │   ├── injection-context
+│   │   ├── error-propagation
+│   │   ├── automatic-cleanup
+│   │   └── custom-equality
+│   ├── signal-to-observable
+│   │   ├── to-observable
+│   │   ├── effect-backed-propagation
+│   │   ├── stabilization-boundaries
+│   │   ├── subscription-behavior
+│   │   ├── asynchronous-observation
+│   │   ├── teardown
+│   │   └── signal-stream-feedback-loops
+│   ├── subscription-lifetime
+│   │   ├── take-until-destroyed
+│   │   ├── explicit-destroy-ref
+│   │   ├── async-pipe-versus-manual-subscribe
+│   │   ├── long-lived-service-streams
+│   │   ├── component-teardown
+│   │   ├── route-switching-cleanup
+│   │   └── finalize-on-cancel
+│   ├── resource-fundamentals
+│   │   ├── resource-function
+│   │   ├── params
+│   │   ├── loader
+│   │   ├── value-and-has-value
+│   │   ├── status
+│   │   ├── is-loading
+│   │   └── error
+│   ├── resource-lifecycle
+│   │   ├── undefined-params
+│   │   ├── idle-loading-resolved-states
+│   │   ├── reloading
+│   │   ├── local-value-updates
+│   │   ├── reload-method
+│   │   ├── destruction
+│   │   └── abort-signal
+│   ├── resource-design
+│   │   ├── latest-request-wins
+│   │   ├── stale-response-prevention
+│   │   ├── read-versus-mutation-boundaries
+│   │   ├── value-read-errors
+│   │   ├── retained-data-behavior
+│   │   ├── loading-placeholder-strategy
+│   │   └── retry-and-reload-policy
+│   ├── http-resource
+│   │   ├── http-resource-function
+│   │   ├── reactive-request-definition
+│   │   ├── response-parsing
+│   │   ├── headers-and-status-code
+│   │   ├── resource-error-handling
+│   │   ├── request-cancellation
+│   │   └── response-validation
+│   ├── rxjs-resources
+│   │   ├── rx-resource
+│   │   ├── observable-loaders
+│   │   ├── params-to-stream-mapping
+│   │   ├── emission-and-completion
+│   │   ├── cleanup-on-param-change
+│   │   ├── resource-status-integration
+│   │   └── api-version-checks
+│   ├── interop-tests
+│   │   ├── signal-observable-timing
+│   │   ├── abort-verification
+│   │   ├── resource-error-tests
+│   │   ├── loading-state-tests
+│   │   ├── destruction-tests
+│   │   ├── request-count-assertions
+│   │   └── concurrent-update-tests
+│   └── experimental-reactivity
+│       ├── debounced-signal-api
+│       ├── feature-status-check
+│       ├── debounce-resource-status
+│       ├── supported-version-gates
+│       ├── fallback-with-rxjs
+│       ├── isolated-adoption
+│       └── migration-risk-review
+├── routing-navigation-and-route-state
+│   ├── route-configuration
+│   │   ├── provide-router
+│   │   ├── route-records
+│   │   ├── path-matching
+│   │   ├── first-match-order
+│   │   ├── empty-paths
+│   │   ├── wildcard-routes
+│   │   └── static-and-dynamic-segments
+│   ├── navigation
+│   │   ├── router-link
+│   │   ├── router-link-active
+│   │   ├── imperative-navigation
+│   │   ├── url-trees
+│   │   ├── relative-navigation
+│   │   ├── query-parameters
+│   │   └── fragments
+│   ├── nested-routing
+│   │   ├── router-outlet
+│   │   ├── child-routes
+│   │   ├── componentless-routes
+│   │   ├── layout-routes
+│   │   ├── named-outlets
+│   │   ├── outlet-contexts
+│   │   └── nested-not-found-views
+│   ├── route-state
+│   │   ├── activated-route
+│   │   ├── snapshots
+│   │   ├── observable-params
+│   │   ├── param-map
+│   │   ├── query-param-map
+│   │   ├── route-data
+│   │   └── component-input-binding
+│   ├── lazy-loading
+│   │   ├── load-component
+│   │   ├── load-children
+│   │   ├── dynamic-imports
+│   │   ├── route-provider-boundaries
+│   │   ├── eager-versus-lazy
+│   │   ├── preloading-strategies
+│   │   └── chunk-failure-handling
+│   ├── guards
+│   │   ├── functional-guards
+│   │   ├── can-activate
+│   │   ├── can-activate-child
+│   │   ├── can-deactivate
+│   │   ├── can-match
+│   │   ├── urltree-and-redirect-command
+│   │   └── server-authorization-boundary
+│   ├── resolvers-and-resources
+│   │   ├── resolve-function
+│   │   ├── required-before-navigation-data
+│   │   ├── nonblocking-resource-data
+│   │   ├── resource-loading-in-components
+│   │   ├── resolver-error-handling
+│   │   ├── data-refresh-rules
+│   │   └── cancellation-on-navigation
+│   ├── router-lifecycle
+│   │   ├── navigation-events
+│   │   ├── redirects
+│   │   ├── canceled-navigation
+│   │   ├── skipped-navigation
+│   │   ├── error-events
+│   │   ├── progress-indicators
+│   │   └── trace-debugging
+│   ├── advanced-navigation
+│   │   ├── custom-url-matchers
+│   │   ├── route-reuse-strategy
+│   │   ├── title-strategy
+│   │   ├── scroll-position-restoration
+│   │   ├── anchor-scrolling
+│   │   ├── same-url-navigation
+│   │   └── query-state-normalization
+│   ├── browser-history
+│   │   ├── replace-url
+│   │   ├── navigation-state
+│   │   ├── back-and-forward-behavior
+│   │   ├── deep-link-reload
+│   │   ├── base-href
+│   │   ├── location-strategies
+│   │   └── deployment-rewrite-rules
+│   └── route-quality
+│       ├── accessible-focus-after-navigation
+│       ├── active-link-semantics
+│       ├── unsaved-changes-warning
+│       ├── route-contract-tests
+│       ├── router-testing-harness
+│       ├── navigation-race-tests
+│       └── permissions-matrix-tests
+├── http-data-access-and-api-contracts
+│   ├── http-client-setup
+│   │   ├── provide-http-client
+│   │   ├── transport-configuration
+│   │   ├── dependency-injection
+│   │   ├── feature-options
+│   │   ├── interceptor-registration
+│   │   ├── browser-and-server-runtime
+│   │   └── request-testing-providers
+│   ├── request-model
+│   │   ├── get-post-put-patch-delete
+│   │   ├── typed-response-assertions
+│   │   ├── runtime-validation
+│   │   ├── observe-options
+│   │   ├── response-types
+│   │   ├── request-headers
+│   │   └── query-parameters
+│   ├── request-lifecycle
+│   │   ├── cold-observables
+│   │   ├── subscription-triggered-requests
+│   │   ├── unsubscription-and-abort
+│   │   ├── completion
+│   │   ├── error-response
+│   │   ├── response-metadata
+│   │   └── loading-state
+│   ├── functional-interceptors
+│   │   ├── interceptor-chain
+│   │   ├── request-cloning
+│   │   ├── response-transformation
+│   │   ├── http-context
+│   │   ├── conditional-interception
+│   │   ├── dependency-injection
+│   │   └── interceptor-order
+│   ├── cross-cutting-http
+│   │   ├── correlation-id
+│   │   ├── authorization-header-scope
+│   │   ├── authentication-refresh-coordination
+│   │   ├── latency-measurement
+│   │   ├── error-normalization
+│   │   ├── request-deduplication
+│   │   └── redacted-logging
+│   ├── api-contracts
+│   │   ├── dto-and-domain-model
+│   │   ├── separation-of-transport-types
+│   │   ├── openapi-client-generation
+│   │   ├── nullability
+│   │   ├── date-time-serialization
+│   │   ├── decimal-and-bigint-representation
+│   │   └── schema-versioning
+│   ├── collection-apis
+│   │   ├── offset-pagination
+│   │   ├── cursor-pagination
+│   │   ├── server-side-filtering
+│   │   ├── stable-sorting
+│   │   ├── total-count-contract
+│   │   ├── search-param-encoding
+│   │   └── empty-and-partial-results
+│   ├── mutations
+│   │   ├── idempotency-keys
+│   │   ├── duplicate-submit-prevention
+│   │   ├── optimistic-updates
+│   │   ├── rollback-on-error
+│   │   ├── concurrency-tokens
+│   │   ├── conflict-resolution
+│   │   └── eventual-consistency
+│   ├── files-and-streaming
+│   │   ├── multipart-form-data
+│   │   ├── upload-progress
+│   │   ├── transport-progress-limitations
+│   │   ├── blob-downloads
+│   │   ├── filename-sanitization
+│   │   ├── cancellation
+│   │   └── server-sent-event-adapters
+│   ├── resilience
+│   │   ├── timeout-budget
+│   │   ├── transient-error-retry
+│   │   ├── retry-backoff
+│   │   ├── retry-after
+│   │   ├── handling-offline-state
+│   │   ├── safe-retry-methods
+│   │   └── stale-data-indicators
+│   └── cache-and-validation
+│       ├── etag-and-conditional-requests
+│       ├── cache-control
+│       ├── cache-key-design
+│       ├── authenticated-cache-isolation
+│       ├── cache-invalidation
+│       ├── in-flight-sharing
+│       └── request-lifetime-caches
+├── reactive-and-template-driven-forms
+│   ├── form-approach-selection
+│   │   ├── template-driven-forms
+│   │   ├── reactive-forms
+│   │   ├── signal-forms-comparison
+│   │   ├── source-of-truth
+│   │   ├── synchronous-and-asynchronous-flow
+│   │   ├── complexity-and-scale
+│   │   └── migration-boundaries
+│   ├── reactive-form-primitives
+│   │   ├── form-control
+│   │   ├── form-group
+│   │   ├── form-array
+│   │   ├── form-record
+│   │   ├── form-builder
+│   │   ├── control-tree
+│   │   └── control-registration
+│   ├── strictly-typed-forms
+│   │   ├── nullable-controls
+│   │   ├── non-nullable-controls
+│   │   ├── typed-form-groups
+│   │   ├── optional-controls
+│   │   ├── heterogeneous-form-boundaries
+│   │   ├── raw-value-and-disabled-controls
+│   │   └── type-safe-value-mapping
+│   ├── control-updates
+│   │   ├── set-value
+│   │   ├── patch-value
+│   │   ├── reset
+│   │   ├── enable-and-disable
+│   │   ├── update-value-and-validity
+│   │   ├── emit-event-options
+│   │   └── only-self-propagation
+│   ├── control-state
+│   │   ├── valid-invalid-pending
+│   │   ├── pristine-dirty
+│   │   ├── touched-untouched
+│   │   ├── disabled-state
+│   │   ├── value-changes
+│   │   ├── status-changes
+│   │   └── initial-state-and-reset
+│   ├── validation
+│   │   ├── built-in-validators
+│   │   ├── custom-sync-validators
+│   │   ├── async-validators
+│   │   ├── group-level-validators
+│   │   ├── cross-field-validation
+│   │   ├── validation-composition
+│   │   └── error-message-mapping
+│   ├── dynamic-reactive-forms
+│   │   ├── adding-and-removing-controls
+│   │   ├── form-array-rows
+│   │   ├── nested-form-groups
+│   │   ├── dynamic-control-metadata
+│   │   ├── stable-row-identity
+│   │   ├── conditional-validators
+│   │   └── form-state-preservation
+│   ├── template-driven-forms
+│   │   ├── forms-module
+│   │   ├── ng-model
+│   │   ├── ng-form
+│   │   ├── control-names
+│   │   ├── ng-model-options
+│   │   ├── standalone-controls
+│   │   └── custom-validation-directives
+│   ├── submission
+│   │   ├── ng-submit
+│   │   ├── browser-default-prevention
+│   │   ├── invalid-submit-feedback
+│   │   ├── mark-all-as-touched
+│   │   ├── pending-validation
+│   │   ├── server-field-errors
+│   │   └── reset-after-success
+│   ├── control-value-accessors
+│   │   ├── write-value
+│   │   ├── register-on-change
+│   │   ├── register-on-touched
+│   │   ├── set-disabled-state
+│   │   ├── ng-value-accessor
+│   │   ├── no-feedback-loops
+│   │   └── custom-control-tests
+│   └── form-interop-and-quality
+│       ├── signals-from-control-values
+│       ├── rxjs-validation-pipelines
+│       ├── submit-state-modeling
+│       ├── accessible-error-summary
+│       ├── native-autocomplete
+│       ├── labels-and-descriptions
+│       └── testbed-form-tests
+├── signal-forms-and-validation
+│   ├── form-foundations
+│   │   ├── writable-signal-model
+│   │   ├── form-function
+│   │   ├── field-tree
+│   │   ├── form-field-directive
+│   │   ├── form-root-directive
+│   │   ├── model-shape
+│   │   └── type-safe-field-navigation
+│   ├── form-model-design
+│   │   ├── plain-object-structure
+│   │   ├── nested-objects
+│   │   ├── arrays-and-item-identity
+│   │   ├── nullable-values
+│   │   ├── domain-to-form-mapping
+│   │   ├── initialization-and-reset
+│   │   └── immutable-model-updates
+│   ├── field-state
+│   │   ├── value-state
+│   │   ├── valid-and-invalid
+│   │   ├── pending-state
+│   │   ├── errors
+│   │   ├── dirty-and-touched
+│   │   ├── disabled-state
+│   │   └── hidden-state
+│   ├── validation-schemas
+│   │   ├── schema-functions
+│   │   ├── field-paths
+│   │   ├── required-validator
+│   │   ├── email-and-pattern-validators
+│   │   ├── numeric-boundaries
+│   │   ├── length-boundaries
+│   │   └── reusable-validation-rules
+│   ├── cross-field-behavior
+│   │   ├── dependent-validation
+│   │   ├── password-confirmation
+│   │   ├── date-range-validation
+│   │   ├── conditional-required
+│   │   ├── conditional-disabled
+│   │   ├── conditional-hidden
+│   │   └── dependency-tracking
+│   ├── async-validation
+│   │   ├── async-validator-lifecycle
+│   │   ├── debounce-policy
+│   │   ├── cancellation
+│   │   ├── stale-validation-results
+│   │   ├── server-check-failures
+│   │   ├── loading-feedback
+│   │   └── validation-race-tests
+│   ├── form-logic-and-metadata
+│   │   ├── field-metadata
+│   │   ├── reusable-schema-fragments
+│   │   ├── schema-application
+│   │   ├── conditional-logic
+│   │   ├── model-derived-state
+│   │   ├── validation-versus-availability
+│   │   └── declarative-policy-design
+│   ├── binding-native-controls
+│   │   ├── text-inputs
+│   │   ├── numeric-inputs
+│   │   ├── checkboxes
+│   │   ├── radio-groups
+│   │   ├── select-controls
+│   │   ├── date-and-time-controls
+│   │   └── browser-autofill
+│   ├── submission-lifecycle
+│   │   ├── submit-function
+│   │   ├── validation-before-submit
+│   │   ├── submitting-state
+│   │   ├── duplicate-submission-prevention
+│   │   ├── asynchronous-results
+│   │   ├── server-validation-errors
+│   │   └── success-and-reset
+│   ├── custom-controls
+│   │   ├── form-value-control
+│   │   ├── form-checkbox-control
+│   │   ├── model-input-contract
+│   │   ├── touched-and-disabled-contract
+│   │   ├── accessibility-forwarding
+│   │   ├── composite-control-design
+│   │   └── custom-control-tests
+│   └── adoption-and-testing
+│       ├── stable-version-baseline
+│       ├── comparison-with-reactive-forms
+│       ├── incremental-adoption
+│       ├── migration-boundary-adapters
+│       ├── model-update-tests
+│       ├── validation-schema-tests
+│       └── submission-tests
+├── advanced-forms-and-business-workflows
+│   ├── multi-step-workflows
+│   │   ├── step-model
+│   │   ├── conditional-steps
+│   │   ├── step-validation
+│   │   ├── cross-step-dependencies
+│   │   ├── navigation-guards
+│   │   ├── review-and-confirm
+│   │   └── save-and-resume
+│   ├── schema-driven-forms
+│   │   ├── metadata-schema
+│   │   ├── field-type-registry
+│   │   ├── validation-metadata
+│   │   ├── layout-metadata
+│   │   ├── schema-versioning
+│   │   ├── safe-renderer-selection
+│   │   └── unsupported-field-fallbacks
+│   ├── complex-editors
+│   │   ├── nested-line-items
+│   │   ├── editable-tables
+│   │   ├── dependent-dropdowns
+│   │   ├── lookup-dialogs
+│   │   ├── bulk-edit
+│   │   ├── mixed-value-state
+│   │   └── unsaved-change-tracking
+│   ├── validation-experience
+│   │   ├── validation-timing
+│   │   ├── inline-errors
+│   │   ├── error-summaries
+│   │   ├── focus-first-invalid
+│   │   ├── server-and-client-rules
+│   │   ├── warning-versus-blocking-errors
+│   │   └── localized-messages
+│   ├── submission-and-concurrency
+│   │   ├── optimistic-locking
+│   │   ├── stale-record-detection
+│   │   ├── field-level-conflict-display
+│   │   ├── idempotent-save
+│   │   ├── draft-versus-final-submit
+│   │   ├── approval-state
+│   │   └── duplicate-request-recovery
+│   ├── file-workflows
+│   │   ├── file-type-allowlists
+│   │   ├── size-and-count-limits
+│   │   ├── upload-queue
+│   │   ├── resumable-upload-contract
+│   │   ├── upload-cancellation
+│   │   ├── server-scanning-status
+│   │   └── attachment-access-control
+│   ├── input-correctness
+│   │   ├── monetary-values
+│   │   ├── rounding-boundaries
+│   │   ├── locale-aware-number-entry
+│   │   ├── time-zones
+│   │   ├── date-only-values
+│   │   ├── rich-text-sanitization
+│   │   └── unicode-and-length-rules
+│   ├── custom-input-patterns
+│   │   ├── date-range-picker
+│   │   ├── address-editor
+│   │   ├── currency-input
+│   │   ├── multi-select
+│   │   ├── combobox
+│   │   ├── tag-editor
+│   │   └── composite-accessibility
+│   ├── persistence-and-recovery
+│   │   ├── draft-storage-policy
+│   │   ├── schema-migration
+│   │   ├── expiration-and-retention
+│   │   ├── sensitive-data-exclusion
+│   │   ├── interrupted-submit-recovery
+│   │   ├── cross-tab-conflicts
+│   │   └── logout-cleanup
+│   └── business-workflow-testing
+│       ├── partial-save-cases
+│       ├── validation-dependency-tests
+│       ├── keyboard-only-completion
+│       ├── slow-network-submit
+│       ├── expired-session-recovery
+│       ├── conflicting-edit-scenarios
+│       └── end-to-end-approval-flow
+├── state-management-and-ngrx
+│   ├── state-classification
+│   │   ├── local-ui-state
+│   │   ├── feature-state
+│   │   ├── application-state
+│   │   ├── server-state
+│   │   ├── url-state
+│   │   ├── form-state
+│   │   └── persisted-preferences
+│   ├── state-boundaries
+│   │   ├── ownership-map
+│   │   ├── single-source-of-truth
+│   │   ├── normalized-entities
+│   │   ├── derived-selectors
+│   │   ├── state-lifetime
+│   │   ├── hydration-and-reset
+│   │   └── tenant-and-session-isolation
+│   ├── service-with-signals
+│   │   ├── private-writable-signals
+│   │   ├── public-readonly-signals
+│   │   ├── computed-selectors
+│   │   ├── command-methods
+│   │   ├── effect-boundaries
+│   │   ├── feature-local-providers
+│   │   └── service-state-tests
+│   ├── ngrx-signal-store
+│   │   ├── signal-store
+│   │   ├── with-state
+│   │   ├── with-computed
+│   │   ├── with-methods
+│   │   ├── with-hooks
+│   │   ├── patch-state
+│   │   └── provider-scope
+│   ├── signal-store-composition
+│   │   ├── custom-store-features
+│   │   ├── feature-order
+│   │   ├── protected-state
+│   │   ├── reusable-state-contracts
+│   │   ├── entity-state
+│   │   ├── async-methods
+│   │   └── rx-method
+│   ├── ngrx-store
+│   │   ├── actions
+│   │   ├── action-groups
+│   │   ├── reducers
+│   │   ├── feature-state
+│   │   ├── selectors
+│   │   ├── memoized-selectors
+│   │   └── runtime-checks
+│   ├── ngrx-effects
+│   │   ├── effect-creation
+│   │   ├── action-stream
+│   │   ├── asynchronous-side-effects
+│   │   ├── flattening-operator-choice
+│   │   ├── error-recovery
+│   │   ├── functional-effects
+│   │   └── effect-lifecycle
+│   ├── ngrx-entity-and-router
+│   │   ├── entity-adapter
+│   │   ├── normalized-collections
+│   │   ├── entity-selectors
+│   │   ├── update-and-upsert
+│   │   ├── router-store
+│   │   ├── route-derived-state
+│   │   └── cross-feature-selection
+│   ├── local-store-alternatives
+│   │   ├── component-store
+│   │   ├── interoperability-with-signals
+│   │   ├── behavior-subject-services
+│   │   ├── facade-pattern
+│   │   ├── state-machine-library-integration
+│   │   ├── adoption-cost
+│   │   └── comparison-by-use-case
+│   ├── state-side-effects
+│   │   ├── persistence-adapters
+│   │   ├── cache-invalidation
+│   │   ├── optimistic-transactions
+│   │   ├── undo-and-redo
+│   │   ├── background-refresh
+│   │   ├── navigation-side-effects
+│   │   └── logout-reset
+│   └── state-quality
+│       ├── selector-tests
+│       ├── reducer-tests
+│       ├── effect-marble-tests
+│       ├── signal-store-tests
+│       ├── devtools-debugging
+│       ├── serialized-state-review
+│       └── unnecessary-global-state-audit
+├── application-architecture-and-domain-boundaries
+│   ├── feature-organization
+│   │   ├── feature-first-folders
+│   │   ├── routed-feature-boundaries
+│   │   ├── ui-data-access-domain-layers
+│   │   ├── shared-kernel
+│   │   ├── ownership-and-import-rules
+│   │   ├── vertical-slices
+│   │   └── package-public-apis
+│   ├── domain-modeling
+│   │   ├── entities-and-value-objects
+│   │   ├── domain-invariants
+│   │   ├── use-cases
+│   │   ├── business-policies
+│   │   ├── state-machines
+│   │   ├── domain-events
+│   │   └── transport-domain-separation
+│   ├── component-boundaries
+│   │   ├── page-components
+│   │   ├── feature-components
+│   │   ├── reusable-ui-components
+│   │   ├── headless-behavior-components
+│   │   ├── adapters-and-wrappers
+│   │   ├── component-public-contracts
+│   │   └── avoid-god-components
+│   ├── service-design
+│   │   ├── application-services
+│   │   ├── domain-services
+│   │   ├── data-access-services
+│   │   ├── facade-services
+│   │   ├── stateless-utilities
+│   │   ├── orchestration-boundaries
+│   │   └── dependency-direction
+│   ├── ports-and-adapters
+│   │   ├── repository-contracts
+│   │   ├── transport-adapters
+│   │   ├── storage-adapters
+│   │   ├── clock-and-randomness-tokens
+│   │   ├── browser-api-adapters
+│   │   ├── test-double-implementations
+│   │   └── environment-specific-providers
+│   ├── state-and-data-flow
+│   │   ├── event-to-command
+│   │   ├── query-view-model
+│   │   ├── mutation-result-flow
+│   │   ├── error-flow
+│   │   ├── refresh-and-invalidation
+│   │   ├── feature-crossing-events
+│   │   └── ownership-documentation
+│   ├── cross-cutting-capabilities
+│   │   ├── authentication-boundaries
+│   │   ├── authorization-policy
+│   │   ├── feature-flags
+│   │   ├── telemetry
+│   │   ├── localization
+│   │   ├── configuration
+│   │   └── shared-error-contract
+│   ├── modularity-and-scaling
+│   │   ├── bounded-contexts
+│   │   ├── dependency-graph
+│   │   ├── circular-import-prevention
+│   │   ├── shared-library-limits
+│   │   ├── independent-feature-testing
+│   │   ├── incremental-extraction
+│   │   └── architecture-decision-records
+│   ├── microfrontend-boundaries
+│   │   ├── business-capability-splits
+│   │   ├── composition-contracts
+│   │   ├── route-ownership
+│   │   ├── shared-dependency-policy
+│   │   ├── state-sharing-limits
+│   │   ├── isolated-failure-handling
+│   │   └── deployment-coordination
+│   └── maintainability
+│       ├── naming-and-file-conventions
+│       ├── public-versus-internal-code
+│       ├── duplication-versus-abstraction
+│       ├── architectural-lint-rules
+│       ├── documentation-by-example
+│       ├── refactoring-safety
+│       └── technical-debt-backlog
+├── styling-theming-and-design-systems
+│   ├── component-styling
+│   │   ├── style-url
+│   │   ├── inline-styles
+│   │   ├── component-style-scope
+│   │   ├── host-selector
+│   │   ├── class-bindings
+│   │   ├── style-bindings
+│   │   └── global-style-boundaries
+│   ├── view-encapsulation
+│   │   ├── emulated-encapsulation
+│   │   ├── shadow-dom-encapsulation
+│   │   ├── no-encapsulation
+│   │   ├── projected-content-styling
+│   │   ├── host-context-compatibility
+│   │   ├── deep-selector-risks
+│   │   └── migration-to-public-styling-apis
+│   ├── design-tokens
+│   │   ├── primitive-tokens
+│   │   ├── semantic-tokens
+│   │   ├── component-tokens
+│   │   ├── css-custom-properties
+│   │   ├── token-naming
+│   │   ├── token-versioning
+│   │   └── token-build-pipeline
+│   ├── theming
+│   │   ├── light-and-dark-themes
+│   │   ├── system-preference
+│   │   ├── user-preference-persistence
+│   │   ├── theme-switching
+│   │   ├── no-flash-initialization
+│   │   ├── overlay-theming
+│   │   └── cross-application-consistency
+│   ├── responsive-design
+│   │   ├── fluid-layouts
+│   │   ├── flex-and-grid
+│   │   ├── container-queries
+│   │   ├── breakpoint-policy
+│   │   ├── touch-and-pointer-input
+│   │   ├── responsive-typography
+│   │   └── content-driven-reflow
+│   ├── component-visual-contracts
+│   │   ├── variants
+│   │   ├── sizes
+│   │   ├── states
+│   │   ├── density
+│   │   ├── typography
+│   │   ├── spacing
+│   │   └── elevation
+│   ├── styling-integration
+│   │   ├── plain-css
+│   │   ├── sass
+│   │   ├── modules-and-mixins
+│   │   ├── tailwind-integration
+│   │   ├── utility-versus-component-styles
+│   │   ├── reset-and-normalization
+│   │   └── third-party-style-isolation
+│   ├── enterprise-design-systems
+│   │   ├── component-inventory
+│   │   ├── design-to-code-mapping
+│   │   ├── token-governance
+│   │   ├── accessibility-baselines
+│   │   ├── contribution-guidelines
+│   │   ├── visual-change-review
+│   │   └── versioned-adoption
+│   └── theme-quality
+│       ├── contrast-checks
+│       ├── forced-colors
+│       ├── reduced-motion
+│       ├── rtl-snapshots
+│       ├── zoom-and-reflow
+│       ├── visual-regression-tests
+│       └── style-budget
+├── angular-material-and-cdk
+│   ├── material-foundations
+│   │   ├── package-compatibility
+│   │   ├── installation-and-setup
+│   │   ├── component-imports
+│   │   ├── theme-setup
+│   │   ├── typography
+│   │   ├── density
+│   │   └── icon-registration
+│   ├── form-components
+│   │   ├── form-field
+│   │   ├── input
+│   │   ├── select
+│   │   ├── checkbox
+│   │   ├── radio
+│   │   ├── slide-toggle
+│   │   ├── datepicker
+│   │   └── autocomplete
+│   ├── navigation-and-feedback
+│   │   ├── toolbar
+│   │   ├── sidenav
+│   │   ├── menu
+│   │   ├── tabs
+│   │   ├── breadcrumbs-composition
+│   │   ├── progress-indicators
+│   │   └── snackbar
+│   ├── content-and-actions
+│   │   ├── buttons
+│   │   ├── button-toggle
+│   │   ├── card
+│   │   ├── expansion-panel
+│   │   ├── list
+│   │   ├── tooltip
+│   │   └── dialog
+│   ├── material-data-views
+│   │   ├── table
+│   │   ├── datasource
+│   │   ├── sorting
+│   │   ├── pagination
+│   │   ├── selection
+│   │   ├── expandable-rows
+│   │   └── server-side-data-adapter
+│   ├── material-theming
+│   │   ├── material-design-tokens
+│   │   ├── custom-themes
+│   │   ├── theme-overrides
+│   │   ├── component-overrides
+│   │   ├── typography-hierarchy
+│   │   ├── density-adjustment
+│   │   └── overlay-container-theme
+│   ├── cdk-overlay-and-portal
+│   │   ├── overlay-ref
+│   │   ├── connected-positioning
+│   │   ├── scroll-strategies
+│   │   ├── backdrop-behavior
+│   │   ├── portal-types
+│   │   ├── portal-outlets
+│   │   └── overlay-disposal
+│   ├── cdk-accessibility
+│   │   ├── focus-monitor
+│   │   ├── focus-trap
+│   │   ├── live-announcer
+│   │   ├── key-managers
+│   │   ├── interactivity-checker
+│   │   ├── high-contrast-support
+│   │   └── bidirectionality
+│   ├── cdk-data-and-interaction
+│   │   ├── virtual-scroll
+│   │   ├── drag-and-drop
+│   │   ├── drop-lists
+│   │   ├── clipboard
+│   │   ├── layout-observer
+│   │   ├── selection-model
+│   │   └── collection-viewer
+│   ├── cdk-component-primitives
+│   │   ├── dialog
+│   │   ├── accordion
+│   │   ├── table
+│   │   ├── tree
+│   │   ├── stepper
+│   │   ├── text-field
+│   │   └── behavior-composition
+│   └── component-harnesses
+│       ├── harness-loader
+│       ├── component-harness
+│       ├── test-element
+│       ├── harness-predicate
+│       ├── custom-harness-authoring
+│       ├── async-stabilization
+│       └── resilient-component-tests
+├── accessibility-and-angular-aria
+│   ├── accessibility-foundations
+│   │   ├── semantic-html-first
+│   │   ├── native-controls-first
+│   │   ├── accessibility-tree
+│   │   ├── accessible-name-and-description
+│   │   ├── keyboard-operability
+│   │   ├── focus-order
+│   │   └── content-reflow
+│   ├── angular-specific-bindings
+│   │   ├── aria-attribute-binding
+│   │   ├── stable-id-generation
+│   │   ├── conditional-content-announcements
+│   │   ├── dynamic-labels
+│   │   ├── role-consistency
+│   │   ├── disabled-versus-aria-disabled
+│   │   └── hidden-versus-inert
+│   ├── focus-management
+│   │   ├── route-change-focus
+│   │   ├── dialog-focus-trapping
+│   │   ├── focus-restoration
+│   │   ├── error-summary-focus
+│   │   ├── roving-tabindex
+│   │   ├── active-descendant
+│   │   └── skip-links
+│   ├── angular-aria-foundations
+│   │   ├── headless-directives
+│   │   ├── native-html-composition
+│   │   ├── keyboard-interaction-contracts
+│   │   ├── aria-state-synchronization
+│   │   ├── controlled-component-state
+│   │   ├── styling-responsibility
+│   │   └── package-version-alignment
+│   ├── aria-selection-patterns
+│   │   ├── autocomplete
+│   │   ├── combobox
+│   │   ├── listbox
+│   │   ├── select
+│   │   ├── multiselect
+│   │   ├── selection-models
+│   │   └── search-and-filter-interaction
+│   ├── aria-navigation-patterns
+│   │   ├── tabs
+│   │   ├── menu
+│   │   ├── menubar
+│   │   ├── toolbar
+│   │   ├── tree
+│   │   ├── accordion
+│   │   └── composite-keyboard-navigation
+│   ├── aria-grid-patterns
+│   │   ├── grid-structure
+│   │   ├── row-and-cell-focus
+│   │   ├── keyboard-traversal
+│   │   ├── selection-and-editing
+│   │   ├── virtualized-row-awareness
+│   │   ├── screen-reader-announcements
+│   │   └── tabular-data-semantics
+│   ├── accessible-forms
+│   │   ├── labels-and-hints
+│   │   ├── grouped-controls
+│   │   ├── required-field-communication
+│   │   ├── error-association
+│   │   ├── validation-announcements
+│   │   ├── input-purpose
+│   │   └── accessible-submission-feedback
+│   ├── accessible-feedback
+│   │   ├── live-regions
+│   │   ├── loading-announcements
+│   │   ├── progress-status
+│   │   ├── toast-lifetime
+│   │   ├── non-color-error-indicators
+│   │   ├── motion-preferences
+│   │   └── session-timeout-warnings
+│   ├── inclusive-interaction
+│   │   ├── screen-reader-testing
+│   │   ├── keyboard-only-testing
+│   │   ├── touch-target-review
+│   │   ├── zoom-and-text-scaling
+│   │   ├── high-contrast-mode
+│   │   ├── reduced-motion
+│   │   └── rtl-and-language-changes
+│   └── accessibility-quality
+│       ├── automated-rule-checks
+│       ├── manual-test-scripts
+│       ├── assistive-technology-matrix
+│       ├── component-harness-checks
+│       ├── regression-cases
+│       ├── documented-limitations
+│       └── remediation-prioritization
+├── animations-and-interaction-design
+│   ├── motion-foundations
+│   │   ├── interaction-feedback
+│   │   ├── visual-continuity
+│   │   ├── duration-and-easing
+│   │   ├── motion-hierarchy
+│   │   ├── state-transition-design
+│   │   ├── reduced-motion-policy
+│   │   └── animation-performance
+│   ├── native-css-motion
+│   │   ├── transitions
+│   │   ├── keyframes
+│   │   ├── transform-and-opacity
+│   │   ├── transition-events
+│   │   ├── animation-events
+│   │   ├── cancellation
+│   │   └── interruptible-animation
+│   ├── angular-enter-and-leave
+│   │   ├── animate-enter
+│   │   ├── animate-leave
+│   │   ├── class-based-animation
+│   │   ├── function-based-animation
+│   │   ├── removal-timing
+│   │   ├── host-animation-bindings
+│   │   └── longest-animation-completion
+│   ├── list-and-layout-motion
+│   │   ├── item-insertion
+│   │   ├── item-removal
+│   │   ├── reorder-feedback
+│   │   ├── layout-shift-avoidance
+│   │   ├── stable-tracking
+│   │   ├── stagger-design
+│   │   └── interrupted-list-updates
+│   ├── route-view-transitions
+│   │   ├── router-view-transition-integration
+│   │   ├── transition-naming
+│   │   ├── old-and-new-view-coordination
+│   │   ├── browser-support
+│   │   ├── fallback-paths
+│   │   ├── route-data-based-motion
+│   │   └── reduced-motion-handling
+│   ├── third-party-animation
+│   │   ├── animation-library-adapters
+│   │   ├── after-render-initialization
+│   │   ├── teardown-cancellation
+│   │   ├── outside-angular-work
+│   │   ├── signal-driven-state
+│   │   ├── ssr-safe-loading
+│   │   └── performance-measurement
+│   ├── interaction-patterns
+│   │   ├── expand-and-collapse
+│   │   ├── hover-and-focus-feedback
+│   │   ├── drag-preview
+│   │   ├── skeleton-to-content
+│   │   ├── optimistic-feedback
+│   │   ├── progress-transitions
+│   │   └── loading-motion-limits
+│   ├── motion-testing
+│   │   ├── deterministic-duration
+│   │   ├── animation-disable-policy
+│   │   ├── completion-testing
+│   │   ├── interrupted-animation-tests
+│   │   ├── focus-retention
+│   │   ├── visual-regression
+│   │   └── reduced-motion-tests
+│   └── legacy-animation-migration
+│       ├── angular-animations-package-reading
+│       ├── trigger-and-state-inventory
+│       ├── native-css-replacement
+│       ├── enter-leave-migration
+│       ├── route-transition-replacement
+│       ├── lifecycle-parity
+│       └── compatibility-tests
+├── server-rendering-hydration-and-seo
+│   ├── rendering-strategies
+│   │   ├── client-side-rendering
+│   │   ├── server-side-rendering
+│   │   ├── prerendering
+│   │   ├── hybrid-rendering
+│   │   ├── per-route-selection
+│   │   ├── content-freshness
+│   │   └── tradeoff-analysis
+│   ├── ssr-setup
+│   │   ├── angular-ssr-package
+│   │   ├── server-bootstrap
+│   │   ├── server-application-config
+│   │   ├── server-routes
+│   │   ├── render-mode
+│   │   ├── server-entrypoint
+│   │   └── deployment-runtime
+│   ├── server-route-design
+│   │   ├── client-routes
+│   │   ├── server-routes
+│   │   ├── prerender-routes
+│   │   ├── parameterized-prerendering
+│   │   ├── prerender-fallbacks
+│   │   ├── response-status
+│   │   └── headers-and-redirects
+│   ├── server-safe-code
+│   │   ├── document-abstraction
+│   │   ├── browser-global-guards
+│   │   ├── after-render-browser-work
+│   │   ├── server-compatible-libraries
+│   │   ├── dependency-injection-platform-adapters
+│   │   ├── request-lifetime
+│   │   └── no-cross-request-state
+│   ├── hydration
+│   │   ├── dom-reuse
+│   │   ├── provide-client-hydration
+│   │   ├── server-client-markup-consistency
+│   │   ├── valid-html
+│   │   ├── constraints-on-dom-mutation
+│   │   ├── hydration-statistics
+│   │   └── skip-hydration-escape-hatch
+│   ├── incremental-hydration
+│   │   ├── hydrate-triggers
+│   │   ├── viewport-hydration
+│   │   ├── interaction-hydration
+│   │   ├── timer-and-idle-hydration
+│   │   ├── conditional-hydration
+│   │   ├── hydrate-never
+│   │   └── nested-hydration-boundaries
+│   ├── event-replay
+│   │   ├── pre-hydration-interactions
+│   │   ├── event-capture
+│   │   ├── replay-timing
+│   │   ├── user-intent-preservation
+│   │   ├── duplicate-action-prevention
+│   │   ├── accessible-interaction
+│   │   └── slow-device-tests
+│   ├── transfer-and-caching
+│   │   ├── http-transfer-cache
+│   │   ├── transfer-state
+│   │   ├── authenticated-request-exclusion
+│   │   ├── origin-mapping
+│   │   ├── duplicate-fetch-avoidance
+│   │   ├── cache-key-isolation
+│   │   └── sensitive-data-serialization-review
+│   ├── server-performance
+│   │   ├── render-duration
+│   │   ├── upstream-timeouts
+│   │   ├── caching-public-pages
+│   │   ├── streaming-compatibility
+│   │   ├── memory-isolation
+│   │   ├── request-cancellation
+│   │   └── concurrent-request-load
+│   ├── seo-and-content
+│   │   ├── route-titles
+│   │   ├── meta-descriptions
+│   │   ├── canonical-links
+│   │   ├── structured-data
+│   │   ├── crawlable-links
+│   │   ├── status-code-correctness
+│   │   └── sitemap-and-robots-integration
+│   └── hydration-diagnostics
+│       ├── dom-mismatch-reproduction
+│       ├── nondeterministic-render-values
+│       ├── time-zone-differences
+│       ├── invalid-nesting
+│       ├── third-party-dom-writes
+│       ├── browser-extension-interference
+│       └── hydration-regression-tests
+├── deferred-loading-and-performance
+│   ├── performance-model
+│   │   ├── initial-load
+│   │   ├── route-navigation
+│   │   ├── interaction-latency
+│   │   ├── rendering-cost
+│   │   ├── memory-use
+│   │   ├── network-cost
+│   │   └── measurable-user-outcomes
+│   ├── deferrable-views
+│   │   ├── defer-block
+│   │   ├── placeholder-block
+│   │   ├── loading-block
+│   │   ├── error-block
+│   │   ├── dependency-eligibility
+│   │   ├── standalone-lazy-dependencies
+│   │   └── eager-placeholder-dependencies
+│   ├── defer-triggers
+│   │   ├── idle-trigger
+│   │   ├── viewport-trigger
+│   │   ├── interaction-trigger
+│   │   ├── hover-trigger
+│   │   ├── timer-trigger
+│   │   ├── immediate-trigger
+│   │   └── when-condition
+│   ├── prefetch-and-render-control
+│   │   ├── prefetch-triggers
+│   │   ├── data-and-code-prefetch
+│   │   ├── trigger-order
+│   │   ├── nested-defer-blocks
+│   │   ├── minimum-display-timing
+│   │   ├── loading-delay
+│   │   └── layout-stability
+│   ├── bundle-optimization
+│   │   ├── route-code-splitting
+│   │   ├── component-code-splitting
+│   │   ├── tree-shaking
+│   │   ├── side-effect-metadata
+│   │   ├── library-size-audit
+│   │   ├── dynamic-import-boundaries
+│   │   └── source-map-analysis
+│   ├── render-work-optimization
+│   │   ├── onpush-boundaries
+│   │   ├── stable-inputs
+│   │   ├── computed-view-models
+│   │   ├── pure-pipes
+│   │   ├── stable-track-expressions
+│   │   ├── avoid-template-heavy-computation
+│   │   └── notification-frequency
+│   ├── large-data-interfaces
+│   │   ├── virtual-scrolling
+│   │   ├── server-pagination
+│   │   ├── incremental-filtering
+│   │   ├── memoized-projections
+│   │   ├── chunked-processing
+│   │   ├── worker-offload
+│   │   └── accessible-large-lists
+│   ├── image-and-asset-performance
+│   │   ├── ng-optimized-image
+│   │   ├── intrinsic-dimensions
+│   │   ├── responsive-images
+│   │   ├── priority-images
+│   │   ├── lazy-images
+│   │   ├── font-loading
+│   │   └── critical-css
+│   ├── network-efficiency
+│   │   ├── request-waterfalls
+│   │   ├── request-deduplication
+│   │   ├── cache-validation
+│   │   ├── preconnect-and-preload
+│   │   ├── batching-contracts
+│   │   ├── pagination-payloads
+│   │   └── network-budget
+│   ├── profiling-and-budgets
+│   │   ├── angular-devtools-profiler
+│   │   ├── browser-performance-traces
+│   │   ├── web-vitals
+│   │   ├── field-versus-lab-data
+│   │   ├── bundle-budgets
+│   │   ├── regression-thresholds
+│   │   └── before-after-evidence
+│   └── performance-correctness
+│       ├── avoid-premature-memoization
+│       ├── cache-staleness-tests
+│       ├── cleanup-of-detached-views
+│       ├── deferred-loading-error-recovery
+│       ├── slow-network-scenarios
+│       ├── low-end-device-scenarios
+│       └── user-visible-regressions
+├── error-handling-and-resilience
+│   ├── error-classification
+│   │   ├── programming-errors
+│   │   ├── validation-errors
+│   │   ├── authentication-errors
+│   │   ├── authorization-errors
+│   │   ├── network-errors
+│   │   ├── conflict-errors
+│   │   └── unavailable-dependencies
+│   ├── angular-error-flow
+│   │   ├── error-handler
+│   │   ├── application-bootstrap-errors
+│   │   ├── template-evaluation-errors
+│   │   ├── lifecycle-hook-errors
+│   │   ├── observable-errors
+│   │   ├── promise-rejections
+│   │   └── error-reporting-boundaries
+│   ├── feature-error-state
+│   │   ├── loading-success-empty-error
+│   │   ├── discriminated-error-model
+│   │   ├── recoverable-versus-fatal
+│   │   ├── local-error-boundaries
+│   │   ├── retry-action
+│   │   ├── fallback-content
+│   │   └── preserve-user-work
+│   ├── request-failure-handling
+│   │   ├── timeout-feedback
+│   │   ├── connectivity-loss
+│   │   ├── rate-limit-feedback
+│   │   ├── server-validation-mapping
+│   │   ├── cancellation-is-not-failure
+│   │   ├── partial-data-display
+│   │   └── user-safe-error-messages
+│   ├── navigation-failures
+│   │   ├── unresolved-routes
+│   │   ├── rejected-guards
+│   │   ├── resolver-errors
+│   │   ├── lazy-chunk-failures
+│   │   ├── stale-deployment-assets
+│   │   ├── safe-redirects
+│   │   └── deep-link-recovery
+│   ├── state-resilience
+│   │   ├── stale-response-rejection
+│   │   ├── optimistic-rollback
+│   │   ├── concurrent-edit-conflicts
+│   │   ├── canceled-submits
+│   │   ├── duplicate-action-prevention
+│   │   ├── idempotent-retry
+│   │   └── state-reset-on-logout
+│   ├── fallback-design
+│   │   ├── offline-banner
+│   │   ├── cached-data-warning
+│   │   ├── unavailable-feature-view
+│   │   ├── degraded-third-party-widget
+│   │   ├── read-only-mode
+│   │   ├── maintenance-mode
+│   │   └── accessible-error-announcements
+│   ├── incident-evidence
+│   │   ├── correlation-ids
+│   │   ├── sanitized-stack-traces
+│   │   ├── release-version
+│   │   ├── request-context
+│   │   ├── reproducible-steps
+│   │   ├── browser-context
+│   │   └── privacy-aware-telemetry
+│   ├── fault-injection
+│   │   ├── delayed-response
+│   │   ├── malformed-payload
+│   │   ├── intermittent-errors
+│   │   ├── expired-session
+│   │   ├── corrupt-local-data
+│   │   ├── missing-chunks
+│   │   └── unavailable-browser-api
+│   └── recovery-validation
+│       ├── draft-recovery
+│       ├── retry-loop-limits
+│       ├── no-duplicate-side-effects
+│       ├── restored-navigation
+│       ├── post-reconnect-refresh
+│       ├── graceful-reload
+│       └── recovery-runbooks
+├── security-authentication-and-authorization
+│   ├── trust-boundaries
+│   │   ├── browser-is-untrusted
+│   │   ├── server-enforced-policies
+│   │   ├── untrusted-input
+│   │   ├── untrusted-api-data
+│   │   ├── third-party-code
+│   │   ├── origin-boundaries
+│   │   └── authenticated-user-context
+│   ├── angular-xss-defenses
+│   │   ├── escaped-interpolation
+│   │   ├── contextual-sanitization
+│   │   ├── innerhtml-review
+│   │   ├── resource-url-context
+│   │   ├── dom-sanitizer
+│   │   ├── bypass-security-trust-risks
+│   │   └── never-compile-untrusted-templates
+│   ├── browser-hardening
+│   │   ├── content-security-policy
+│   │   ├── trusted-types
+│   │   ├── nonce-handling
+│   │   ├── frame-embedding-policy
+│   │   ├── referrer-policy
+│   │   ├── dependency-integrity
+│   │   └── secure-response-headers
+│   ├── session-design
+│   │   ├── cookie-session
+│   │   ├── bearer-token-tradeoffs
+│   │   ├── backend-for-frontend
+│   │   ├── secure-http-only-cookies
+│   │   ├── same-site-policy
+│   │   ├── token-exposure-risks
+│   │   └── csrf-defense
+│   ├── identity-integration
+│   │   ├── oauth-authorization-code
+│   │   ├── pkce
+│   │   ├── oidc-login
+│   │   ├── provider-sdk-boundaries
+│   │   ├── callback-validation
+│   │   ├── login-state
+│   │   └── session-renewal
+│   ├── client-authorization
+│   │   ├── route-guards
+│   │   ├── permission-derived-ui
+│   │   ├── action-level-feedback
+│   │   ├── role-and-attribute-policies
+│   │   ├── tenant-switching
+│   │   ├── server-denial-handling
+│   │   └── no-client-only-protection
+│   ├── http-security
+│   │   ├── scoped-auth-interceptor
+│   │   ├── credential-forwarding-rules
+│   │   ├── csrf-token-integration
+│   │   ├── cors-server-configuration
+│   │   ├── refresh-race-coordination
+│   │   ├── logout-cancellation
+│   │   └── sensitive-query-param-avoidance
+│   ├── content-and-files
+│   │   ├── rich-text-sanitization
+│   │   ├── safe-url-validation
+│   │   ├── upload-policy
+│   │   ├── safe-download-filenames
+│   │   ├── document-preview-sandbox
+│   │   ├── unsafe-markdown-rendering
+│   │   └── third-party-embed-review
+│   ├── server-rendering-security
+│   │   ├── request-isolated-providers
+│   │   ├── sensitive-transfer-state
+│   │   ├── authenticated-cache-leaks
+│   │   ├── server-secret-isolation
+│   │   ├── upstream-url-allowlists
+│   │   ├── ssr-request-validation
+│   │   └── output-serialization
+│   ├── storage-and-privacy
+│   │   ├── localstorage-risk
+│   │   ├── indexeddb-data-policy
+│   │   ├── private-data-minimization
+│   │   ├── log-redaction
+│   │   ├── analytics-consent
+│   │   ├── cache-clearing
+│   │   └── data-retention
+│   └── security-testing
+│       ├── authorization-negative-tests
+│       ├── xss-regression-cases
+│       ├── csrf-integration-tests
+│       ├── tenant-isolation-tests
+│       ├── dependency-audits
+│       ├── secret-scanning
+│       └── threat-model-review
+├── internationalization-and-localization
+│   ├── i18n-strategy
+│   │   ├── build-time-localization
+│   │   ├── runtime-localization
+│   │   ├── locale-routing
+│   │   ├── language-selection
+│   │   ├── translation-ownership
+│   │   ├── fallback-language
+│   │   └── right-to-left-support
+│   ├── angular-localize
+│   │   ├── localize-package
+│   │   ├── i18n-template-markers
+│   │   ├── custom-message-ids
+│   │   ├── message-meaning-and-description
+│   │   ├── extract-i18n
+│   │   ├── translation-formats
+│   │   └── localized-builds
+│   ├── message-design
+│   │   ├── full-sentence-messages
+│   │   ├── interpolation-placeholders
+│   │   ├── icu-plural
+│   │   ├── icu-select
+│   │   ├── nested-icu
+│   │   ├── translator-context
+│   │   └── avoid-string-concatenation
+│   ├── locale-data
+│   │   ├── locale-id
+│   │   ├── register-locale-data
+│   │   ├── date-formatting
+│   │   ├── number-formatting
+│   │   ├── currency-formatting
+│   │   ├── percent-formatting
+│   │   └── locale-aware-pipes
+│   ├── runtime-translation
+│   │   ├── translation-service-boundary
+│   │   ├── lazy-language-bundles
+│   │   ├── translation-key-types
+│   │   ├── language-switching
+│   │   ├── missing-key-handling
+│   │   ├── cache-invalidation
+│   │   └── library-selection-tradeoffs
+│   ├── rtl-and-layout
+│   │   ├── dir-attribute
+│   │   ├── cdk-directionality
+│   │   ├── logical-css-properties
+│   │   ├── icon-mirroring
+│   │   ├── mixed-direction-text
+│   │   ├── overlay-direction
+│   │   └── rtl-visual-tests
+│   ├── localized-workflows
+│   │   ├── date-only-versus-timestamp
+│   │   ├── time-zone-policy
+│   │   ├── localized-validation
+│   │   ├── localized-route-titles
+│   │   ├── multilingual-content-search
+│   │   ├── language-specific-sort
+│   │   └── locale-aware-input
+│   ├── ssr-and-localization
+│   │   ├── request-locale-resolution
+│   │   ├── locale-specific-prerendering
+│   │   ├── html-lang
+│   │   ├── browser-server-locale-consistency
+│   │   ├── locale-cache-keys
+│   │   ├── localized-metadata
+│   │   └── hydration-parity
+│   ├── translation-delivery
+│   │   ├── extraction-in-ci
+│   │   ├── translator-handoff
+│   │   ├── message-id-stability
+│   │   ├── missing-translation-checks
+│   │   ├── pseudo-localization
+│   │   ├── long-text-tests
+│   │   └── release-synchronization
+│   └── internationalization-quality
+│       ├── keyboard-and-input-methods
+│       ├── unicode-normalization
+│       ├── plural-edge-cases
+│       ├── time-zone-boundary-tests
+│       ├── locale-format-tests
+│       ├── screen-reader-language-change
+│       └── multi-locale-e2e-tests
+├── testing-and-quality-assurance
+│   ├── test-strategy
+│   │   ├── unit-tests
+│   │   ├── component-tests
+│   │   ├── integration-tests
+│   │   ├── contract-tests
+│   │   ├── end-to-end-tests
+│   │   ├── visual-tests
+│   │   └── risk-based-coverage
+│   ├── unit-test-tooling
+│   │   ├── vitest
+│   │   ├── test-configuration
+│   │   ├── test-environment
+│   │   ├── dom-emulation
+│   │   ├── real-browser-mode
+│   │   ├── test-file-discovery
+│   │   └── coverage-instrumentation
+│   ├── angular-testbed
+│   │   ├── configure-testing-module
+│   │   ├── standalone-component-imports
+│   │   ├── provider-overrides
+│   │   ├── component-fixtures
+│   │   ├── dependency-injection
+│   │   ├── teardown-isolation
+│   │   └── compilation-boundaries
+│   ├── component-tests
+│   │   ├── input-setting
+│   │   ├── output-observation
+│   │   ├── template-queries
+│   │   ├── native-events
+│   │   ├── user-visible-assertions
+│   │   ├── content-projection
+│   │   └── host-component-testing
+│   ├── asynchronous-tests
+│   │   ├── async-await
+│   │   ├── when-stable
+│   │   ├── fake-timers
+│   │   ├── observable-completion
+│   │   ├── pending-resource-control
+│   │   ├── zoneless-notifications
+│   │   └── zone-dependent-fakeasync-boundaries
+│   ├── reactivity-tests
+│   │   ├── computed-state-tests
+│   │   ├── linked-state-tests
+│   │   ├── effect-cleanup-tests
+│   │   ├── signal-resource-tests
+│   │   ├── observable-marble-tests
+│   │   ├── cancellation-tests
+│   │   └── subscription-leak-tests
+│   ├── http-and-routing-tests
+│   │   ├── http-testing-controller
+│   │   ├── request-matching
+│   │   ├── response-flushing
+│   │   ├── error-flushing
+│   │   ├── interceptor-tests
+│   │   ├── router-testing-harness
+│   │   └── guard-and-resolver-tests
+│   ├── form-tests
+│   │   ├── typed-control-tests
+│   │   ├── signal-form-schema-tests
+│   │   ├── cross-field-validation-tests
+│   │   ├── async-validation-tests
+│   │   ├── custom-control-contracts
+│   │   ├── server-error-tests
+│   │   └── submit-and-reset-tests
+│   ├── component-harness-testing
+│   │   ├── material-harnesses
+│   │   ├── custom-harnesses
+│   │   ├── semantic-harness-apis
+│   │   ├── fixture-stabilization
+│   │   ├── environment-loaders
+│   │   ├── avoid-private-dom-selectors
+│   │   └── harness-compatibility
+│   ├── browser-and-contract-tests
+│   │   ├── playwright
+│   │   ├── cypress
+│   │   ├── network-stubbing
+│   │   ├── backend-contract-fixtures
+│   │   ├── authentication-setup
+│   │   ├── critical-user-journeys
+│   │   └── real-browser-api-behavior
+│   └── quality-gates
+│       ├── strict-typescript
+│       ├── strict-templates
+│       ├── angular-eslint
+│       ├── accessibility-scans
+│       ├── visual-baselines
+│       ├── flaky-test-triage
+│       └── production-build-validation
+├── debugging-profiling-and-observability
+│   ├── debugging-workflow
+│   │   ├── reproduce-and-isolate
+│   │   ├── observe-before-changing
+│   │   ├── minimal-test-case
+│   │   ├── hypothesis-and-evidence
+│   │   ├── source-level-breakpoints
+│   │   ├── verify-the-fix
+│   │   └── regression-test
+│   ├── angular-devtools
+│   │   ├── component-tree-inspection
+│   │   ├── property-inspection
+│   │   ├── injector-tree
+│   │   ├── change-detection-profiler
+│   │   ├── dependency-graph-inspection
+│   │   ├── route-debugging
+│   │   └── supported-runtime-requirements
+│   ├── browser-debugging
+│   │   ├── source-maps
+│   │   ├── exception-breakpoints
+│   │   ├── network-inspection
+│   │   ├── request-initiators
+│   │   ├── performance-panel
+│   │   ├── memory-panel
+│   │   └── accessibility-inspector
+│   ├── framework-diagnostics
+│   │   ├── error-encyclopedia
+│   │   ├── extended-diagnostics
+│   │   ├── strict-template-errors
+│   │   ├── injection-errors
+│   │   ├── expression-change-errors
+│   │   ├── hydration-errors
+│   │   └── cyclic-dependency-errors
+│   ├── reactivity-diagnostics
+│   │   ├── unexpected-effect-runs
+│   │   ├── missing-signal-notifications
+│   │   ├── stale-computed-values
+│   │   ├── subscription-counting
+│   │   ├── repeated-http-calls
+│   │   ├── out-of-order-responses
+│   │   └── teardown-verification
+│   ├── performance-investigation
+│   │   ├── long-tasks
+│   │   ├── expensive-template-bindings
+│   │   ├── repeated-rendering
+│   │   ├── layout-thrashing
+│   │   ├── bundle-waterfalls
+│   │   ├── unused-code
+│   │   └── heavy-third-party-widgets
+│   ├── memory-leak-investigation
+│   │   ├── detached-dom-nodes
+│   │   ├── retained-component-instances
+│   │   ├── subscription-retention
+│   │   ├── listener-retention
+│   │   ├── overlay-leaks
+│   │   ├── heap-snapshots
+│   │   └── navigation-loop-reproduction
+│   ├── application-telemetry
+│   │   ├── structured-client-events
+│   │   ├── error-reporting
+│   │   ├── request-correlation
+│   │   ├── release-metadata
+│   │   ├── route-level-timing
+│   │   ├── sampling
+│   │   └── privacy-aware-context
+│   ├── user-experience-monitoring
+│   │   ├── web-vitals
+│   │   ├── real-user-measurement
+│   │   ├── synthetic-journeys
+│   │   ├── slow-route-alerts
+│   │   ├── failed-request-rate
+│   │   ├── hydration-error-rate
+│   │   └── form-abandonment-context
+│   └── operational-debugging
+│       ├── source-map-access-control
+│       ├── feature-flag-context
+│       ├── browser-version-segmentation
+│       ├── tenant-safe-troubleshooting
+│       ├── incident-timeline
+│       ├── reproduction-bundles
+│       └── fix-verification
+├── browser-platform-offline-and-realtime
+│   ├── browser-api-adapters
+│   │   ├── window-and-document-abstraction
+│   │   ├── capability-detection
+│   │   ├── injection-tokens
+│   │   ├── server-safe-fallbacks
+│   │   ├── event-listener-cleanup
+│   │   ├── permission-handling
+│   │   └── browser-test-doubles
+│   ├── persistent-storage
+│   │   ├── localstorage
+│   │   ├── sessionstorage
+│   │   ├── indexeddb
+│   │   ├── versioned-storage-schema
+│   │   ├── transaction-boundaries
+│   │   ├── storage-quota
+│   │   └── data-expiration
+│   ├── service-worker-foundations
+│   │   ├── angular-service-worker
+│   │   ├── registration-strategy
+│   │   ├── ngsw-config
+│   │   ├── application-versions
+│   │   ├── asset-groups
+│   │   ├── data-groups
+│   │   └── navigation-handling
+│   ├── offline-design
+│   │   ├── connectivity-state
+│   │   ├── cached-read-model
+│   │   ├── offline-indicators
+│   │   ├── mutation-queue
+│   │   ├── conflict-resolution
+│   │   ├── resynchronization
+│   │   └── private-data-isolation
+│   ├── application-updates
+│   │   ├── sw-update
+│   │   ├── version-ready-notifications
+│   │   ├── unrecoverable-state
+│   │   ├── draft-preserving-reload
+│   │   ├── stale-tab-policy
+│   │   ├── cache-versioning
+│   │   └── rollback-interactions
+│   ├── push-notifications
+│   │   ├── sw-push
+│   │   ├── permission-request-timing
+│   │   ├── subscription-lifecycle
+│   │   ├── backend-push-contract
+│   │   ├── notification-actions
+│   │   ├── logout-unsubscribe
+│   │   └── privacy-and-opt-out
+│   ├── realtime-transports
+│   │   ├── websocket-adapter
+│   │   ├── server-sent-events
+│   │   ├── polling-fallback
+│   │   ├── authenticated-connection
+│   │   ├── reconnect-backoff
+│   │   ├── heartbeat-and-timeouts
+│   │   └── stream-to-signal-projection
+│   ├── realtime-state
+│   │   ├── event-ordering
+│   │   ├── duplicate-events
+│   │   ├── missed-event-recovery
+│   │   ├── optimistic-event-confirmation
+│   │   ├── connection-state-model
+│   │   ├── backpressure-strategy
+│   │   └── tenant-channel-isolation
+│   ├── web-workers
+│   │   ├── worker-generation
+│   │   ├── message-contract
+│   │   ├── structured-clone
+│   │   ├── transferable-buffers
+│   │   ├── cancellation-and-termination
+│   │   ├── main-thread-state-updates
+│   │   └── server-rendering-fallback
+│   ├── advanced-browser-integration
+│   │   ├── broadcast-channel
+│   │   ├── cross-tab-session-sync
+│   │   ├── resize-observer
+│   │   ├── intersection-observer
+│   │   ├── clipboard-and-permissions
+│   │   ├── file-and-drag-events
+│   │   └── fullscreen-and-media
+│   └── platform-validation
+│       ├── offline-e2e-tests
+│       ├── update-simulation
+│       ├── storage-migration-tests
+│       ├── websocket-reconnect-tests
+│       ├── worker-failure-tests
+│       ├── permission-denied-cases
+│       └── unsupported-api-fallbacks
+├── library-authoring-and-component-distribution
+│   ├── library-scope
+│   │   ├── reusable-components
+│   │   ├── directives-and-pipes
+│   │   ├── service-libraries
+│   │   ├── state-utilities
+│   │   ├── design-system-packages
+│   │   ├── adapter-packages
+│   │   └── public-contracts
+│   ├── workspace-library-setup
+│   │   ├── generate-library
+│   │   ├── source-layout
+│   │   ├── public-api-entrypoint
+│   │   ├── ng-package-configuration
+│   │   ├── package-metadata
+│   │   ├── peer-dependencies
+│   │   └── consumer-sandbox
+│   ├── angular-package-format
+│   │   ├── esm-output
+│   │   ├── partial-compilation
+│   │   ├── declaration-files
+│   │   ├── package-exports
+│   │   ├── secondary-entrypoints
+│   │   ├── side-effects-metadata
+│   │   └── angular-linker-compatibility
+│   ├── public-api-design
+│   │   ├── stable-inputs-and-outputs
+│   │   ├── provider-functions
+│   │   ├── injection-tokens
+│   │   ├── configuration-contracts
+│   │   ├── feature-opt-ins
+│   │   ├── error-contracts
+│   │   └── minimal-public-surface
+│   ├── packaging-practices
+│   │   ├── ng-packagr
+│   │   ├── build-library
+│   │   ├── assets-and-styles
+│   │   ├── exports-map-validation
+│   │   ├── dependency-externalization
+│   │   ├── bundle-inspection
+│   │   └── package-content-checks
+│   ├── consumer-compatibility
+│   │   ├── supported-angular-range
+│   │   ├── typescript-range
+│   │   ├── standalone-consumers
+│   │   ├── ngmodule-consumers
+│   │   ├── zoneless-compatibility
+│   │   ├── ssr-and-hydration
+│   │   └── accessibility-contracts
+│   ├── library-state-and-di
+│   │   ├── avoid-global-mutable-state
+│   │   ├── provider-scope
+│   │   ├── control-instance-lifetime
+│   │   ├── optional-dependencies
+│   │   ├── duplicate-package-identity
+│   │   ├── multi-provider-extension
+│   │   └── cleanup-contracts
+│   ├── component-documentation
+│   │   ├── usage-examples
+│   │   ├── api-reference
+│   │   ├── storybook-stories
+│   │   ├── accessibility-notes
+│   │   ├── theme-customization
+│   │   ├── migration-guides
+│   │   └── limitations-and-tradeoffs
+│   ├── release-process
+│   │   ├── semantic-versioning
+│   │   ├── changelog
+│   │   ├── generation-of-release-artifacts
+│   │   ├── package-provenance
+│   │   ├── release-candidate-testing
+│   │   ├── consumer-contract-tests
+│   │   └── deprecation-policy
+│   └── library-validation
+│       ├── package-tarball-installation
+│       ├── build-in-real-consumer
+│       ├── secondary-entrypoint-tests
+│       ├── type-declaration-tests
+│       ├── tree-shaking-checks
+│       ├── styling-isolation-tests
+│       └── published-artifact-smoke-test
+├── monorepos-build-tooling-and-code-generation
+│   ├── workspace-strategy
+│   │   ├── single-application-workspace
+│   │   ├── multi-application-workspace
+│   │   ├── shared-library-workspace
+│   │   ├── independent-release-boundaries
+│   │   ├── package-manager-workspaces
+│   │   ├── repo-size-tradeoffs
+│   │   └── team-ownership
+│   ├── build-system
+│   │   ├── angular-builders
+│   │   ├── application-builder
+│   │   ├── esbuild-based-bundling
+│   │   ├── vite-based-dev-server
+│   │   ├── builder-options
+│   │   ├── asset-processing
+│   │   └── optimization-settings
+│   ├── build-configuration
+│   │   ├── target-configuration
+│   │   ├── production-optimization
+│   │   ├── source-maps
+│   │   ├── output-hashing
+│   │   ├── bundle-budgets
+│   │   ├── base-href
+│   │   └── output-path
+│   ├── nx-integration
+│   │   ├── project-graph
+│   │   ├── task-graph
+│   │   ├── affected-projects
+│   │   ├── caching
+│   │   ├── distributed-task-execution
+│   │   ├── module-boundary-rules
+│   │   └── angular-generators
+│   ├── cache-correctness
+│   │   ├── task-inputs
+│   │   ├── environment-inputs
+│   │   ├── lockfile-inputs
+│   │   ├── output-declarations
+│   │   ├── nondeterministic-builds
+│   │   ├── cache-invalidation
+│   │   └── remote-cache-access
+│   ├── schematics
+│   │   ├── schematic-collection
+│   │   ├── rules-and-tree
+│   │   ├── virtual-filesystem
+│   │   ├── templates-and-options
+│   │   ├── schema-validation
+│   │   ├── schematic-tests
+│   │   └── idempotent-generation
+│   ├── custom-builders
+│   │   ├── architect-target
+│   │   ├── builder-context
+│   │   ├── input-schema
+│   │   ├── task-execution
+│   │   ├── incremental-work
+│   │   ├── error-reporting
+│   │   └── builder-testing
+│   ├── code-generation
+│   │   ├── openapi-clients
+│   │   ├── graphql-operation-types
+│   │   ├── localization-extraction
+│   │   ├── design-token-output
+│   │   ├── route-contract-generation
+│   │   ├── generated-code-ownership
+│   │   └── regeneration-checks
+│   ├── monorepo-boundaries
+│   │   ├── tags-and-import-constraints
+│   │   ├── feature-libraries
+│   │   ├── ui-libraries
+│   │   ├── data-access-libraries
+│   │   ├── domain-libraries
+│   │   ├── shared-runtime-version
+│   │   └── dependency-cycle-detection
+│   └── continuous-integration
+│       ├── clean-install
+│       ├── parallel-quality-checks
+│       ├── affected-test-selection
+│       ├── build-artifact-retention
+│       ├── deterministic-builds
+│       ├── dependency-review
+│       └── release-orchestration
+├── backend-integration-and-full-stack-delivery
+│   ├── frontend-backend-boundaries
+│   │   ├── backend-for-frontend
+│   │   ├── api-gateway
+│   │   ├── server-owned-business-rules
+│   │   ├── client-owned-presentation
+│   │   ├── shared-contracts
+│   │   ├── validation-on-both-sides
+│   │   └── cross-origin-deployment
+│   ├── rest-integration
+│   │   ├── resource-contracts
+│   │   ├── error-envelope
+│   │   ├── pagination-contract
+│   │   ├── filtering-and-sorting
+│   │   ├── file-transfer
+│   │   ├── versioned-endpoints
+│   │   └── contract-evolution
+│   ├── java-spring-integration
+│   │   ├── spring-rest-contracts
+│   │   ├── openapi-generated-client
+│   │   ├── bean-validation-error-mapping
+│   │   ├── spring-security-session
+│   │   ├── csrf-coordination
+│   │   ├── sse-and-websocket-contracts
+│   │   └── reverse-proxy-deployment
+│   ├── node-and-nestjs-integration
+│   │   ├── controller-contracts
+│   │   ├── dto-schema-alignment
+│   │   ├── backend-validation
+│   │   ├── session-and-cors
+│   │   ├── websocket-gateways
+│   │   ├── generated-api-types
+│   │   └── environment-configuration
+│   ├── graphql-integration
+│   │   ├── apollo-angular
+│   │   ├── typed-operations
+│   │   ├── query-variables
+│   │   ├── normalized-cache
+│   │   ├── mutation-updates
+│   │   ├── pagination-policies
+│   │   └── graphql-error-boundaries
+│   ├── firebase-integration
+│   │   ├── angularfire
+│   │   ├── authentication-adapter
+│   │   ├── firestore-query-lifecycle
+│   │   ├── server-security-rules
+│   │   ├── emulator-testing
+│   │   ├── offline-persistence-policy
+│   │   └── rules-and-ui-consistency
+│   ├── realtime-and-jobs
+│   │   ├── long-running-job-contract
+│   │   ├── progress-events
+│   │   ├── cancellation-endpoints
+│   │   ├── reconnect-and-resume
+│   │   ├── durable-job-identifiers
+│   │   ├── completion-refresh
+│   │   └── duplicate-event-handling
+│   ├── ssr-server-integration
+│   │   ├── angular-node-server
+│   │   ├── request-context-injection
+│   │   ├── cookie-forwarding-allowlists
+│   │   ├── upstream-timeout-policy
+│   │   ├── public-versus-private-cache
+│   │   ├── graceful-server-shutdown
+│   │   └── deployment-health-checks
+│   ├── business-consistency
+│   │   ├── money-and-currency
+│   │   ├── date-and-time-zones
+│   │   ├── optimistic-locks
+│   │   ├── idempotency
+│   │   ├── eventual-consistency
+│   │   ├── audit-trail-reference
+│   │   └── partial-failure-ux
+│   └── integration-testing
+│       ├── api-mock-server
+│       ├── schema-validation
+│       ├── consumer-contracts
+│       ├── real-backend-sandbox
+│       ├── authentication-negative-tests
+│       ├── race-condition-tests
+│       └── deployment-smoke-tests
+├── deployment-and-production-operations
+│   ├── deployment-models
+│   │   ├── static-hosting
+│   │   ├── cdn-hosting
+│   │   ├── node-ssr-server
+│   │   ├── containerized-ssr
+│   │   ├── serverless-adapter-compatibility
+│   │   ├── internal-enterprise-hosting
+│   │   └── multi-region-tradeoffs
+│   ├── static-delivery
+│   │   ├── index-fallback
+│   │   ├── deep-link-rewrites
+│   │   ├── hashed-asset-caching
+│   │   ├── html-cache-policy
+│   │   ├── base-path
+│   │   ├── assets-path
+│   │   └── not-found-handling
+│   ├── ssr-delivery
+│   │   ├── runtime-dependencies
+│   │   ├── server-bundle
+│   │   ├── startup-command
+│   │   ├── environment-injection
+│   │   ├── health-endpoints
+│   │   ├── readiness-and-liveness
+│   │   └── request-timeout-policy
+│   ├── container-and-platform
+│   │   ├── multi-stage-build
+│   │   ├── minimal-runtime-image
+│   │   ├── non-root-user
+│   │   ├── runtime-resource-limits
+│   │   ├── graceful-termination
+│   │   ├── ingress-configuration
+│   │   └── reproducible-images
+│   ├── configuration-management
+│   │   ├── build-time-settings
+│   │   ├── runtime-settings
+│   │   ├── schema-validation
+│   │   ├── public-config-endpoint
+│   │   ├── secret-exclusion
+│   │   ├── feature-flags
+│   │   └── configuration-rollbacks
+│   ├── ci-cd-pipeline
+│   │   ├── lint-and-typecheck
+│   │   ├── test-and-build
+│   │   ├── artifact-promotion
+│   │   ├── environment-deployment
+│   │   ├── smoke-tests
+│   │   ├── approval-gates
+│   │   └── rollback-plan
+│   ├── release-strategy
+│   │   ├── immutable-releases
+│   │   ├── blue-green-delivery
+│   │   ├── canary-exposure
+│   │   ├── asset-compatibility
+│   │   ├── stale-client-handling
+│   │   ├── service-worker-coordination
+│   │   └── release-observability
+│   ├── production-monitoring
+│   │   ├── error-rate
+│   │   ├── route-health
+│   │   ├── api-dependency-health
+│   │   ├── web-vitals
+│   │   ├── ssr-latency
+│   │   ├── resource-utilization
+│   │   └── alert-triage
+│   ├── operational-security
+│   │   ├── tls-and-headers
+│   │   ├── csp-deployment
+│   │   ├── dependency-patching
+│   │   ├── artifact-integrity
+│   │   ├── source-map-policy
+│   │   ├── access-control
+│   │   └── audit-logs
+│   ├── recovery-and-continuity
+│   │   ├── failed-deployment-recovery
+│   │   ├── broken-chunk-recovery
+│   │   ├── expired-cache-recovery
+│   │   ├── ssr-outage-fallback
+│   │   ├── upstream-outage-response
+│   │   ├── backup-configuration
+│   │   └── incident-drills
+│   └── production-handover
+│       ├── deployment-runbook
+│       ├── environment-inventory
+│       ├── monitoring-dashboard
+│       ├── ownership-map
+│       ├── release-checklist
+│       ├── support-escalation
+│       └── post-release-review
+├── migration-compatibility-and-legacy-maintenance
+│   ├── upgrade-planning
+│   │   ├── version-inventory
+│   │   ├── supported-upgrade-path
+│   │   ├── angular-update-guide
+│   │   ├── dependency-compatibility
+│   │   ├── release-note-review
+│   │   ├── baseline-tests
+│   │   └── rollback-checkpoints
+│   ├── ngmodule-maintenance
+│   │   ├── declarations
+│   │   ├── imports
+│   │   ├── exports
+│   │   ├── providers
+│   │   ├── bootstrap
+│   │   ├── module-injector
+│   │   └── standalone-interop
+│   ├── standalone-migration
+│   │   ├── convert-declarations
+│   │   ├── import-resolution
+│   │   ├── remove-unnecessary-modules
+│   │   ├── standalone-bootstrap
+│   │   ├── provider-migration
+│   │   ├── routing-migration
+│   │   └── behavior-parity-tests
+│   ├── modern-component-api-migration
+│   │   ├── decorator-inputs-to-signal-inputs
+│   │   ├── output-api-adoption
+│   │   ├── signal-query-adoption
+│   │   ├── inject-function-migration
+│   │   ├── model-input-evaluation
+│   │   ├── public-contract-preservation
+│   │   └── incremental-rollout
+│   ├── control-flow-migration
+│   │   ├── ngif-migration
+│   │   ├── ngfor-migration
+│   │   ├── ngswitch-migration
+│   │   ├── tracking-expression-review
+│   │   ├── template-reference-differences
+│   │   ├── empty-state-handling
+│   │   └── strict-template-regression
+│   ├── zoneless-migration
+│   │   ├── zone-dependency-inventory
+│   │   ├── notification-audit
+│   │   ├── onpush-readiness
+│   │   ├── third-party-library-review
+│   │   ├── async-update-fixes
+│   │   ├── test-environment-alignment
+│   │   └── zonejs-removal-validation
+│   ├── forms-modernization
+│   │   ├── untyped-to-typed-forms
+│   │   ├── validation-contract-preservation
+│   │   ├── custom-control-migration
+│   │   ├── signal-form-evaluation
+│   │   ├── side-by-side-form-strategy
+│   │   ├── accessibility-parity
+│   │   └── submission-parity
+│   ├── build-and-test-migration
+│   │   ├── legacy-browser-builder-to-application-builder
+│   │   ├── karma-jasmine-to-vitest
+│   │   ├── protractor-to-modern-e2e
+│   │   ├── zone-dependent-test-rewrite
+│   │   ├── custom-webpack-assessment
+│   │   ├── ssr-package-migration
+│   │   └── output-artifact-validation
+│   ├── legacy-angularjs-boundary
+│   │   ├── angularjs-versus-angular
+│   │   ├── end-of-life-risk-inventory
+│   │   ├── upgrade-module-bridge
+│   │   ├── strangler-migration
+│   │   ├── route-level-replacement
+│   │   ├── shared-session-boundary
+│   │   └── legacy-code-retirement
+│   └── breaking-change-management
+│       ├── deprecated-api-inventory
+│       ├── peer-dependency-conflicts
+│       ├── codemod-review
+│       ├── changed-defaults-review
+│       ├── production-canary-monitoring
+│       ├── consumer-library-upgrades
+│       └── migration-documentation
+├── advanced-runtime-and-compiler-topics
+│   ├── compilation-mental-model
+│   │   ├── template-parser
+│   │   ├── template-typechecker
+│   │   ├── generated-view-instructions
+│   │   ├── ahead-of-time-compilation
+│   │   ├── just-in-time-boundaries
+│   │   ├── runtime-renderer
+│   │   └── compiled-output-inspection
+│   ├── ivy-and-internals
+│   │   ├── logical-views
+│   │   ├── template-instructions
+│   │   ├── binding-slots
+│   │   ├── creation-and-update-phases
+│   │   ├── container-views
+│   │   ├── private-api-instability
+│   │   └── public-api-alternatives
+│   ├── template-type-system
+│   │   ├── strict-templates
+│   │   ├── generic-component-inference
+│   │   ├── context-guards
+│   │   ├── input-transform-types
+│   │   ├── null-checking
+│   │   ├── diagnostic-mapping
+│   │   └── narrowing-limitations
+│   ├── rendering-primitives
+│   │   ├── template-ref
+│   │   ├── embedded-view-ref
+│   │   ├── view-container-ref
+│   │   ├── component-ref
+│   │   ├── application-ref
+│   │   ├── environment-injector
+│   │   └── view-attachment-and-detachment
+│   ├── custom-dynamic-ui
+│   │   ├── component-registry
+│   │   ├── typed-renderer-inputs
+│   │   ├── dependency-scope-selection
+│   │   ├── template-context-contracts
+│   │   ├── lazy-component-loading
+│   │   ├── resource-cleanup
+│   │   └── untrusted-schema-boundaries
+│   ├── custom-elements
+│   │   ├── angular-elements
+│   │   ├── create-custom-element
+│   │   ├── input-attribute-mapping
+│   │   ├── custom-event-output
+│   │   ├── custom-element-registration
+│   │   ├── injector-lifetime
+│   │   └── host-framework-interop
+│   ├── advanced-di
+│   │   ├── environment-initializers
+│   │   ├── application-initializers
+│   │   ├── provider-composition
+│   │   ├── injection-token-identity
+│   │   ├── manual-environment-injectors
+│   │   ├── dynamic-feature-injectors
+│   │   └── destruction-contracts
+│   ├── platform-interop
+│   │   ├── renderer-abstractions
+│   │   ├── document-token
+│   │   ├── platform-checks
+│   │   ├── server-rendering-adapters
+│   │   ├── browser-only-capabilities
+│   │   ├── test-platform-substitution
+│   │   └── runtime-capability-detection
+│   ├── application-lifecycle
+│   │   ├── bootstrap-errors
+│   │   ├── stability-tracking
+│   │   ├── pending-tasks
+│   │   ├── async-ssr-work
+│   │   ├── after-render-phases
+│   │   ├── application-destruction
+│   │   └── lifecycle-probes
+│   └── advanced-quality
+│       ├── private-api-avoidance
+│       ├── compiler-version-pinning
+│       ├── minimal-runtime-reproductions
+│       ├── performance-measurement
+│       ├── public-contract-tests
+│       ├── unsupported-configuration-review
+│       └── source-code-reading
+├── real-world-application-patterns
+│   ├── enterprise-data-table
+│   │   ├── column-metadata
+│   │   ├── server-pagination
+│   │   ├── server-filtering
+│   │   ├── multi-sort
+│   │   ├── selection-and-bulk-actions
+│   │   ├── inline-editing
+│   │   └── accessible-keyboard-navigation
+│   ├── search-and-discovery
+│   │   ├── url-backed-filters
+│   │   ├── debounced-query
+│   │   ├── canceled-stale-requests
+│   │   ├── suggestions
+│   │   ├── faceted-results
+│   │   ├── empty-and-error-states
+│   │   └── saved-searches
+│   ├── detail-and-edit-workspace
+│   │   ├── master-detail-routing
+│   │   ├── tab-state
+│   │   ├── unsaved-change-protection
+│   │   ├── optimistic-concurrency
+│   │   ├── partial-save
+│   │   ├── revision-history
+│   │   └── permission-aware-actions
+│   ├── dashboard-applications
+│   │   ├── widget-composition
+│   │   ├── independent-loading
+│   │   ├── chart-adapters
+│   │   ├── date-range-state
+│   │   ├── dashboard-layout-persistence
+│   │   ├── export-contracts
+│   │   └── refresh-and-realtime
+│   ├── multi-tenant-workspaces
+│   │   ├── tenant-resolution
+│   │   ├── tenant-scoped-routes
+│   │   ├── context-switching
+│   │   ├── isolated-data-cache
+│   │   ├── tenant-branding
+│   │   ├── server-authorized-actions
+│   │   └── tenant-change-cleanup
+│   ├── approval-and-case-workflows
+│   │   ├── state-machine-view
+│   │   ├── task-assignment
+│   │   ├── reviewer-actions
+│   │   ├── comments-and-attachments
+│   │   ├── audit-timeline
+│   │   ├── escalation-state
+│   │   └── concurrent-review-conflicts
+│   ├── commerce-frontends
+│   │   ├── product-catalog
+│   │   ├── product-variants
+│   │   ├── cart-state
+│   │   ├── inventory-availability
+│   │   ├── checkout-form
+│   │   ├── order-tracking
+│   │   └── payment-provider-boundary
+│   ├── content-and-learning-portals
+│   │   ├── content-routing
+│   │   ├── rich-content-rendering
+│   │   ├── sanitized-markdown
+│   │   ├── table-of-contents
+│   │   ├── search-index-adapter
+│   │   ├── progress-state
+│   │   └── content-versioning
+│   ├── realtime-collaboration
+│   │   ├── presence-indicators
+│   │   ├── live-updates
+│   │   ├── optimistic-user-actions
+│   │   ├── reconnect-reconciliation
+│   │   ├── conflict-feedback
+│   │   ├── channel-authorization
+│   │   └── collaboration-lifecycle
+│   ├── large-enterprise-forms
+│   │   ├── conditional-sections
+│   │   ├── repeating-records
+│   │   ├── reference-data-loading
+│   │   ├── background-drafts
+│   │   ├── review-screen
+│   │   ├── approval-submission
+│   │   └── error-and-recovery-paths
+│   └── ai-enabled-interfaces
+│       ├── backend-mediated-model-access
+│       ├── streaming-response-view
+│       ├── cancellation
+│       ├── source-and-citation-display
+│       ├── tool-action-confirmation
+│       ├── untrusted-output-rendering
+│       └── cost-and-rate-limit-feedback
+├── professional-practice-and-ai-assisted-development
+│   ├── engineering-workflow
+│   │   ├── clarify-user-journey
+│   │   ├── write-acceptance-criteria
+│   │   ├── choose-state-owner
+│   │   ├── define-api-contract
+│   │   ├── implement-vertical-slice
+│   │   ├── verify-accessibility
+│   │   └── document-tradeoffs
+│   ├── code-review
+│   │   ├── component-responsibility
+│   │   ├── template-readability
+│   │   ├── injection-scope
+│   │   ├── signal-and-stream-lifetime
+│   │   ├── error-paths
+│   │   ├── security-boundaries
+│   │   └── tests-and-evidence
+│   ├── team-conventions
+│   │   ├── angular-style-guide
+│   │   ├── naming-and-layout
+│   │   ├── dependency-boundaries
+│   │   ├── review-checklist
+│   │   ├── decision-records
+│   │   ├── shared-snippets
+│   │   └── onboarding-guide
+│   ├── technical-design
+│   │   ├── requirements-to-route-map
+│   │   ├── component-hierarchy
+│   │   ├── state-ownership-map
+│   │   ├── provider-scope-map
+│   │   ├── rendering-strategy
+│   │   ├── failure-scenario-map
+│   │   └── test-and-release-plan
+│   ├── ai-assisted-development
+│   │   ├── official-angular-guidance
+│   │   ├── bounded-generation-tasks
+│   │   ├── repository-context-minimization
+│   │   ├── generated-code-review
+│   │   ├── version-aware-api-verification
+│   │   ├── execution-and-tests
+│   │   └── sensitive-data-exclusion
+│   ├── angular-cli-mcp
+│   │   ├── server-setup
+│   │   ├── tool-capability-review
+│   │   ├── least-privilege-configuration
+│   │   ├── workspace-access-boundaries
+│   │   ├── confirmation-for-writes
+│   │   ├── dependency-policy
+│   │   └── audit-and-review
+│   ├── maintenance-and-delivery
+│   │   ├── dependency-update-cadence
+│   │   ├── vulnerability-triage
+│   │   ├── performance-regression-review
+│   │   ├── accessibility-backlog
+│   │   ├── flaky-test-maintenance
+│   │   ├── migration-backlog
+│   │   └── documentation-refresh
+│   ├── collaboration
+│   │   ├── design-handoff
+│   │   ├── backend-contract-review
+│   │   ├── qa-reproduction
+│   │   ├── product-prioritization
+│   │   ├── stakeholder-demo
+│   │   ├── support-handover
+│   │   └── incident-retrospective
+│   └── portfolio-and-interviews
+│       ├── explain-change-detection
+│       ├── demonstrate-di-scopes
+│       ├── reason-about-streams
+│       ├── compare-form-models
+│       ├── diagnose-performance
+│       ├── present-architecture-decisions
+│       └── evidence-backed-project-writeup
+└── practice-projects
+    ├── angular-fundamentals-lab
+    │   ├── standalone-bootstrap
+    │   ├── template-bindings
+    │   ├── component-inputs-and-outputs
+    │   ├── control-flow-and-list-identity
+    │   ├── dependency-injection-experiments
+    │   ├── lifecycle-trace
+    │   ├── signal-state-tests
+    │   └── learning-notes
+    ├── component-composition-library
+    │   ├── component-api-design
+    │   ├── input-transforms
+    │   ├── output-contracts
+    │   ├── projected-content
+    │   ├── template-slots
+    │   ├── host-directives
+    │   ├── component-queries
+    │   ├── accessible-usage-examples
+    │   └── harness-tests
+    ├── signals-and-zoneless-lab
+    │   ├── signal-and-computed-graph
+    │   ├── linked-selection-state
+    │   ├── external-effect-cleanup
+    │   ├── zoneless-notification-cases
+    │   ├── onpush-behavior-tests
+    │   ├── mutation-failure-reproductions
+    │   ├── profiling-before-and-after
+    │   └── regression-suite
+    ├── rxjs-search-and-request-lab
+    │   ├── typeahead-query
+    │   ├── debounce-and-distinct
+    │   ├── switchmap-cancellation
+    │   ├── parallel-resource-load
+    │   ├── error-and-retry-policy
+    │   ├── loading-state
+    │   ├── stale-response-test
+    │   ├── marble-tests
+    │   └── browser-behavior-tests
+    ├── three-form-approaches-lab
+    │   ├── shared-domain-model
+    │   ├── template-driven-implementation
+    │   ├── typed-reactive-implementation
+    │   ├── signal-form-implementation
+    │   ├── validation-parity
+    │   ├── async-validation-cases
+    │   ├── server-error-mapping
+    │   ├── accessibility-comparison
+    │   └── automated-submission-tests
+    ├── personal-task-manager
+    │   ├── feature-route-design
+    │   ├── local-signal-state
+    │   ├── filtering-and-sorting
+    │   ├── url-query-state
+    │   ├── edit-form
+    │   ├── persistence-schema
+    │   ├── keyboard-interaction
+    │   ├── unit-and-browser-tests
+    │   └── static-deployment
+    ├── product-catalog-and-search
+    │   ├── route-driven-catalog
+    │   ├── faceted-search
+    │   ├── canceled-stale-requests
+    │   ├── server-pagination
+    │   ├── product-detail-route
+    │   ├── image-optimization
+    │   ├── empty-and-error-states
+    │   ├── performance-budget
+    │   └── contract-tests
+    ├── multi-step-onboarding
+    │   ├── typed-form-sections
+    │   ├── conditional-step-flow
+    │   ├── cross-step-validation
+    │   ├── async-identity-check
+    │   ├── draft-and-resume
+    │   ├── file-attachment-flow
+    │   ├── review-and-confirm
+    │   ├── accessible-error-summary
+    │   └── interrupted-submit-recovery
+    ├── custom-form-controls-kit
+    │   ├── currency-input
+    │   ├── date-range-control
+    │   ├── address-editor
+    │   ├── typed-reactive-adapter
+    │   ├── signal-form-adapter
+    │   ├── touched-and-disabled-contract
+    │   ├── keyboard-and-label-support
+    │   ├── component-harnesses
+    │   └── consumer-example
+    ├── material-admin-dashboard
+    │   ├── material-theme
+    │   ├── application-shell
+    │   ├── role-aware-navigation
+    │   ├── server-driven-data-table
+    │   ├── independent-widgets
+    │   ├── custom-table-datasource
+    │   ├── loading-and-error-feedback
+    │   ├── harness-tests
+    │   └── deployment-monitoring
+    ├── accessible-aria-design-system
+    │   ├── design-tokens
+    │   ├── headless-aria-components
+    │   ├── keyboard-contracts
+    │   ├── focus-management
+    │   ├── rtl-support
+    │   ├── forced-colors-theme
+    │   ├── custom-harnesses
+    │   ├── screen-reader-checklist
+    │   └── visual-regression
+    ├── ngrx-signal-store-workspace
+    │   ├── feature-store-contract
+    │   ├── entity-management
+    │   ├── computed-selectors
+    │   ├── async-methods
+    │   ├── error-state
+    │   ├── optimistic-updates
+    │   ├── persistence-adapter
+    │   ├── store-unit-tests
+    │   └── local-provider-lifetime
+    ├── ngrx-store-order-workflow
+    │   ├── action-design
+    │   ├── reducer-state-machine
+    │   ├── effects-and-api-integration
+    │   ├── normalized-entities
+    │   ├── memoized-selectors
+    │   ├── router-store-integration
+    │   ├── optimistic-conflict-handling
+    │   ├── effect-marble-tests
+    │   └── devtools-investigation
+    ├── angular-spring-business-portal
+    │   ├── openapi-contract
+    │   ├── generated-typescript-client
+    │   ├── spring-session-integration
+    │   ├── csrf-and-cors-coordination
+    │   ├── paginated-crud
+    │   ├── validation-error-mapping
+    │   ├── optimistic-locking
+    │   ├── authorized-file-download
+    │   └── end-to-end-integration
+    ├── angular-nestjs-application
+    │   ├── typed-rest-contract
+    │   ├── server-validation
+    │   ├── authentication-flow
+    │   ├── feature-services
+    │   ├── realtime-event-stream
+    │   ├── integration-fixtures
+    │   ├── server-error-feedback
+    │   ├── containerized-environment
+    │   └── deployment-smoke-tests
+    ├── graphql-client-workspace
+    │   ├── operation-types
+    │   ├── apollo-angular-setup
+    │   ├── entity-cache
+    │   ├── pagination
+    │   ├── merge-policy
+    │   ├── mutation-update-path
+    │   ├── partial-error-handling
+    │   ├── authentication-context
+    │   └── cache-isolation-tests
+    ├── ssr-content-portal
+    │   ├── server-route-design
+    │   ├── prerendered-content
+    │   ├── request-rendered-content
+    │   ├── route-metadata
+    │   ├── canonical-links
+    │   ├── browser-safe-services
+    │   ├── transfer-cache-policy
+    │   ├── hydration-checks
+    │   └── crawl-and-status-tests
+    ├── incremental-hydration-storefront
+    │   ├── render-mode-map
+    │   ├── deferred-product-sections
+    │   ├── viewport-and-interaction-hydration
+    │   ├── event-replay
+    │   ├── prefetch-policy
+    │   ├── image-loading-budget
+    │   ├── hydration-mismatch-cases
+    │   ├── slow-device-tests
+    │   └── user-timing-comparison
+    ├── offline-field-service-app
+    │   ├── service-worker-configuration
+    │   ├── indexeddb-model
+    │   ├── cached-task-list
+    │   ├── offline-status
+    │   ├── mutation-queue
+    │   ├── sync-conflict-screen
+    │   ├── draft-protection
+    │   ├── version-update-prompt
+    │   └── offline-browser-tests
+    ├── realtime-support-console
+    │   ├── authenticated-websocket
+    │   ├── connection-state-store
+    │   ├── event-deduplication
+    │   ├── missed-event-recovery
+    │   ├── ticket-routing
+    │   ├── presence-indicators
+    │   ├── reconnect-tests
+    │   ├── accessible-live-updates
+    │   └── cleanup-on-logout
+    ├── multi-tenant-enterprise-workspace
+    │   ├── tenant-route-resolution
+    │   ├── scoped-providers
+    │   ├── tenant-permissions
+    │   ├── cache-key-isolation
+    │   ├── branded-theme
+    │   ├── context-switch-cleanup
+    │   ├── cross-tenant-negative-tests
+    │   ├── ssr-isolation-tests
+    │   └── operational-audit
+    ├── schema-driven-form-engine
+    │   ├── validated-schema-format
+    │   ├── field-component-registry
+    │   ├── typed-field-contracts
+    │   ├── conditional-rules
+    │   ├── async-lookups
+    │   ├── safe-schema-versioning
+    │   ├── custom-control-adapters
+    │   ├── unknown-field-fallbacks
+    │   └── full-workflow-tests
+    ├── browser-worker-analytics
+    │   ├── worker-message-types
+    │   ├── large-dataset-processing
+    │   ├── transferable-buffers
+    │   ├── cancel-and-restart
+    │   ├── computation-progress
+    │   ├── signal-based-view-model
+    │   ├── main-thread-performance-test
+    │   ├── worker-failure-recovery
+    │   └── ssr-fallback
+    ├── angular-component-package
+    │   ├── public-api-design
+    │   ├── secondary-entrypoints
+    │   ├── provider-function-api
+    │   ├── material-theme-extension
+    │   ├── library-build
+    │   ├── package-tarball-test
+    │   ├── standalone-consumer-test
+    │   ├── zoneless-and-ssr-tests
+    │   └── release-changelog
+    ├── monorepo-platform-lab
+    │   ├── two-application-workspace
+    │   ├── shared-ui-library
+    │   ├── shared-domain-library
+    │   ├── dependency-boundary-rules
+    │   ├── affected-test-pipeline
+    │   ├── cache-input-validation
+    │   ├── code-generation-task
+    │   ├── consumer-contract-tests
+    │   └── versioned-release
+    ├── legacy-angular-modernization
+    │   ├── baseline-behavior-tests
+    │   ├── ngmodule-inventory
+    │   ├── standalone-migration
+    │   ├── control-flow-migration
+    │   ├── typed-forms-migration
+    │   ├── zone-dependency-audit
+    │   ├── vitest-migration
+    │   ├── deprecated-animation-replacement
+    │   └── production-canary-check
+    ├── production-resilience-lab
+    │   ├── chunk-load-failure-simulation
+    │   ├── expired-session-during-edit
+    │   ├── hydration-error-investigation
+    │   ├── duplicate-request-reproduction
+    │   ├── memory-leak-reproduction
+    │   ├── telemetry-correlation
+    │   ├── recovery-actions
+    │   ├── regression-suite
+    │   └── incident-runbook
+    └── end-to-end-angular-capstone
+        ├── requirements-and-design
+        │   ├── business-scope
+        │   ├── user-journeys
+        │   ├── domain-and-api-contracts
+        │   ├── route-and-component-map
+        │   ├── state-and-provider-ownership
+        │   ├── accessibility-and-localization-plan
+        │   └── rendering-and-deployment-decisions
+        ├── implementation
+        │   ├── standalone-feature-modules
+        │   ├── typed-component-contracts
+        │   ├── signals-and-rxjs-data-flow
+        │   ├── secure-backend-integration
+        │   ├── advanced-form-workflows
+        │   ├── accessible-design-system
+        │   └── ssr-and-offline-boundaries
+        └── validation-and-delivery
+            ├── component-and-contract-tests
+            ├── browser-user-journeys
+            ├── threat-model-review
+            ├── tenant-and-session-isolation
+            ├── performance-and-hydration-profile
+            ├── ci-cd-and-monitoring
+            ├── recovery-drill
+            └── results-and-retrospective
